@@ -40,7 +40,6 @@ export const getUserProfileReducer = (state = initialState, action) => {
       return { ...state, loading: false, profile: action.payload };
     case GET_USER_PROFILE_FAIL:
       return { ...state, loading: false, error: action.payload };
-    // ... Other cases ...
     default:
       return state;
   }

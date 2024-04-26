@@ -1,31 +1,37 @@
 import React, { useState, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { View, Text, TextInput, Button, ScrollView, TouchableOpacity } from "react-native";
+import { useLocation } from "react-router-dom";
+import { Form, Button, Col, Row } from "react-bootstrap";
 import Loader from "../Loader";
 import Message from "../Message";
 import { editReview } from "../../actions/orderActions";
 
-const EditReviewScreen = ({ navigation, route }) => {
+function EditReviewScreen({ history, match }) {
   const dispatch = useDispatch();
 
   const [rating, setRating] = useState(0);
   const [comment, setComment] = useState("");
 
-  const userLogin = useSelector((state) => state.userLogin);
-  const { userInfo } = userLogin;
+  // const reviewId = match.params.reviewId;
 
-  useEffect(() => {
-    if (!userInfo) {
-      navigation.navigate("Login");
-    }
-  }, [userInfo, navigation]);
-
-  const { reviewId } = route.params;
+  const location = useLocation();
+  //   const { pathname } = location;
+  //   const order_id = pathname.split("/edit-review/")[1];
+  const query = new URLSearchParams(location.search);
+  const reviewId = query.get("reviewId");
+  console.log("reviewId:", reviewId);
 
   const reviewEdit = useSelector((state) => state.orderEditReview);
   const { loading, success, error } = reviewEdit;
 
-  const submitHandler = () => {
+  useEffect(() => {
+    // Fetch the review details here and populate the fields
+    // You might need to implement this based on your backend API structure
+    // Example: dispatch(fetchReviewDetails(reviewId));
+  }, [dispatch, reviewId]);
+
+  const submitHandler = (e) => {
+    e.preventDefault();
     dispatch(editReview(reviewId, rating, comment));
     setRating("");
     setComment("");
@@ -34,81 +40,60 @@ const EditReviewScreen = ({ navigation, route }) => {
   useEffect(() => {
     if (success) {
       const timer = setTimeout(() => {
-        navigation.navigate("Dashboard");
+        history.push("/dashboard");
       }, 3000);
       return () => clearTimeout(timer);
     }
-  }, [success, navigation]);
+  }, [success, history]);
 
   return (
-    <ScrollView>
-      <View style={styles.container}>
-        <Text style={styles.title}>Edit Review</Text>
-        {loading && <Loader />}
-        {error && <Message variant="danger">{error}</Message>}
-        {success && <Message variant="success">Review updated successfully!</Message>}
-        <View style={styles.inputContainer}>
-          <Text>Rating</Text>
-          <TextInput
-            style={styles.input}
-            placeholder="Rating"
-            value={rating.toString()}
-            onChangeText={(value) => setRating(parseFloat(value))}
-          />
-        </View>
+    <div>
+      <Row className="justify-content-center">
+        <Col xs={12} md={6}>
+          <h2 className="text-center">Edit Review</h2>
+          {loading && <Loader />}
+          {error && <Message variant="danger">{error}</Message>}
+          {success && (
+            <Message variant="success">Review updated successfully!</Message>
+          )}
+          <Form onSubmit={submitHandler}>
+            <Form.Group controlId="rating">
+              <Form.Label>Rating</Form.Label>
+              <Form.Control
+                as="select"
+                value={rating}
+                onChange={(e) => setRating(e.target.value)}
+              >
+                <option value="1">1 - Poor</option>
+                <option value="1.5">1.5</option>
+                <option value="2">2 - Fair</option>
+                <option value="2.5">2.5</option>
+                <option value="3">3 - Good</option>
+                <option value="3.5">3.5</option>
+                <option value="4">4 - Very Good</option>
+                <option value="4.5">4.5</option>
+                <option value="5">5 - Excellent</option>
+              </Form.Control>
+            </Form.Group>
 
-        <View style={styles.inputContainer}>
-          <Text>Comment</Text>
-          <TextInput
-            style={styles.input}
-            placeholder="Comment"
-            value={comment}
-            onChangeText={(value) => setComment(value)}
-          />
-        </View>
-        <TouchableOpacity style={styles.button} onPress={submitHandler}>
-          <Text style={styles.buttonText}>Update Review</Text>
-        </TouchableOpacity>
-      </View>
-    </ScrollView>
+            <Form.Group controlId="comment">
+              <Form.Label>Comment</Form.Label>
+              <Form.Control
+                required
+                as="textarea"
+                row="3"
+                value={comment}
+                onChange={(e) => setComment(e.target.value)}
+              ></Form.Control>
+            </Form.Group>
+            <Button className="w-100 rounded" type="submit" variant="success">
+              Update Review
+            </Button>
+          </Form>
+        </Col>
+      </Row>
+    </div>
   );
-};
+}
 
 export default EditReviewScreen;
-
-const styles = {
-  container: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-    padding: 20,
-  },
-  title: {
-    fontSize: 24,
-    marginBottom: 20,
-  },
-  inputContainer: {
-    width: "100%",
-    marginBottom: 10,
-  },
-  input: {
-    width: "100%",
-    height: 40,
-    borderColor: "#ccc",
-    borderWidth: 1,
-    borderRadius: 5,
-    paddingHorizontal: 10,
-  },
-  button: {
-    backgroundColor: "#007bff",
-    paddingVertical: 10,
-    paddingHorizontal: 20,
-    borderRadius: 5,
-    marginBottom: 10,
-  },
-  buttonText: {
-    color: "#fff",
-    fontSize: 16,
-    fontWeight: "bold",
-  },
-};

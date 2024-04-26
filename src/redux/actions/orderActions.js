@@ -47,8 +47,7 @@ import {
   ORDER_EDIT_REVIEW_FAIL,
 } from "../constants/orderConstants";
 
-import { API_URL } from "../../config/apiConfig";
-// const API_URL = process.env.REACT_APP_API_URL;
+const API_URL = process.env.REACT_APP_API_URL;
 
 export const createOrder = (order) => async (dispatch, getState) => {
   try {
@@ -476,7 +475,7 @@ export const addReview =
         payload: data,
       });
       window.location.reload();
-      window.location.href = "/dashboard/users";
+      window.location.href = "/dashboard";
     } catch (error) {
       dispatch({
         type: ORDER_ADD_REVIEW_FAIL,
@@ -517,7 +516,7 @@ export const editReview =
         payload: data,
       });
       window.location.reload();
-      window.location.href = "/dashboard/users";
+      window.location.href = "/dashboard";
     } catch (error) {
       dispatch({
         type: ORDER_EDIT_REVIEW_FAIL,

@@ -1,10 +1,9 @@
 // ReferralScreen.js
 import React, { useState } from "react";
-import { View, Text, TextInput, Button } from "react-native";
 import { useSelector, useDispatch } from "react-redux";
 import { referUser } from "../actions/referralActions";
 
-const ReferralScreen = () => {
+function ReferralScreen() {
   const dispatch = useDispatch();
   const { referralCode, referralError } = useSelector((state) => state.referral);
 
@@ -15,24 +14,24 @@ const ReferralScreen = () => {
   };
 
   return (
-    <View style={{ padding: 16 }}>
-      <Text style={{ fontSize: 24, marginBottom: 16 }}>Refer a Friend</Text>
-      {referralError && <Text>Error: {referralError}</Text>}
+    <div>
+      <h2>Refer a Friend</h2>
+      {referralError && <p>Error: {referralError}</p>}
       {referralCode ? (
-        <Text>Referral code: {referralCode}</Text>
+        <p>Referral code: {referralCode}</p>
       ) : (
         <>
-          <TextInput
+          <input
+            type="text"
             placeholder="Enter friend's referral code"
             value={referralInput}
-            onChangeText={setReferralInput}
-            style={{ borderWidth: 1, borderColor: "gray", marginBottom: 16, padding: 8 }}
+            onChange={(e) => setReferralInput(e.target.value)}
           />
-          <Button title="Refer" onPress={referUserHandler} />
+          <button onClick={referUserHandler}>Refer</button>
         </>
       )}
-    </View>
+    </div>
   );
-};
+}
 
 export default ReferralScreen;

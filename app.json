@@ -2,7 +2,7 @@
   "expo": {
     "name": "react-native-paysofter",
     "slug": "paysofter",
-    "version": "1.0.0",
+    "version": "2.0.1",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
@@ -20,14 +20,25 @@
     "runtimeVersion": {
       "policy": "sdkVersion"
     },
-    "android": {
-      "adaptiveIcon": {
-        "foregroundImage": "./assets/adaptive-icon.png",
-        "backgroundColor": "#ffffff"
-      },
-      "package": "com.jondebosco.paysofter",
-      "enableProguardInReleaseBuilds": true
-    },
+    "plugins": [
+      [
+        "expo-build-properties",
+        {
+          "android": {
+            "usesCleartextTraffic": true,
+            "adaptiveIcon": {
+              "foregroundImage": "./assets/adaptive-icon.png",
+              "backgroundColor": "#ffffff"
+            },
+            "versionCode": 3,
+            "package": "com.jondebosco.paysofter"
+          },
+          "ios": {
+            "supportsTablet": true
+          }
+        }
+      ]
+    ],
     "web": {
       "favicon": "./assets/favicon.png"
     },
@@ -36,6 +47,9 @@
         "projectId": "b43e265d-3654-40ee-8765-72aa66655601"
       }
     },
-    "owner": "jondebosco"
+    "owner": "jondebosco",
+    "android": {
+      "package": "com.jondebosco.paysofter"
+    }
   }
 }

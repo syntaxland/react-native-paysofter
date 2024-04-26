@@ -4,98 +4,88 @@ import { thunk } from "redux-thunk";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
 import {
-  productListReducers,
-  productDetailsReducers,
-  saveProductReducer,
-  userFavoriteProductsReducer,
-  userViewedProductsReducer,
-  removeProductReducer,
-  updateProductSaveCountReducer,
-  viewedProductReducer,
-  recommendedProductsReducer,
-  productSearchReducer,
-} from "./reducers/productReducers";
-import { cartReducer } from "./reducers/cartReducers";
-import { userLoginReducers } from "./reducers/userReducers";
-import { userRegisterReducers } from "./reducers/userReducers";
+  userTransactionReducer,
+  createTransactionReducer,
+} from "./reducers/transactionReducers";
+import { userPayoutReducer } from "./reducers/payoutReducers";
+
 import {
-  marketplaceSellerAccountReducer,
-  marketplaceSellerPhotoReducer,
+  userLoginReducers,
+  userRegisterReducers,
+  updateUserLastLoginReducer,
+} from "./reducers/userReducers";
+
+import {
+  selecteCurrencyReducer,
+  getSelectedCurrencyReducer,
+} from "./reducers/settingsReducers";
+
+import {
+  messagingReducer,
+  sendEmailReducer,
+  clearMessageCounterReducer,
+  getUserMessagesReducer,
+} from "./reducers/messagingReducers";
+
+import {
+  sellerAccountReducer,
   getSellerAccountReducer,
+  createBusinessStatusReducer,
+  getBusinessStatusReducer,
+  updateBusinessStatusReducer,
   updateSellerAccountReducer,
+  getBusinessOwnerDetailsReducer,
+  updateBusinessOwnerDetailsReducer,
+  getBankAccountReducer,
+  updateBankAccountReducer,
+  getSellerBvnReducer,
+  updateSellerBvnReducer,
   getSellerPhotoReducer,
   updateSellerPhotoReducer,
-  postFreeAdReducer,
-  postPaidAdReducer,
-  getFreeAdReducer,
-  updateFreeAdReducer,
-  getAllFreeAdReducer,
-  getPaidAdReducer,
-  updatePaidAdReducer,
-  getAllPaidAdReducer,
-  deleteFreeAdReducer,
-  deletePaidAdReducer,
-  getFreeAdDetailReducer,
-  getSellerApiKeyReducer,
-  updateSellerApiKeyReducer,
-  getPaidAdDetailReducer,
-  createPaidAdMessageReducer,
-  editPaidAdReducer,
-  deactivatePaidAdReducer,
-  reactivatePaidAdReducer,
-  deactivateFreeAdReducer,
-  getSellerActivePaidAdsReducer,
-  getSellerActiveFreeAdsReducer,
-  reactivateFreeAdReducer,
-  editFreeAdReducer,
-  getSellerUsernameSearchReducer,
-  searchAdsReducer,
-  getSellerShopfrontLinkReducer,
-  getSellerDetailReducer,
-  listPaidAdMessageReducer,
-  createFreeAdMessageReducer,
-  listFreeAdMessageReducer,
-} from "./reducers/marketplaceSellerReducers";
+  businessOwnerDetailReducer,
+  sellerBankAccountReducer,
+  sellerBvnReducer,
+  sellerPhotoReducer,
+} from "./reducers/sellerReducers";
 
 import {
-  orderCreateReducer,
-  shipmentSaveReducer,
-  userShipmentsReducer,
-  allUserShipmentsReducer,
-  orderListReducer,
-  allOrderListReducer,
-  orderDeleteReducer,
-  orderItemsListReducer,
-  confirmDeliveryReducer,
-  // shippingAddressReducer,
-  reviewListReducer,
-  orderAddReviewReducer,
-  orderEditReviewReducer,
-} from "./reducers/orderReducers";
+  fundAccountReducer,
+  getUserAccountFundDebitsReducer,
+  getAllAccountFundBalanceReducer,
+  activateAccountFundReducer,
+  getUserUsdAccountFundBalanceReducer,
+  toggleUsdAccountFundReducer,
+  fundUsdAccountReducer,
+  getUserAccountFundCreditsReducer,
+  toggleAccountFundReducer,
+  disableAccountFundReducer,
+  verifyOtpAccountFundReducer,
+  setMaxFundReducer,
+  setMaxUsdFundReducer,
+  getUserAccountBalanceReducer,
+  userAccountFundListReducer,
+  getUserUsdAccountFundCreditsReducer,
+  getUserUsdAccountFundDebitsReducer,
+} from "./reducers/AccountFundReducers";
 
 import {
-  getPaymentApiKeysReducer,
-  paymentCreateReducer,
-  paysofterPaymentCreateReducer,
-  debitPaysofterAccountReducer,
-  debitPaysofterUsdAccountReducer,
-  createPaysofterPromiseReducer,
-  paymentListReducer,
-  listAllPaymentsReducer,
-} from "./reducers/paymentReducers";
+  cancelPromiseReducer,
+  getAllPromiseReducer,
+  settleDisputedPromiseReducer,
+  getBuyerpromiseReducer,
+  getSellerPromiseReducer,
+  buyerConfirmPromiseReducer,
+  sellerConfirmPromiseReducer,
+  // createPromiseMessagesReducer,
+  buyerCreatePromiseMessageReducer,
+  sellerCreatePromiseMessageReducer,
+  // listPromiseMessagesReducer,
+  listBuyerPromiseMessagesReducer,
+  listSellerPromiseMessagesReducer,
+  buyerClearPromiseMessageReducer,
+  sellerClearPromiseMessageReducer,
+} from "./reducers/PromiseReducers";
 
-import { favoriteReducer } from "./reducers/favoriteReducers";
-import {
-  createSupportTicketReducer,
-  createSupportMessageReducer,
-  listSupportTicketReducer,
-  listSupportMessageReducer,
-  replySupportTicketReducer,
-  listSupportTicketReplyReducer,
-  ticketDetailListReducer,
-  allTicketListReducer,
-  allTicketResponseReducer,
-} from "./reducers/supportReducers";
 import {
   getUserProfileReducer,
   changePasswordReducer,
@@ -109,129 +99,127 @@ import {
 import {
   emailOtpSendReducer,
   emailOtpVerifyReducer,
-  emailOtpResendReducer,
 } from "./reducers/emailOtpReducers";
 
 import {
-  otpSendReducer,
-  otpVerifyReducer,
-  otpVerifyUsdPromiseReducer,
-} from "./reducers/accountFundOtpReducers";
-
-import {
-  buyCreditPointReducer,
-  sellCreditPointReducer,
-  getBuyCreditPointReducer,
-  getBuyerCreditPointReducer,
-  getSellCreditPointReducer,
-  creditPointRequestCreateReducer,
-  creditPointListReducer,
-  creditPointAllListReducer,
   creditPointBalanceReducer,
-  creditPointEarningsReducer,
-  userCreditPointPaymentsReducer,
-  allCreditPointPaymentsReducer,
+  creditPointRequestCreateReducer,
 } from "./reducers/creditPointReducers";
 
-import { messagingReducer, emailReducer } from "./reducers/messagingReducers";
 import {
-  // chatReducer,
-  chatRoomsReducer,
-  chatMessagesReducer,
-} from "./reducers/chatReducers";
-import {
-  referralReducer,
-  referralButtonReducer,
-  getUserReferralsReducer,
-  applyPomoCodeReducer,
-  createPromoCodeReducer,
-  promoProductListReducer,
-} from "./reducers/promoReducer";
+  createSupportTicketReducer,
+  createSupportMessageReducer,
+  listSupportTicketReducer,
+  listSupportMessageReducer,
+  replySupportTicketReducer,
+  adminReplySupportTicketReducer,
+  listSupportTicketReplyReducer,
+  ticketDetailListReducer,
+  allTicketListReducer,
+  allTicketResponseReducer,
+  clearUserSupportMsgCounterReducer,
+  clearAdminSupportMsgCounterReducer,
+} from "./reducers/supportReducers";
 
 import {
   feedbackCreateReducer,
   feedbackListReducer,
 } from "./reducers/feedbackReducers";
 
-const rootReducer = combineReducers({
-  productList: productListReducers,
-  productDetails: productDetailsReducers,
-  productSave: saveProductReducer,
-  userFavoriteProducts: userFavoriteProductsReducer,
-  userViewedProducts: userViewedProductsReducer,
-  viewedProduct: viewedProductReducer,
-  productRemove: removeProductReducer,
-  updateProductSaveCount: updateProductSaveCountReducer,
-  recommendedProducts: recommendedProductsReducer,
-  productSearch: productSearchReducer,
+import { referralReducer } from "./reducers/promoReducer";
+import { orderListReducer } from "./reducers/orderReducers"; 
 
-  cart: cartReducer,
+const rootReducer = combineReducers({
   userLogin: userLoginReducers,
   userRegister: userRegisterReducers,
-
-  orderCreate: orderCreateReducer,
-  shipmentSave: shipmentSaveReducer,
-  userShipments: userShipmentsReducer,
-  allUserShipments: allUserShipmentsReducer,
-  orderItemsList: orderItemsListReducer,
-  confirmDelivery: confirmDeliveryReducer,
-  // shippingAddress: shippingAddressReducer,
-
-  reviewList: reviewListReducer,
-  orderAddReview: orderAddReviewReducer,
-  orderEditReview: orderEditReviewReducer,
-
-  buyCreditPointState: buyCreditPointReducer,
-  sellCreditPointState: sellCreditPointReducer,
-  getBuyCreditPointState: getBuyCreditPointReducer,
-  getBuyerCreditPointState: getBuyerCreditPointReducer,
-  getSellCreditPointState: getSellCreditPointReducer,
-  creditPointRequestCreate: creditPointRequestCreateReducer,
-  creditPointList: creditPointListReducer,
-  creditPointAllList: creditPointAllListReducer,
-  creditPointBal: creditPointBalanceReducer,
-  userCreditPointPayments: userCreditPointPaymentsReducer,
-  allCreditPointPayments: allCreditPointPaymentsReducer,
-  creditPointEarningState: creditPointEarningsReducer,
-
-  orderList: orderListReducer,
-  allOrderList: allOrderListReducer,
-  orderDelete: orderDeleteReducer,
-
-  getPaymentApiKeysState: getPaymentApiKeysReducer,
-  paymentCreate: paymentCreateReducer,
-  paysofterPayment: paysofterPaymentCreateReducer,
-  debitPaysofterAccountState: debitPaysofterAccountReducer,
-  debitPaysofterUsdAccountState: debitPaysofterUsdAccountReducer,
-  createPaysofterPromiseState: createPaysofterPromiseReducer,
-  paymentList: paymentListReducer,
-  listAllPayments: listAllPaymentsReducer,
-
-  favorites: favoriteReducer,
+  updateUserLastLoginState: updateUserLastLoginReducer,
 
   emailOtpSend: emailOtpSendReducer,
   emailOtpVerify: emailOtpVerifyReducer,
-  emailOtpResend: emailOtpResendReducer,
 
-  otpSendState: otpSendReducer,
-  otpVerifyState: otpVerifyReducer,
-  otpVerifyUsdPromiseState: otpVerifyUsdPromiseReducer,
   userProfile: getUserProfileReducer,
   updateProfile: updateUserProfileReducer,
   userChangePassword: changePasswordReducer,
   deleteProfile: deleteUserProfileReducer,
   updateUserAvatar: updateUserAvatarReducer,
-
   sendPasswordResetLink: sendPasswordResetLinkReducer,
   resetPassword: resetPasswordReducer,
+  referral: referralReducer,
 
-  messaging: messagingReducer,
-  emailMessaging: emailReducer,
-  // chat: chatReducer,
-  chatRooms: chatRoomsReducer,
-  chatMessages: chatMessagesReducer,
+  userTransactions: userTransactionReducer,
+  createTransactionState: createTransactionReducer,
+  userPayouts: userPayoutReducer,
+
+  fundAccountState: fundAccountReducer,
+  getUserAccountFundDebitsState: getUserAccountFundDebitsReducer,
+  getAllAccountFundBalanceState: getAllAccountFundBalanceReducer,
+  activateAccountFundState: activateAccountFundReducer,
+
+  getUserUsdAccountFundBalanceState: getUserUsdAccountFundBalanceReducer,
+  toggleUsdAccountFundState: toggleUsdAccountFundReducer,
+  fundUsdAccountState: fundUsdAccountReducer,
+
+  getUserUsdAccountFundCreditsState: getUserUsdAccountFundCreditsReducer,
+  getUserUsdAccountFundDebitsState: getUserUsdAccountFundDebitsReducer,
+
+  getUserAccountFundCreditsState: getUserAccountFundCreditsReducer,
+  toggleAccountFundState: toggleAccountFundReducer,
+  disableAccountFundState: disableAccountFundReducer,
+  verifyOtpAccountFundState: verifyOtpAccountFundReducer,
+  setMaxFundState: setMaxFundReducer,
+  setMaxUsdFundState: setMaxUsdFundReducer,
+  userAccountBalanceState: getUserAccountBalanceReducer,
+  userAccountFundListState: userAccountFundListReducer,
+  getBuyerPromiseState: getBuyerpromiseReducer,
+  getSellerPromiseState: getSellerPromiseReducer,
+  buyerConfirmPromiseState: buyerConfirmPromiseReducer,
+  sellerConfirmPromiseState: sellerConfirmPromiseReducer,
+
+  cancelPromiseState: cancelPromiseReducer,
+  getAllPromiseState: getAllPromiseReducer,
+  settleDisputedPromiseState: settleDisputedPromiseReducer,
+  // createPromiseMessageState: createPromiseMessagesReducer,
+  buyerCreatePromiseMessageState: buyerCreatePromiseMessageReducer,
+  sellerCreatePromiseMessageState: sellerCreatePromiseMessageReducer,
+  // listPromiseMessageState: listPromiseMessagesReducer,
+
+  listBuyerPromiseMessagesState: listBuyerPromiseMessagesReducer,
+  listSellerPromiseMessagesState: listSellerPromiseMessagesReducer,
+  buyerClearPromiseMessageState: buyerClearPromiseMessageReducer,
+  sellerClearPromiseMessageState: sellerClearPromiseMessageReducer,
+
+  creditPointBal: creditPointBalanceReducer,
+  creditPointRequestCreate: creditPointRequestCreateReducer,
+
+  createSellerAccountState: sellerAccountReducer,
+  getSellerAccountState: getSellerAccountReducer,
+  updateSellerAccountState: updateSellerAccountReducer,
+
+  createBusinessStatusState: createBusinessStatusReducer,
+  getBusinessStatusState: getBusinessStatusReducer,
+  updateBusinessStatusState: updateBusinessStatusReducer,
+
+  getBusinessOwnerDetailsState: getBusinessOwnerDetailsReducer,
+  updateBusinessOwnerDetailsState: updateBusinessOwnerDetailsReducer,
+  getBankAccountState: getBankAccountReducer,
+  updateBankAccountState: updateBankAccountReducer,
+  getSellerBvnState: getSellerBvnReducer,
+  updateSellerBvnState: updateSellerBvnReducer,
+  getSellerPhotoState: getSellerPhotoReducer,
+  updateSellerPhotoState: updateSellerPhotoReducer,
+
+  businessOwnerDetailState: businessOwnerDetailReducer,
+  sellerBankAccountState: sellerBankAccountReducer,
+  sellerBvnState: sellerBvnReducer,
+  sellerPhotoState: sellerPhotoReducer,
+
+  orderList: orderListReducer,
+
+  selecteCurrencyState: selecteCurrencyReducer,
+  getSelectedCurrencyState: getSelectedCurrencyReducer,
 
   createSupportTicketState: createSupportTicketReducer,
+  adminReplySupportTicketState: adminReplySupportTicketReducer,
   createSupportMessageState: createSupportMessageReducer,
   listSupportTicketState: listSupportTicketReducer,
   listSupportMessageState: listSupportMessageReducer,
@@ -240,72 +228,30 @@ const rootReducer = combineReducers({
   ticketDetailList: ticketDetailListReducer,
   allTicketList: allTicketListReducer,
   allTicketResponse: allTicketResponseReducer,
+  clearUserSupportMsgCounterState: clearUserSupportMsgCounterReducer,
+  clearAdminSupportMsgCounterState: clearAdminSupportMsgCounterReducer,
+
   feedbackCreate: feedbackCreateReducer,
   feedbackList: feedbackListReducer,
 
-  referral: referralReducer,
-  referralButton: referralButtonReducer,
-  userReferralState: getUserReferralsReducer,
-  applyPomoCodeState: applyPomoCodeReducer,
-  createPromoCodeState: createPromoCodeReducer,
-  promoProductList: promoProductListReducer,
-
-  marketplaceSellerState: marketplaceSellerAccountReducer,
-  marketplaceSellerPhotoState: marketplaceSellerPhotoReducer,
-  getSellerAccountState: getSellerAccountReducer,
-  updateSellerAccountState: updateSellerAccountReducer,
-  getSellerPhotoState: getSellerPhotoReducer,
-  updateSellerPhotoState: updateSellerPhotoReducer,
-  postFreeAdState: postFreeAdReducer,
-  postPaidAdState: postPaidAdReducer,
-
-  getFreeAdState: getFreeAdReducer,
-  updateFreeAdState: updateFreeAdReducer,
-  getAllFreeAdState: getAllFreeAdReducer,
-  getPaidAdState: getPaidAdReducer,
-  updatePaidAdState: updatePaidAdReducer,
-  getAllPaidAdState: getAllPaidAdReducer,
-  deleteFreeAdState: deleteFreeAdReducer,
-  deletePaidAdState: deletePaidAdReducer,
-
-  getFreeAdDetailState: getFreeAdDetailReducer,
-  getSellerApiKeyState: getSellerApiKeyReducer,
-  updateSellerApiKeyState: updateSellerApiKeyReducer,
-  getPaidAdDetailState: getPaidAdDetailReducer,
-
-  editPaidAdState: editPaidAdReducer,
-  deactivatePaidAdState: deactivatePaidAdReducer,
-  reactivatePaidAdState: reactivatePaidAdReducer,
-
-  deactivateFreeAdState: deactivateFreeAdReducer,
-  getSellerActivePaidAdsState: getSellerActivePaidAdsReducer,
-  getSellerActiveFreeAdsState: getSellerActiveFreeAdsReducer,
-  reactivateFreeAdState: reactivateFreeAdReducer,
-  editFreeAdState: editFreeAdReducer,
-
-  getSellerUsernameSearchState: getSellerUsernameSearchReducer,
-  searchAdsState: searchAdsReducer,
-  getSellerShopfrontLinkState: getSellerShopfrontLinkReducer,
-  getSellerDetailState: getSellerDetailReducer,
-
-  createPaidAdMessageState: createPaidAdMessageReducer,
-  listPaidAdMessageState: listPaidAdMessageReducer,
-  createFreeAdMessageState: createFreeAdMessageReducer,
-  listFreeAdMessageState: listFreeAdMessageReducer,
+  messagingState: messagingReducer,
+  sendEmailState: sendEmailReducer,
+  clearMessageCounterState: clearMessageCounterReducer,
+  getUserMessagesState: getUserMessagesReducer,
 });
 
 // Function to initialize the store asynchronously
 export const initializeStore = async () => {
-  // Get cartItems from AsyncStorage
-  const getCartItems = async () => {
-    try {
-      const cartItems = await AsyncStorage.getItem("cartItems");
-      return cartItems ? JSON.parse(cartItems) : [];
-    } catch (error) {
-      console.error("Error getting cart items from AsyncStorage:", error);
-      return [];
-    }
-  };
+  // // Get cartItems from AsyncStorage
+  // const getCartItems = async () => {
+  //   try {
+  //     const cartItems = await AsyncStorage.getItem("cartItems");
+  //     return cartItems ? JSON.parse(cartItems) : [];
+  //   } catch (error) {
+  //     console.error("Error getting cart items from AsyncStorage:", error);
+  //     return [];
+  //   }
+  // };
 
   // Get userInfo from AsyncStorage
   const getUserInfo = async () => {
@@ -331,7 +277,7 @@ export const initializeStore = async () => {
 
   // Initial state with data from AsyncStorage
   const initialState = {
-    cart: { cartItems: await getCartItems() },
+    // cart: { cartItems: await getCartItems() },
     userLogin: { userInfo: await getUserInfo() },
     userRegister: { registerData: await getUserRegisterData() },
   };

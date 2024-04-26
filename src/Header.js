@@ -29,8 +29,8 @@ const Header = () => {
 
   const userLogin = useSelector((state) => state.userLogin);
   const { userInfo } = userLogin;
-  const cart = useSelector((state) => state.cart);
-  const { cartItems } = cart;
+  // const cart = useSelector((state) => state.cart);
+  // const { cartItems } = cart;
 
   useEffect(() => {
     if (userInfo) {
@@ -119,7 +119,7 @@ const Header = () => {
             </TouchableOpacity>
           )}
 
-          <TouchableOpacity onPress={() => navigation.navigate("Cart")}>
+          {/* <TouchableOpacity onPress={() => navigation.navigate("Cart")}>
             <View style={styles.cartIcon}>
               <FontAwesomeIcon
                 icon={faCartPlus}
@@ -132,7 +132,7 @@ const Header = () => {
                 <Text style={styles.cartCount}>{cartItems.length}</Text>
               )}
             </View>
-          </TouchableOpacity>
+          </TouchableOpacity> */}
         </View>
       </View>
     </SafeAreaView>

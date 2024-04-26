@@ -1,64 +1,92 @@
-// LiveChat.js
-import React, {  } from "react";
-import { Button, Row, Col } from "react-bootstrap";
-import { useHistory } from "react-router-dom";
-import ChatBot from "react-simple-chatbot";
+import React, { useEffect, useState } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
+import { connectChat, sendMessage } from '../actions/chatActions';
 
-function LiveChat() {
-  const history = useHistory();
+const LiveChat = () => {
+  const dispatch = useDispatch();
+  const chat = useSelector((state) => state.chat);
+  const [message, setMessage] = useState('');
+  const { connected, messages, error } = chat;
 
-  const handleLiveChat = () => {
-    history.push("/live-chat");
+  useEffect(() => {
+    dispatch(connectChat());
+  }, [dispatch]);
+
+  const handleSendMessage = () => {
+    if (message.trim() !== '') {
+      dispatch(sendMessage(message));
+      setMessage('');
+    }
   };
 
   return (
-    <Row>
-      <Col>
-        <div className="py-3">
-          {/* <ChatBot steps={chatbotSteps} opened={true} /> */}
-          <div>
-            <ChatBot
-              steps={[
-                {
-                  id: "0",
-                  message:
-                    "Welcome to our chatbot! I'm Mc, how can I assist you today?",
-                  trigger: "1",
-                },
-                {
-                  id: "1",
-                  message: "What do you want to know?",
-                  trigger: "2",
-                },
-                {
-                  id: "2",
-                  user: true,
-                  trigger: "3",
-                },
-                {
-                  id: "3",
-                  message:
-                    "Great! Click the button below to chat with one of our available agents online.",
-                  end: true,
-                },
-              ]}
-            />
+    <div className="live-chat-container">
+      {connected ? (
+        <div>
+          <div className="message-list">
+            {messages.map((msg, index) => (
+              <div key={index} className="message">
+                {msg.content}
+              </div>
+            ))}
           </div>
-
-          <div className="d-flex justify-content-center mt-5 py-3">
-            <span>Want to chat with our available agent online?</span>{" "}
-            <Button
-              variant="danger"
-              onClick={handleLiveChat}
-              className="rounded"
-            >
-              Chat Now
-            </Button>
+          <div className="message-input">
+            <input
+              type="text"
+              placeholder="Type your message..."
+              value={message}
+              onChange={(e) => setMessage(e.target.value)}
+            />
+            <button onClick={handleSendMessage}>Send</button>
           </div>
         </div>
-      </Col>
-    </Row>
+      ) : (
+        <div>Loading...</div>
+      )}
+    </div>
   );
-}
+};
 
 export default LiveChat;
+
+
+// import React, { useEffect } from 'react';
+// import { useDispatch, useSelector } from 'react-redux';
+// import { connectChat, sendMessage, receiveMessage } from '../actions/chatActions';
+// import MessageList from './MessageList';
+// import MessageInput from './MessageInput';
+
+// const LiveChatScreen = () => {
+//   const dispatch = useDispatch();
+//   const chat = useSelector((state) => state.chat);
+//   const { connected, messages, error } = chat;
+
+//   useEffect(() => {
+//     // Connect to the WebSocket server when the component mounts
+//     dispatch(connectChat());
+
+//     // Cleanup when the component unmounts
+//     return () => {
+//       // Disconnect from the WebSocket server if needed
+//       // Implement disconnectChat action if necessary
+//     };
+//   }, [dispatch]);
+
+//   const handleSendMessage = (message) => {
+//     // Send the message to the WebSocket server
+//     dispatch(sendMessage(message));
+//   };
+
+//   return (
+//     <div>
+//       <h1>Live Chat</h1>
+//       {error && <div className="error">{error}</div>}
+//       {!connected && <div className="info">Connecting...</div>}
+//       {connected && <div className="info">Connected</div>}
+//       <MessageList messages={messages} />
+//       <MessageInput onSendMessage={handleSendMessage} />
+//     </div>
+//   );
+// };
+
+// export default LiveChatScreen;

@@ -1,48 +1,31 @@
-import React, { useState, useEffect } from "react";
-import {
-  View,
-  Text,
-  TextInput,
-  Button,
-  TouchableOpacity,
-  ScrollView,
-  SafeAreaView,
-} from "react-native";
-import { FontAwesomeIcon } from "@fortawesome/react-native-fontawesome";
-import { faArrowLeft } from "@fortawesome/free-solid-svg-icons";
-import { useNavigation, useRoute } from "@react-navigation/native";
+// ShipmentScreen.js
+import React, { useState } from "react";
+import { Form, Button, Row, Col } from "react-bootstrap";
+// import { useLocation } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
-import { saveShipment } from "../../redux/actions/orderActions";
-import Loader from "../../Loader";
-import Message from "../../Message";
-import { styles } from "../screenStyles";
+import { saveShipment } from "../../actions/orderActions"; 
+import Message from "../Message";
+import Loader from "../Loader";
 
-const ShipmentScreen = () => {
+const ShipmentScreen = ({ history, match }) => {
   const dispatch = useDispatch();
-  const navigation = useNavigation();
-  const route = useRoute();
 
-  const userLogin = useSelector((state) => state.userLogin);
-  const { userInfo } = userLogin;
-
-  useEffect(() => {
-    if (!userInfo) {
-      navigation.navigate("Login");
-    }
-  }, [userInfo, navigation]);
-
-  const { loading, success, error } = useSelector(
-    (state) => state.shipmentSave
-  );
+  const { loading, error } = useSelector((state) => state.shipmentSave);
 
   const [address, setAddress] = useState("");
   const [city, setCity] = useState("");
   const [postalCode, setPostalCode] = useState("");
   const [country, setCountry] = useState("");
 
-  const order_id = route.params.id;
+  const order_id = match.params.id;
 
-  const submitHandler = () => {
+  //   const location = useLocation();
+  //   const { pathname } = location;
+  //   const order_id = pathname.split("/shipment/")[1];
+
+  const submitHandler = async (e) => {
+    e.preventDefault();
+
     const shipmentData = {
       address,
       city,
@@ -50,77 +33,76 @@ const ShipmentScreen = () => {
       country,
       order_id,
     };
-    dispatch(saveShipment(shipmentData));
-    navigation.navigate("Payment", { order_id });
+    console.log("shipmentData:", shipmentData);
+
+    try {
+      // Dispatch saveShipment action to save shipping address
+      await dispatch(saveShipment(shipmentData));
+
+      // Redirect to PaymentScreen with the order ID
+      history.push(`/payment/${order_id}`);
+    } catch (error) {
+      console.log("Error saving shipment:", error);
+    }
   };
 
-  useEffect(() => {
-    if (success) {
-      // navigation.navigate('Payment', { order_id });
-    }
-  }, [success, navigation, order_id]);
-
   return (
-    <SafeAreaView style={styles.safeArea}>
-      <TouchableOpacity onPress={() => navigation.goBack()}>
-        <Text style={styles.goBackIcon}>
-          <FontAwesomeIcon
-            // size={24}
-            color="blue"
-            icon={faArrowLeft}
-          />{" "}
-          {/* Go Back */}
-          Previous
-        </Text>
-      </TouchableOpacity>
-
-      <ScrollView>
-        <View style={styles.container}>
-          <Text style={styles.title}>Shipping Address</Text>
+    <Row>
+      <div className="d-flex justify-content-center">
+        <Col md={6}>
+          <h1 className="text-center py-2">Shipping Address</h1>
           {error && <Message variant="danger">{error}</Message>}
           {loading && <Loader />}
-          {success && (
-            <Message variant="success">Shipment created successfully!</Message>
-          )}
-          <TextInput
-            style={styles.input}
-            placeholder="Enter address"
-            value={address}
-            onChangeText={setAddress}
-          />
-          <TextInput
-            style={styles.input}
-            placeholder="Enter city"
-            value={city}
-            onChangeText={setCity}
-          />
-          <TextInput
-            style={styles.input}
-            placeholder="Enter postal code"
-            value={postalCode}
-            onChangeText={setPostalCode}
-          />
-          <TextInput
-            style={styles.input}
-            placeholder="Enter country"
-            value={country}
-            onChangeText={setCountry}
-          />
-          <Button
-            title="Proceed to Payment"
-            onPress={submitHandler}
-            disabled={
-              address === "" ||
-              city === "" ||
-              postalCode === "" ||
-              country === "" ||
-              loading ||
-              success
-            }
-          />
-        </View>
-      </ScrollView>
-    </SafeAreaView> 
+          <Form onSubmit={submitHandler}>
+            <Form.Group controlId="address">
+              <Form.Label>Address</Form.Label>
+              <Form.Control
+                type="text"
+                placeholder="Enter address"
+                value={address}
+                onChange={(e) => setAddress(e.target.value)}
+                required
+              />
+            </Form.Group>
+            <Form.Group controlId="city">
+              <Form.Label>City</Form.Label>
+              <Form.Control
+                type="text"
+                placeholder="Enter city"
+                value={city}
+                onChange={(e) => setCity(e.target.value)}
+                required
+              />
+            </Form.Group>
+            <Form.Group controlId="postalCode">
+              <Form.Label>Postal Code</Form.Label>
+              <Form.Control
+                type="text"
+                placeholder="Enter postal code"
+                value={postalCode}
+                onChange={(e) => setPostalCode(e.target.value)}
+                required
+              />
+            </Form.Group>
+            <Form.Group controlId="country">
+              <Form.Label>Country</Form.Label>
+              <Form.Control
+                type="text"
+                placeholder="Enter country"
+                value={country}
+                onChange={(e) => setCountry(e.target.value)}
+                required
+              />
+            </Form.Group>
+            <div className="text-center py-2">
+              <Button type="submit" className="w-100 rounded" variant="success">
+                Proceed to Payment
+              </Button>
+            </div>
+          </Form>
+        </Col>
+      </div>
+    </Row>
   );
 };
 

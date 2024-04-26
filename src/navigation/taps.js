@@ -9,7 +9,7 @@ export const HomeTabs = () => {
   return (
     <Tab.Navigator
       screenOptions={({ route }) => ({
-        headerShown: false,
+        headerShown: false, 
         tabBarStyle: {
           backgroundColor: "#0f172a",
         },

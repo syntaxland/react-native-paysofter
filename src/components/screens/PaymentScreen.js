@@ -1,74 +1,65 @@
 // PaymentScreen.js
 import React, { useEffect, useState } from "react";
-import {
-  View,
-  Text,
-  TouchableOpacity,
-  ScrollView,
-  SafeAreaView,
-  Modal,
-  // Button ,
-} from "react-native";
-import { FontAwesomeIcon } from "@fortawesome/react-native-fontawesome";
-import { faArrowLeft, faInfoCircle } from "@fortawesome/free-solid-svg-icons";
-import { useNavigation, useRoute } from "@react-navigation/native";
-import { useSelector } from "react-redux";
-import PaystackPayment from "../payment/PaystackPayment";
-// import Paysofter from "../payment/Paysofter";
-import { styles } from "../screenStyles";
+import { Button, Row, Col } from "react-bootstrap";
+import { useHistory, useLocation } from "react-router-dom";
+import axios from "axios";
+import { useDispatch, useSelector } from "react-redux";
+// import Loader from "../Loader";
+// import Message from "../Message";
+import { clearCart } from "../../actions/cartActions";
+import { createPayment } from "../../actions/paymentActions";
+// import ApplyPromoCode from "../ApplyPromoCode";
+import Paystack from "../payment/Paystack";
+import Paysofter from "../payment/Paysofter";
+import Stripe from "../payment/Stripe";
 
-import axios from 'axios';
-import { API_URL } from "../../config/apiConfig"; 
+const API_URL = process.env.REACT_APP_API_URL;
 
-const PaymentScreen = () => {
-  const navigation = useNavigation();
-  const route = useRoute();
-  const order_id = route.params.id;
-
-  
+function PaymentScreen() {
   const userLogin = useSelector((state) => state.userLogin);
   const { userInfo } = userLogin;
 
-  useEffect(() => {
-    if (!userInfo) {
-      navigation.navigate("Login"); 
-    }
-  }, [userInfo, navigation]);
+  const history = useHistory();
+  const dispatch = useDispatch();
 
-   const cart = useSelector((state) => state.cart);
-  const { cartItems } = cart;
-
-  const applyPomoCodeState = useSelector((state) => state.applyPomoCodeState);
-  const { promoDiscount, discountPercentage } = applyPomoCodeState;
-  // console.log(
-  //   "Paystack promoDiscount:",
-  //   promoDiscount,
-  //   "discountPercentage:",
-  //   discountPercentage
-  // );
-
-  // const shipmentSave = JSON.parse(localStorage.getItem("shipmentData")) || [];
-  // console.log("shipmentSave:", shipmentSave);
-
-  const [paysofterPublicKey, setPaysofterPublicKey] = useState("");
-  const [paystackPublicKey, setPaystackPublicKey] = useState("");
+  const [publicKey, setPublicKey] = useState("");
   const [reference, setReference] = useState("");
   const userEmail = userInfo.email;
 
+  const location = useLocation();
+  const { pathname } = location;
+  const order_id = pathname.split("/payment/")[1];
+
+  const paymentCreate = useSelector((state) => state.paymentCreate);
+  const { success } = paymentCreate;
+
+  const applyPomoCodeState = useSelector((state) => state.applyPomoCodeState);
+  const { promoDiscount, discountPercentage } = applyPomoCodeState;
+  console.log(
+    "Paystack promoDiscount:",
+    promoDiscount,
+    "discountPercentage:",
+    discountPercentage
+  );
   const [selectedPaymentGateway, setSelectedPaymentGateway] = useState(null);
-  const [showInfoModal, setShowInfoModal] = useState(false);
 
-  const handleInfoModalShow = () => {
-    setShowInfoModal(true);
-  };
+  const shipmentSave = useSelector((state) => state.shipmentSave);
+  // const { loading: shipmentLoading, error: shipmentError } = shipmentSave;
+  // const { address, city, country } = useSelector(
+  //   (state) => state.shipmentSave
+  // );
+  console.log("shipmentSave:", shipmentSave);
 
-  const handleInfoModalClose = () => {
-    setShowInfoModal(false);
-  };
+  const cart = useSelector((state) => state.cart);
+  const { cartItems } = cart;
 
-  
-  
-   const itemsPrice = cartItems.reduce(
+  useEffect(() => {
+    if (success) {
+      history.push("/");
+    }
+  }, [success, history]);
+
+  const itemsPrice = cartItems.reduce(
     (acc, item) => acc + item.qty * item.price,
     0
   );
@@ -82,17 +73,19 @@ const PaymentScreen = () => {
   const totalPrice = itemsPrice + shippingPrice + taxPrice;
 
   const promoTotalPrice = totalPrice - promoDiscount;
-  // console.log(
-  //   "totalPrice:",
-  //   totalPrice,
-  //   "promoDiscount:",
-  //   promoDiscount,
-  //   "promoTotalPrice:",
-  //   promoTotalPrice
-  // );
+  console.log(
+    "totalPrice:",
+    totalPrice,
+    "promoDiscount:",
+    promoDiscount,
+    "promoTotalPrice:",
+    promoTotalPrice
+  );
 
   const finalItemsPrice = itemsPrice - promoDiscount;
   console.log("finalItemsPrice:", finalItemsPrice);
+
+  // const createdAt = new Date().toISOString();
 
   useEffect(() => {
     const getPaymentDetails = async () => {
@@ -101,12 +94,11 @@ const PaymentScreen = () => {
           `${API_URL}/api/get-payment-details/`,
           {
             headers: {
-              Authorization: `Bearer ${userInfo.access}`, 
+              Authorization: `Bearer ${userInfo.access}`,
             },
           }
         );
-        setPaysofterPublicKey(response.data.paysofterPublicKey);
-        setPaystackPublicKey(response.data.paystackPublicKey);
+        setPublicKey(response.data.publicKey);
         setReference(response.data.reference);
       } catch (error) {
         console.log(error);
@@ -119,101 +111,477 @@ const PaymentScreen = () => {
     fetchData();
   }, [userInfo.access]);
 
+  const onSuccess = (reference) => {
+    handlePayment(reference);
+    dispatch(clearCart());
+    history.push("/");
+  };
+
+  const onClose = () => {
+    console.log("Payment closed.");
+    history.push("/");
+  };
+
+  const handlePayment = async (reference) => {
+    try {
+      const paymentData = {
+        reference: reference,
+        order_id: order_id,
+        amount: totalPrice,
+        email: userEmail,
+
+        items_amount: itemsPrice,
+        final_items_amount: finalItemsPrice,
+        promo_code_discount_amount: promoDiscount,
+        promo_code_discount_percentage: discountPercentage,
+        final_total_amount: promoTotalPrice,
+      };
+
+      const response = await dispatch(createPayment(paymentData));
+
+      if (response && response.reference) {
+        // Save the order_id, reference, amount, and email to backend
+        await axios.post(`${API_URL}/api/create-payment/`, paymentData);
+      }
+    } catch (error) {
+      console.log("Error handling payment:", error);
+    }
+  };
+
   const handlePaymentGatewaySelection = (paymentGateway) => {
     setSelectedPaymentGateway(paymentGateway);
   };
 
-  const paymentData = {
-    reference,
-    order_id,
-    totalPrice,
-    taxPrice,
-    userEmail,
-    shippingPrice,
-    itemsPrice,
-    finalItemsPrice,
-    promoDiscount,
-    discountPercentage,
-    promoTotalPrice,
-    // publicKey,
-    paystackPublicKey,
-    paysofterPublicKey,
-    // shipmentSave,
-  };
-  console.log("paymentData:", paymentData);
-
   return (
-    <SafeAreaView style={styles.safeArea}>
-      <TouchableOpacity onPress={() => navigation.goBack()}>
-        <Text style={styles.goBackIcon}>
-          <FontAwesomeIcon color="blue" icon={faArrowLeft} /> Previous
-        </Text>
-      </TouchableOpacity>
+    <>
+      <Row>
+        <div className="d-flex justify-content-center ">
+          <Col md={6}>
+            <h1 className="text-center py-2">Payment Page</h1>
 
-      <ScrollView>
-        <View style={styles.container}>
-          <Text style={styles.title}>Payment Page</Text>
-          {/* Render payment gateway buttons */}
-          <TouchableOpacity
-            style={styles.button}
-            onPress={() => handlePaymentGatewaySelection("paystack")}
-          >
-            <Text style={styles.buttonText}>Pay with Paystack</Text>
-          </TouchableOpacity>
-          
-          <TouchableOpacity
-            style={styles.button}
-            onPress={() => handlePaymentGatewaySelection("paysofter")}
-          >
-            <Text style={styles.buttonText}>Pay with Paysofter</Text>
-          </TouchableOpacity>
-          {/* Render other payment gateway buttons */}
-          {/* Add modals or additional components here */}
-          {selectedPaymentGateway === "paystack" && (
-            <PaystackPayment paymentData={paymentData} />
-          )}
+            {/* {loading && <Loader />}
+            {error && <Message variant="danger">{error}</Message>}
+            <ListGroup variant="flush">
+              {cartItems.map((item) => (
+                <ListGroup.Item key={item.product}>
+                  <Row>
+                    <Col md={4}>
+                      <img
+                        src={item.image}
+                        alt={item.name}
+                        className="img-fluid"
+                      />
+                    </Col>
+                    <Col md={8}>
+                      <p>{item.name}</p>
+                      <p>
+                        {item.qty} x NGN {item.price} = NGN{" "}
+                        {item.qty * item.price}
+                      </p>
+                    </Col>
+                  </Row>
+                </ListGroup.Item>
+              ))}
+              <ListGroup.Item>Order ID: {order_id}</ListGroup.Item>
+              <ListGroup.Item>
+                Shipping Address: {shipmentSave.address}, {shipmentSave.city},{" "}
+                {shipmentSave.country}
+              </ListGroup.Item>
+              <ListGroup.Item>
+                Shipping Cost: NGN{" "}
+                {shippingPrice.toLocaleString(undefined, {
+                  minimumFractionDigits: 2,
+                  maximumFractionDigits: 2,
+                })}
+              </ListGroup.Item>
+              <ListGroup.Item>
+                Tax: NGN{" "}
+                {taxPrice.toLocaleString(undefined, {
+                  minimumFractionDigits: 2,
+                  maximumFractionDigits: 2,
+                })}
+              </ListGroup.Item>
+              <ListGroup.Item>
+                Total Amount: NGN{" "}
+                {totalPrice.toLocaleString(undefined, {
+                  minimumFractionDigits: 2,
+                  maximumFractionDigits: 2,
+                })}
+              </ListGroup.Item>
 
-          {/* {selectedPaymentGateway === "paysofter" && (
-            <Paysofter
-              // paymentData={paymentData}
-              reference={reference}
-              order_id={order_id}
-              userEmail={userEmail}
-              paysofterPublicKey={paysofterPublicKey}
-            />
-          )} */}
+              <ListGroup.Item>
+                Promo Discount: NGN{" "}
+                {promoDiscount ? (
+                  <span>
+                    {promoDiscount.toLocaleString(undefined, {
+                      minimumFractionDigits: 2,
+                      maximumFractionDigits: 2,
+                    })}{" "}
+                    ({discountPercentage}%)
+                  </span>
+                ) : (
+                  <span>NGN 0</span>
+                )}
+              </ListGroup.Item>
+              <ListGroup.Item>
+                Final Total Amount: NGN{" "}
+                {promoTotalPrice ? (
+                  <span>
+                    {promoTotalPrice.toLocaleString(undefined, {
+                      minimumFractionDigits: 2,
+                      maximumFractionDigits: 2,
+                    })}
+                  </span>
+                ) : (
+                  <span>
+                    {totalPrice.toLocaleString(undefined, {
+                      minimumFractionDigits: 2,
+                      maximumFractionDigits: 2,
+                    })}
+                  </span>
+                )}
+              </ListGroup.Item>
+              <ListGroup.Item>Timestamp: {createdAt}</ListGroup.Item>
+            </ListGroup>
+            <div className="text-center py-2">
+              <ApplyPromoCode order_id={order_id} />
+            </div> */}
 
-          {/* Modal for Paysofter Account Info */}
-          <Modal
-            animationType="slide"
-            transparent={true}
-            visible={showInfoModal}
-            onRequestClose={handleInfoModalClose}
-          >
-            <View style={styles.modalContainer}>
-              <View style={styles.modalContent}>
-                <Text style={styles.modalTitle}>Paysofter Account</Text>
-                <Text style={styles.modalText}>
-                  Don't have a Paysofter account? You're just about 3 minutes
-                  away! Sign up for a much softer payment experience.
-                </Text>
-                <TouchableOpacity
-                  onPress={() => handleInfoModalShow()}
-                  style={styles.modalButton}
+            <div className="text-center py-2">
+              <div className="text-center py-2">
+                <Button
+                  variant="success"
+                  onClick={() => handlePaymentGatewaySelection("paystack")}
+                  className="mr-2 rounded w-100"
                 >
-                  {/* <Text style={styles.modalButtonText}>Close</Text> */}
-                  <Text>Show Info Modal</Text>
-
-                  <FontAwesomeIcon color="white" icon={faInfoCircle} />
-                </TouchableOpacity>
-              </View>
-            </View>
-          </Modal>
-        </View>
-      </ScrollView>
-    </SafeAreaView>
+                  Pay with Paystack
+                </Button>
+              </div>
+              <Row className="text-center py-2">
+                <Col md={9}>
+                  <Button
+                    variant="success"
+                    onClick={() => handlePaymentGatewaySelection("paysofter")}
+                    className="mr-2 rounded w-100"
+                  >
+                    Pay with Paysofter
+                  </Button>
+                </Col>
+                <Col md={3}>
+                  <Button variant="outline"><i className="fa fa-info-circle"></i></Button>
+                </Col>
+              </Row>
+              <div className="text-center py-2">
+                <Button
+                  variant="success"
+                  onClick={() => handlePaymentGatewaySelection("stripe")}
+                  className="mr-2 rounded w-100"
+                >
+                  Pay with Stripe
+                </Button>
+              </div>
+            </div>
+            {selectedPaymentGateway === "paystack" && (
+              <Paystack
+                onPaymentSuccess={onSuccess}
+                onClose={onClose}
+                amount={promoTotalPrice * 100}
+                userEmail={userEmail}
+                publicKey={publicKey}
+                reference={reference}
+              />
+            )}
+            {selectedPaymentGateway === "paysofter" && (
+              <Paysofter
+                onPaymentSuccess={onSuccess}
+                onClose={onClose}
+                amount={promoTotalPrice * 100}
+                userEmail={userEmail}
+              />
+            )}
+            {selectedPaymentGateway === "stripe" && (
+              <Stripe
+                onPaymentSuccess={onSuccess}
+                onClose={onClose}
+                amount={promoTotalPrice * 100}
+                userEmail={userEmail}
+              />
+            )}
+          </Col>
+        </div>
+      </Row>
+    </>
   );
-};
+}
 
 export default PaymentScreen;
 
+// import React, { useEffect, useState } from "react";
+// import { Button, Row, Col, ListGroup } from "react-bootstrap";
+// import { useHistory, useLocation } from "react-router-dom";
+// import { PaystackButton } from "react-paystack";
+// import axios from "axios";
+// import { useDispatch, useSelector } from "react-redux";
+// import Loader from "../Loader";
+// import Message from "../Message";
+// import { clearCart } from "../../actions/cartActions";
+// import { createPayment } from "../../actions/paymentActions";
+// import ApplyPromoCode from "../ApplyPromoCode";
+
+// const API_URL = process.env.REACT_APP_API_URL;
+
+// function PaymentScreen() {
+//   const userLogin = useSelector((state) => state.userLogin);
+//   const { userInfo } = userLogin;
+
+//   const history = useHistory();
+//   const dispatch = useDispatch();
+
+//   const [publicKey, setPublicKey] = useState("");
+//   const [reference, setReference] = useState("");
+//   const userEmail = userInfo.email;
+
+//   const location = useLocation();
+//   const { pathname } = location;
+//   const order_id = pathname.split("/payment/")[1];
+
+//   const paymentCreate = useSelector((state) => state.paymentCreate);
+//   const { loading, success, error } = paymentCreate;
+
+//   const applyPomoCodeState = useSelector((state) => state.applyPomoCodeState);
+//   const { promoDiscount, discountPercentage } = applyPomoCodeState;
+//   console.log(
+//     "PaymentScreen promoDiscount:",
+//     promoDiscount,
+//     "discountPercentage:",
+//     discountPercentage
+//   );
+
+//   const shipmentSave = useSelector((state) => state.shipmentSave);
+//   // const { loading: shipmentLoading, error: shipmentError } = shipmentSave;
+//   // const { address, city, country } = useSelector(
+//   //   (state) => state.shipmentSave
+//   // );
+//   console.log("shipmentSave:", shipmentSave);
+
+//   const cart = useSelector((state) => state.cart);
+//   const { cartItems } = cart;
+
+//   useEffect(() => {
+//     if (success) {
+//       history.push("/");
+//     }
+//   }, [success, history]);
+
+//   const itemsPrice = cartItems.reduce(
+//     (acc, item) => acc + item.qty * item.price,
+//     0
+//   );
+
+//   const shippingPrice = cartItems.length > 0 ? 1000 : 0;
+//   const taxPrice = cartItems.reduce(
+//     (acc, item) => acc + item.qty * item.price * 0.1,
+//     0
+//   );
+
+//   const totalPrice = itemsPrice + shippingPrice + taxPrice;
+
+//   const promoTotalPrice = totalPrice - promoDiscount;
+//   console.log(
+//     "totalPrice:",
+//     totalPrice,
+//     "promoDiscount:",
+//     promoDiscount,
+//     "promoTotalPrice:",
+//     promoTotalPrice
+//   );
+
+//   const finalItemsPrice = itemsPrice - promoDiscount;
+//   console.log(
+//     "finalItemsPrice:",
+//     finalItemsPrice,
+
+//   );
+
+//   const createdAt = new Date().toISOString();
+
+//   useEffect(() => {
+//     const getPaymentDetails = async () => {
+//       try {
+//         const response = await axios.get(
+//           `${API_URL}/api/get-payment-details/`,
+//           {
+//             headers: {
+//               Authorization: `Bearer ${userInfo.access}`,
+//             },
+//           }
+//         );
+//         setPublicKey(response.data.publicKey);
+//         setReference(response.data.reference);
+//       } catch (error) {
+//         console.log(error);
+//       }
+//     };
+
+//     const fetchData = async () => {
+//       await getPaymentDetails();
+//     };
+//     fetchData();
+//   }, [userInfo.access]);
+
+//   const onSuccess = (reference) => {
+//     handlePayment(reference);
+//     dispatch(clearCart());
+//     history.push("/");
+//   };
+
+//   const onClose = () => {
+//     console.log("Payment closed.");
+//     history.push("/");
+//   };
+
+//   const handlePayment = async (reference) => {
+//     try {
+//       const paymentData = {
+//         reference: reference,
+//         order_id: order_id,
+//         amount: totalPrice,
+//         email: userEmail,
+
+//         items_amount: itemsPrice,
+//         final_items_amount: finalItemsPrice,
+//         promo_code_discount_amount: promoDiscount,
+//         promo_code_discount_percentage: discountPercentage,
+//         final_total_amount: promoTotalPrice,
+//       };
+
+//       const response = await dispatch(createPayment(paymentData));
+
+//       if (response && response.reference) {
+//         // Save the order_id, reference, amount, and email to backend
+//         await axios.post(`${API_URL}/api/create-payment/`, paymentData);
+//       }
+//     } catch (error) {
+//       console.log("Error handling payment:", error);
+//     }
+//   };
+
+//   const paymentObject = {
+//     publicKey: publicKey,
+//     email: userEmail,
+//     reference: reference,
+//     amount: promoTotalPrice * 100,
+//     // amount: totalPrice * 100,
+//     currency: "NGN",
+//     // order_id: order_id,
+//     onSuccess: onSuccess,
+//     onClose: onClose,
+//   };
+
+//   return (
+//     <>
+//       <Row>
+//         <div className="d-flex justify-content-center ">
+//           <Col md={6}>
+//             <h1 className="text-center py-2">Payment Page</h1>
+//             {loading && <Loader />}
+//             {error && <Message variant="danger">{error}</Message>}
+//             <ListGroup variant="flush">
+//               {cartItems.map((item) => (
+//                 <ListGroup.Item key={item.product}>
+//                   <Row>
+//                     <Col md={4}>
+//                       <img
+//                         src={item.image}
+//                         alt={item.name}
+//                         className="img-fluid"
+//                       />
+//                     </Col>
+//                     <Col md={8}>
+//                       <p>{item.name}</p>
+//                       <p>
+//                         {item.qty} x NGN {item.price} = NGN{" "}
+//                         {item.qty * item.price}
+//                       </p>
+//                     </Col>
+//                   </Row>
+//                 </ListGroup.Item>
+//               ))}
+//               <ListGroup.Item>Order ID: {order_id}</ListGroup.Item>
+//               <ListGroup.Item>
+//                 Shipping Address: {shipmentSave.address}, {shipmentSave.city},{" "}
+//                 {shipmentSave.country}
+//               </ListGroup.Item>
+//               <ListGroup.Item>
+//                 Shipping Cost: NGN{" "}
+//                 {shippingPrice.toLocaleString(undefined, {
+//                   minimumFractionDigits: 2,
+//                   maximumFractionDigits: 2,
+//                 })}
+//               </ListGroup.Item>
+//               <ListGroup.Item>
+//                 Tax: NGN{" "}
+//                 {taxPrice.toLocaleString(undefined, {
+//                   minimumFractionDigits: 2,
+//                   maximumFractionDigits: 2,
+//                 })}
+//               </ListGroup.Item>
+//               <ListGroup.Item>
+//                 Total Amount: NGN{" "}
+//                 {totalPrice.toLocaleString(undefined, {
+//                   minimumFractionDigits: 2,
+//                   maximumFractionDigits: 2,
+//                 })}
+//               </ListGroup.Item>
+
+//               <ListGroup.Item>
+//                 Promo Discount: NGN{" "}
+//                 {promoDiscount ? (
+//                   <span>
+//                     {promoDiscount.toLocaleString(undefined, {
+//                       minimumFractionDigits: 2,
+//                       maximumFractionDigits: 2,
+//                     })}{" "}
+//                     ({discountPercentage}%)
+//                   </span>
+//                 ) : (
+//                   <span>NGN 0</span>
+//                 )}
+//               </ListGroup.Item>
+//               <ListGroup.Item>
+//                 Final Total Amount: NGN{" "}
+//                 {promoTotalPrice ? (
+//                   <span>
+//                     {promoTotalPrice.toLocaleString(undefined, {
+//                       minimumFractionDigits: 2,
+//                       maximumFractionDigits: 2,
+//                     })}
+//                   </span>
+//                 ) : (
+//                   <span>
+//                     {totalPrice.toLocaleString(undefined, {
+//                       minimumFractionDigits: 2,
+//                       maximumFractionDigits: 2,
+//                     })}
+//                   </span>
+//                 )}
+//               </ListGroup.Item>
+//               <ListGroup.Item>Timestamp: {createdAt}</ListGroup.Item>
+
+//             </ListGroup>
+//             <div className="text-center py-2">
+//               <ApplyPromoCode order_id={order_id} />
+//             </div>
+//             <div className="text-center py-2">
+//               <PaystackButton {...paymentObject}>
+//                 <Button className="w-100 rounded" variant="primary">Pay Now</Button>
+//               </PaystackButton>
+//             </div>
+//           </Col>
+//         </div>
+//       </Row>
+//     </>
+//   );
+// }
+
+// export default PaymentScreen;

@@ -1,24 +1,58 @@
 // AdminDashboard.js
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Row, Col, Container, Button } from "react-bootstrap";
 // import { Link } from "react-router-dom";
+import { useSelector, useDispatch } from "react-redux";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faBars, faTimes } from "@fortawesome/free-solid-svg-icons";
-import Orders from "./Orders";
-import Payments from "./Payments";
-import OrderShipment from "./OrderShipment";
+import { useHistory } from "react-router-dom";
+import { listAllSupportTickets } from "../../redux/actions/supportActions";
+import PaysofterPromise from "./PaysofterPromise";
+import AccountFund from "./AccountFund";
+// import OrderShipment from "./OrderShipment";
 import SendMessage from "./SendMessage";
 import MessageInbox from "./MessageInbox";
 import SendEmail from "./SendEmail";
 import Dashboard from "./Dashboard";
-import CreditPoint from "./CreditPoint";
-import SetPromoCode from "./SetPromoCode";
-import PromoTimer from "./ApplyPromoCode";
-// import LiveChat from "./LiveChat";
+// import CreditPoint from "./CreditPoint";
+// import SetPromoCode from "./SetPromoCode";
+import Feedbacks from "./Feedbacks";
 import SupportTicket from "./SupportTicket";
-import Feedback from "./Feedback";
 
-function AdminDashboard({ history }) {
+function AdminDashboard() {
+  const dispatch = useDispatch();
+  const history = useHistory();
+
+  const userLogin = useSelector((state) => state.userLogin);
+  const { userInfo } = userLogin;
+  // console.log("userInfo:", userInfo);
+
+  // const userProfile = useSelector((state) => state.userProfile);
+  // const { profile } = userProfile;
+  // console.log("profile:", profile);
+
+  useEffect(() => {
+    if (!userInfo) {
+      window.location.href = "/login";
+    }
+  }, [userInfo]);
+
+  const allTicketList = useSelector(
+    (state) => state.allTicketList
+  );
+  const { tickets } = allTicketList;
+
+  const supportMsgCounted = tickets?.reduce(
+    (total, userMessages) => total + userMessages.admin_user_msg_count,
+    0
+  );
+
+  useEffect(() => {
+    if (userInfo) {
+      dispatch(listAllSupportTickets());
+    }
+  }, [dispatch, userInfo]);
+
   const [activeTab, setActiveTab] = useState("admin-dashboard");
   const [sidebarOpen, setSidebarOpen] = useState(true);
 
@@ -36,14 +70,14 @@ function AdminDashboard({ history }) {
 
   const renderTabContent = () => {
     switch (activeTab) {
-      case "orders":
-        return <Orders />;
+      case "all-promises":
+        return <PaysofterPromise />;
 
-      case "payments":
-        return <Payments />;
+      case "account-fund-balances":
+        return <AccountFund />;
 
-      case "order-shipment":
-        return <OrderShipment />;
+      // case "order-shipment":
+      //   return <OrderShipment />;
 
       case "send-message":
         return <SendMessage />;
@@ -54,20 +88,17 @@ function AdminDashboard({ history }) {
       case "send-email":
         return <SendEmail />;
 
-      case "credit-point-requests":
-        return <CreditPoint />;
+      // case "credit-point-requests":
+      //   return <CreditPoint />;
 
-      case "promo-code":
-        return <PromoTimer />;
+      // case "promo-code":
+      //   return <PromoTimer />;
 
-      case "set-promo-code":
-        return <SetPromoCode />;
+      case "feedbacks":
+        return <Feedbacks />;
 
       case "support-ticket":
         return <SupportTicket />;
-
-      case "feedback":
-        return <Feedback />;
 
       default:
         return <Dashboard />;
@@ -92,7 +123,9 @@ function AdminDashboard({ history }) {
               <div>
                 <Button
                   variant={
-                    activeTab === "admin-dashboard" ? "info" : "outline-info"
+                    activeTab === "admin-dashboard"
+                      ? "primary"
+                      : "outline-primary"
                   }
                   className="sidebar-link"
                   onClick={() => handleTabChange("admin-dashboard")}
@@ -102,38 +135,45 @@ function AdminDashboard({ history }) {
               </div>
               <div>
                 <Button
-                  variant={activeTab === "orders" ? "info" : "outline-info"}
+                  variant={
+                    activeTab === "all-promises" ? "primary" : "outline-primary"
+                  }
                   className="sidebar-link"
-                  onClick={() => handleTabChange("orders")}
+                  onClick={() => handleTabChange("all-promises")}
                 >
-                  <i className="fas fa-luggage-cart"></i> Orders
-                </Button>
-              </div>
-              <div>
-                <Button
-                  variant={activeTab === "payments" ? "info" : "outline-info"}
-                  className="sidebar-link"
-                  onClick={() => handleTabChange("payments")}
-                >
-                  <i className="fas fa-credit-card"></i> Payments
+                  <i className="fas fa-luggage-cart"></i> Paysofter Promise
                 </Button>
               </div>
               <div>
                 <Button
                   variant={
-                    activeTab === "order-shipment" ? "info" : "outline-info"
+                    activeTab === "account-fund-balances"
+                      ? "primary"
+                      : "outline-primary"
+                  }
+                  className="sidebar-link"
+                  onClick={() => handleTabChange("account-fund-balances")}
+                >
+                  <i className="fas fa-credit-card"></i> Account Fund
+                </Button>
+              </div>
+
+              {/* <div>
+                <Button
+                  variant={
+                    activeTab === "order-shipment" ? "primary" : "outline-primary"
                   }
                   className="sidebar-link"
                   onClick={() => handleTabChange("order-shipment")}
                 >
                   <i className="fas fa-shipping-fast"></i> Shipments
                 </Button>
-              </div>
+              </div> */}
 
               <div>
                 <Button
                   variant={
-                    activeTab === "send-message" ? "info" : "outline-info"
+                    activeTab === "send-message" ? "primary" : "outline-primary"
                   }
                   className="sidebar-link"
                   onClick={() => handleTabChange("send-message")}
@@ -144,7 +184,9 @@ function AdminDashboard({ history }) {
 
               <div>
                 <Button
-                  variant={activeTab === "send-email" ? "info" : "outline-info"}
+                  variant={
+                    activeTab === "send-email" ? "primary" : "outline-primary"
+                  }
                   className="sidebar-link"
                   onClick={() => handleTabChange("send-email")}
                 >
@@ -155,7 +197,9 @@ function AdminDashboard({ history }) {
               <div>
                 <Button
                   variant={
-                    activeTab === "message-inbox" ? "info" : "outline-info"
+                    activeTab === "message-inbox"
+                      ? "primary"
+                      : "outline-primary"
                   }
                   className="sidebar-link"
                   onClick={() => handleTabChange("message-inbox")}
@@ -168,8 +212,8 @@ function AdminDashboard({ history }) {
                 <Button
                   variant={
                     activeTab === "credit-point-requests"
-                      ? "info"
-                      : "outline-info"
+                      ? "primary"
+                      : "outline-primary"
                   }
                   className="sidebar-link"
                   onClick={() => handleTabChange("credit-point-requests")}
@@ -181,7 +225,9 @@ function AdminDashboard({ history }) {
               <div>
                 <Button
                   variant={
-                    activeTab === "set-promo-code" ? "info" : "outline-info"
+                    activeTab === "set-promo-code"
+                      ? "primary"
+                      : "outline-primary"
                   }
                   className="sidebar-link"
                   onClick={() => handleTabChange("set-promo-code")}
@@ -192,7 +238,7 @@ function AdminDashboard({ history }) {
 
               {/* <div>
                 <Button
-                  variant={activeTab === "promo-code" ? "info" : "outline-info"}
+                  variant={activeTab === "promo-code" ? "primary" : "outline-primary"}
                   className="sidebar-link"
                   onClick={() => handleTabChange("promo-code")}
                 >
@@ -202,38 +248,39 @@ function AdminDashboard({ history }) {
 
               <div>
                 <Button
-                  variant={activeTab === "feedback" ? "info" : "outline-info"}
+                  variant={
+                    activeTab === "support-ticket"
+                      ? "primary"
+                      : "outline-primary"
+                  }
                   className="sidebar-link"
-                  onClick={() => handleTabChange("feedback")}
+                  onClick={() => handleTabChange("support-ticket")}
                 >
-                  <i className="fa fa-comments"></i> Feedback
+                  <i className="fa fa-ticket"></i> Support Tickets{" "}
+                  {supportMsgCounted > 0 && (
+                    <span className="msg-counter">{supportMsgCounted}</span>
+                  )}
                 </Button>
               </div>
 
               <div>
                 <Button
                   variant={
-                    activeTab === "support-ticket" ? "info" : "outline-info"
+                    activeTab === "feedbacks" ? "primary" : "outline-primary"
                   }
                   className="sidebar-link"
-                  onClick={() => handleTabChange("support-ticket")}
+                  onClick={() => handleTabChange("feedbacks")}
                 >
-                  <i className="fa fa-ticket"></i> Support Ticket
+                  <i className="fa fa-ticket"></i> Feedbacks
                 </Button>
               </div>
-              <div>
-                <Button
-                  variant={activeTab === "live-chat" ? "info" : "outline-info"}
-                  className="sidebar-link"
-                  onClick={() => handleTabChange("live-chat")}
-                >
-                  <i className="fas fa-comments"></i> Live Chat
-                </Button>
-              </div>
+
               <div>
                 <Button
                   variant={
-                    activeTab === "admin-dashboard" ? "info" : "outline-info"
+                    activeTab === "admin-dashboard"
+                      ? "primary"
+                      : "outline-primary"
                   }
                   className="sidebar-link"
                   onClick={() => handleUserDashboard()}

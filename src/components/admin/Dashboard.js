@@ -1,12 +1,14 @@
 // Dashboard.js
 import React, { useEffect } from "react";
 import { useSelector, useDispatch } from "react-redux";
-// import { Link } from "react-router-dom";
+// import { useHistory } from "react-router-dom";
 import { Col, Row } from "react-bootstrap";
 import Message from "../Message";
 import Loader from "../Loader";
-import { getAllPaymentsList } from "../../actions/paymentActions";
-import { getAllOrders } from "../../actions/orderActions";
+import { getCreditPointBalance } from "../../redux/actions/creditPointActions";
+import { getUserTransactions } from "../../redux/actions/transactionActions";
+import { getUserAccountFundBalance } from "../../redux/actions/AccountFundActions";
+import { getUserPayouts } from "../../redux/actions/payoutActions";
 import { Line, Pie } from "react-chartjs-2";
 
 import {
@@ -21,6 +23,7 @@ import {
   PointElement,
   Title,
 } from "chart.js";
+// import ToggleAccountSettings from "../settings/ToggleAccountSettings";
 
 ChartJS.register(
   ArcElement,
@@ -35,59 +38,84 @@ ChartJS.register(
 );
 
 function Dashboard() {
+  // const [creditPointEarning, setCreditPointEarning] = useState(0);
   const dispatch = useDispatch();
+  // const history = useHistory();
 
-  const listAllPayments = useSelector((state) => state.listAllPayments);
-  const { 
-    loading: paymentLoading,
-    error: paymentError,
-    payments,
-  } = listAllPayments;
-  console.log("payments:", payments);
+  const userTransactions = useSelector((state) => state.userTransactions);
+  const {
+    loading: transactionLoading,
+    error: transactionError,
+    transactions,
+  } = userTransactions;
+  console.log("Transactions:", transactions);
 
-  const allOrderList = useSelector((state) => state.allOrderList);
-  const { loading: orderLoading, error: orderError, orders } = allOrderList;
-  console.log("Orders from state:", orders);
+  const creditPointBal = useSelector((state) => state.creditPointBal);
+  const {
+    loading: creditPointBalanceLoading,
+    error: creditPointBalanceError,
+    creditPointBalance,
+  } = creditPointBal;
+  console.log("Credit Point Balance:", creditPointBalance);
 
-  useEffect(() => {
-    dispatch(getAllPaymentsList());
-    dispatch(getAllOrders());
-  }, [dispatch]);
+  const userAccountBalanceState = useSelector(
+    (state) => state.userAccountBalanceState
+  );
+  const { loading, error, accountFundBalance } = userAccountBalanceState;
+  console.log("accountFundBalance:", accountFundBalance);
 
-  // const lineGraphData = {
-  //   labels: payments.map((payment) =>
-  //     new Date(payment.created_at).toLocaleString()
-  //   ),
-  //   datasets: [
-  //     {
-  //       label: "Amount Paid (NGN)",
-  //       fill: false,
-  //       borderColor: "rgba(75,192,192,1)",
-  //       borderWidth: 2,
-  //       data: payments.map((payment) => payment.amount),
-  //     },
-  //   ],
+  const userPayouts = useSelector((state) => state.userPayouts);
+  const { loading: payoutLoading, payouts, error: payoutError } = userPayouts;
+  console.log("User Dashboard Payouts:", payouts);
+
+  // const [showToggleAccountSettings, setShowToggleAccountSettings] =
+  //   useState(false);
+
+  // const [showDisableAccountSettings, setShowDisableAccountSettings] =
+  //   useState(false);
+
+  // const handleToggleFundOpen = () => {
+  //   setShowToggleAccountSettings(true);
   // };
 
+  // const handleDisableFundOpen = () => {
+  //   setShowDisableAccountSettings(true);
+  // };
+
+  // const handleDisableFundClose = () => {
+  //   setShowDisableAccountSettings(false);
+  // };
+
+  // const handleToggleFundClose = () => {
+  //   setShowToggleAccountSettings(false);
+  // };
+
+  useEffect(() => {
+    dispatch(getCreditPointBalance());
+    dispatch(getUserTransactions());
+    dispatch(getUserPayouts());
+    dispatch(getUserAccountFundBalance());
+  }, [dispatch]);
+
   const lineGraphData = {
-    labels: payments.map((payment) =>
-      new Date(payment.created_at).toLocaleString()
+    labels: transactions?.map((transaction) =>
+      new Date(transaction.timestamp).toLocaleString()
     ),
     datasets: [
       {
         label: "Amount Paid (NGN)",
         fill: false,
-        borderColor: "rgba(75,192,192,1)",
-        borderWidth: 2,
-        data: payments.map((payment) => payment.amount),
-        orderIds: payments.map((payment) => payment.order_id),
-        firstNames: payments.map((payment) => payment.first_name), 
+        bpayoutColor: "rgba(75,192,192,1)",
+        bpayoutWidth: 2,
+        data: transactions?.map((transaction) => transaction.amount),
+        transactionIds: transactions?.map(
+          (transaction) => transaction.payment_id
+        ),
       },
     ],
   };
-  
+
   const lineChartOptions = {
-    // ...
     plugins: {
       tooltip: {
         callbacks: {
@@ -95,10 +123,8 @@ function Dashboard() {
             const label = context.dataset.label || "";
             if (label) {
               const index = context.dataIndex;
-              const orderId = context.dataset.orderIds[index];
-              const firstName = context.dataset.firstNames[index];
-              // return `${label}: NGN ${context.formattedValue} (${orderId})`;
-              return `${label}: NGN ${context.formattedValue} - Order ID: ${orderId} - User: ${firstName}`;
+              const transactionId = context.dataset.transactionIds[index];
+              return `${label}: NGN ${context.formattedValue} (${transactionId})`;
             }
             return null;
           },
@@ -107,77 +133,88 @@ function Dashboard() {
     },
   };
 
-  const getTotalPayment = () => {
+  const getTotalTransaction = () => {
     let totalPayment = 0;
-    payments.forEach((payment) => {
-      totalPayment += parseFloat(payment.amount);
+
+    transactions.forEach((transaction) => {
+      totalPayment += parseFloat(transaction.amount);
     });
     return totalPayment;
   };
 
-  const totalPayment = getTotalPayment();
-  const creditPoints = totalPayment * 0.01;
-
-  console.log("totalPayment:", totalPayment, "creditPoints:", creditPoints);
+  // const creditPoints = creditPointBalance?.balance;
+  // const accountBalance = accountFundBalance?.balance;
 
   // const withdrawCreditPoints =
-  //   totalPayment >= 500000 ? (
+  //   creditPoints >= 1000 ? (
   //     <Link
   //       to={{
-  //         pathname: "/credit-point",
+  //         pathname: "/credit-point-request",
   //         search: `?creditPoints=${creditPoints}`,
   //       }}
   //     >
-  //       <Button variant="success" className="rounded" size="sm">
+  //       <Button variant="primary" className="rounded">
   //         Withdraw Points
   //       </Button>
   //     </Link>
   //   ) : (
   //     <p>
-  //       <Button variant="outline" className="rounded" size="sm" disabled>
-  //         Earned points mature from NGN 5000
+  //       <Button variant="danger" className="rounded" readOnly>
+  //         Maturity from NGN 1,000
   //       </Button>
   //     </p>
   //   );
 
-  const paidOrderRateData = {
+  // const handleFundAccount = () => {
+  //   history.push("/fund-account");
+  // };
+
+  // const handleFundAccountSettings = () => {
+  //   history.push("/toggle-fund");
+  // };
+
+  const paidPayoutRateData = {
     labels: [
-      `Paid Orders (${(
-        (orders.filter((order) => order.isPaid).length / orders.length) *
+      `Paid PayoutsPayouts (${(
+        (payouts?.filter((payout) => payout.is_paid)?.length /
+          payouts?.length) *
         100
       ).toFixed(1)}%)`,
-      `Unpaid Orders (${(
-        (orders.filter((order) => !order.isPaid).length / orders.length) *
+      `Unpaid PayoutsPayouts (${(
+        (payouts?.filter((payout) => !payout.is_paid)?.length /
+          payouts?.length) *
         100
       ).toFixed(1)}%)`,
     ],
     datasets: [
       {
         data: [
-          orders.filter((order) => order.isPaid).length,
-          orders.filter((order) => !order.isPaid).length,
+          payouts?.filter((payout) => payout.is_paid)?.length,
+          payouts?.filter((payout) => !payout.is_paid)?.length,
         ],
         backgroundColor: ["#1F77B4", "#FF6384"],
       },
     ],
   };
 
-  const unfulfilledOrderRateData = {
+  const unfulfilledPayoutRateData = {
     labels: [
-      `Delivered Orders (${(
-        (orders.filter((order) => order.is_delivered).length / orders.length) *
+      `Delivered Payouts (${(
+        (payouts?.filter((payout) => payout.is_approved)?.length /
+          payouts?.length) *
         100
       ).toFixed(1)}%)`,
-      `Undelivered Orders (${(
-        (orders.filter((order) => !order.is_delivered).length / orders.length) *
+      `Undelivered Payouts (${(
+        (payouts?.filter((payout) => !payout.is_approved)?.length /
+          payouts?.length) *
         100
       ).toFixed(1)}%)`,
     ],
     datasets: [
       {
         data: [
-          orders.filter((order) => order.is_delivered).length,
-          orders.filter((order) => !order.is_delivered).length,
+          payouts?.filter((payout) => payout.is_approved)?.length,
+          payouts?.filter((payout) => !payout.is_approved)?.length,
         ],
         backgroundColor: ["#008000", "#FFA500"],
       },
@@ -191,97 +228,398 @@ function Dashboard() {
 
   return (
     <div className="justify-content-center text-center">
-      <div>
-        {paymentLoading || orderLoading ? (
-          <Loader />
-        ) : paymentError || orderError ? (
-          <Message variant="danger">{paymentError || orderError}</Message>
-        ) : (
+      <Row>
+        <Col>
           <div>
-            <Row>
-              <Col>
-                <div>
-                  <div className="bar-chart">
-                    <h2 className="pt-4">Total Payments (All Users)</h2>
-                    <div className="bar">
-                      <div
-                        className="bar-fill"
-                        style={{
-                          width: `${(getTotalPayment() / 100) * 200}px`,
-                        }}
-                      ></div>
-                    </div>
-                    <p>
-                      NGN{" "}
-                      {getTotalPayment().toLocaleString(undefined, {
-                        minimumFractionDigits: 2,
-                        maximumFractionDigits: 2,
-                      })}
-                    </p>
-                  </div>
-                </div>
-                <hr />
-                <div className="line-graph mt-4">
-                  <h2 className="py-3">Payments (All Users)</h2>
-                  <Line data={lineGraphData} options={lineChartOptions}/>
-                </div>
-              </Col>
-              <hr />
-              <div className="mt-4 py-3">
-                <h2 className="py-3">Orders (All Users)</h2>
+            {loading ||
+            creditPointBalanceLoading ||
+            transactionLoading ||
+            payoutLoading ? (
+              <Loader />
+            ) : error ||
+              creditPointBalanceError ||
+              transactionError ||
+              payoutError ? (
+              <Message variant="danger">
+                {error ||
+                  creditPointBalanceError ||
+                  transactionError ||
+                  payoutError}
+              </Message>
+            ) : (
+              <div>
                 <Row>
                   <Col>
-                    <h5 className="py-3">Paid Order Rate</h5>
-                    <div className="chart-container">
-                      <Pie
-                        data={paidOrderRateData}
-                        options={pieChartOptions}
-                        width={200}
-                        height={200}
-                      />
+                    <div>
+                      <div className="bar-chart">
+                        <h2 className="py-2">
+                          <i className="	fas fa-money-bill"></i> Total
+                          Transactions (Admin Dashboard)
+                        </h2>
+                        <div className="bar"></div>
+                        <strong>
+                          NGN{" "}
+                          {getTotalTransaction().toLocaleString(undefined, {
+                            minimumFractionDigits: 2,
+                            maximumFractionDigits: 2,
+                          })}
+                        </strong>
+                      </div>
                     </div>
                   </Col>
-                  <Col>
-                    <h5 className="py-3">Order Fulfilment Rate</h5>
-                    <div className="chart-container">
-                      <Pie
-                        data={unfulfilledOrderRateData}
-                        options={pieChartOptions}
-                        width={200}
-                        height={200}
-                      />
-                    </div>
-                  </Col>
+                  {/* <Row className="py-2">
+
+                    <Col>
+                      <Row>
+                        <Col>
+                          <h2 className="py-2">
+                            <i className="fas fa-wallet"></i> Account Fund
+                            Wallet
+                          </h2>{" "}
+                          <strong>Staus:</strong>{" "}
+                          {accountFundBalance?.is_diabled ? (
+                            <>
+                              <span className="py-2">
+                                <Button
+                                  variant="outline-transparent"
+                                  onClick={handleDisableFundOpen}
+                                  className="rounded"
+                                  size="sm"
+                                  title="Account Fund is currently disabled. Please contact support."
+                                >
+                                  <i
+                                    className="fas fa-lock"
+                                    style={{ fontSize: "16px", color: "red" }}
+                                  ></i>{" "}
+                                  Disabled
+                                </Button>
+                              </span>
+                            </>
+                          ) : (
+                            <>
+                              <Button
+                                variant="outline-transparent"
+                                onClick={handleToggleFundOpen}
+                                className="rounded"
+                                size="sm"
+                                title="Set Account Fund active or locked."
+                              >
+                                {accountFundBalance?.is_active ? (
+                                  <>
+                                    <i
+                                      className="fas fa-lock-open"
+                                      style={{
+                                        fontSize: "16px",
+                                        color: "green",
+                                      }}
+                                    ></i>{" "}
+                                    Active
+                                  </>
+                                ) : (
+                                  <>
+                                    <i
+                                      className="fas fa-lock"
+                                      style={{
+                                        fontSize: "16px",
+                                        color: "yellow",
+                                      }}
+                                    ></i>{" "}
+                                    Locked
+                                  </>
+                                )}
+                              </Button>
+                            </>
+                          )}
+                        </Col>
+
+                        <Modal
+                          show={showToggleAccountSettings}
+                          onHide={handleToggleFundClose}
+                        >
+                          <Modal.Header closeButton>
+                            <Modal.Title className="text-center w-100 py-2">
+                              Toggle Account Fund Status
+                            </Modal.Title>
+                          </Modal.Header>
+                          <Modal.Body>
+                            {showToggleAccountSettings && (
+                              <ToggleAccountSettings />
+                            )}
+                          </Modal.Body>
+                        </Modal>
+
+                        <Modal
+                          show={showDisableAccountSettings}
+                          onHide={handleDisableFundClose}
+                        >
+                          <Modal.Header closeButton>
+                            <Modal.Title className="text-center w-100 py-2">
+                              Account Fund Disabled
+                            </Modal.Title>
+                          </Modal.Header>
+                          <Modal.Body>
+                            <p className="text-center  py-2">
+                              Account Fund is currently disabled. Please contact
+                              support for reactivation.
+                            </p>
+                          </Modal.Body>
+                        </Modal>
+                      </Row>
+
+                      <p>Account Fund Balance:</p>
+                      <strong>
+                        NGN{" "}
+                        {accountFundBalance?.balance?.toLocaleString(
+                          undefined,
+                          {
+                            minimumFractionDigits: 2,
+                            maximumFractionDigits: 2,
+                          }
+                        )}
+                      </strong>
+
+                      <div className="py-3">
+                        <Button
+                          variant="primary"
+                          onClick={handleFundAccount}
+                          className="rounded"
+                        >
+                          Fund Account
+                        </Button>
+                      </div>
+                    </Col>
+
+                    <Col>
+                      <h2 className="py-2">
+                        <i className="far fa-money-bill-alt"></i> Credit Point
+                        Wallet
+                      </h2>
+                      <p>Credit Point Balance:</p>
+                      <strong>
+                        NGN{" "}
+                        {creditPoints?.toLocaleString(undefined, {
+                          minimumFractionDigits: 2,
+                          maximumFractionDigits: 2,
+                        })}
+                      </strong>
+                      <div className="py-2">{withdrawCreditPoints}</div>
+                    </Col>
+                  </Row> */}
+
+                  <hr />
+                  {/* <Row>
+                    <h2 className="py-3">Services</h2>
+
+                    <hr />
+
+                    <Col>
+                      <div className="py-3">
+                        <Button
+                          variant="primary"
+                          // onClick={handleFundAccount}
+                          className="rounded"
+                        >
+                          Airtime <i className="fas fa-phone"></i>
+                        </Button>
+                      </div>
+                    </Col>
+
+                    <Col>
+                      <div className="py-3">
+                        <Button
+                          variant="primary"
+                          // onClick={handleFundAccount}
+                          className="rounded"
+                        >
+                          Electricity <i className="fas fa-lightbulb"></i>
+                        </Button>
+                      </div>
+                    </Col>
+
+                    <Col>
+                      <div className="py-3">
+                        <Button
+                          variant="primary"
+                          // onClick={handleFundAccount}
+                          className="rounded"
+                        >
+                          Mobile Data <i className="fas fa-wifi"></i>
+                        </Button>
+                      </div>
+                    </Col>
+
+                    <Col>
+                      <div className="py-3">
+                        <Button
+                          variant="primary"
+                          // onClick={handleFundAccount}
+                          className="rounded"
+                        >
+                          CableTV <i className="fas fa-television"></i>
+                        </Button>
+                      </div>
+                    </Col>
+
+                    <Col>
+                      <div className="py-3">
+                        <Button
+                          variant="primary"
+                          // onClick={handleFundAccount}
+                          className="rounded"
+                        >
+                          Internet <i className="fas fa-globe"></i>
+                        </Button>
+                      </div>
+                    </Col>
+
+                    <Col>
+                      <div className="py-3">
+                        <Button
+                          variant="primary"
+                          // onClick={handleFundAccount}
+                          className="rounded"
+                        >
+                          Book Flight <i className="fa fa-plane"></i>
+                        </Button>
+                      </div>
+                    </Col>
+
+                    <Col>
+                      <div className="py-3">
+                        <Button
+                          variant="primary"
+                          // onClick={handleFundAccount}
+                          className="rounded"
+                        >
+                          Gaming <i className="fa fa-gamepad"></i>
+                        </Button>
+                      </div>
+                    </Col>
+
+                    <Col>
+                      <div className="py-3">
+                        <Button
+                          variant="primary"
+                          // onClick={handleFundAccount}
+                          className="rounded"
+                        >
+                          POS Terminal <i className="fas fa-calculator"></i>
+                        </Button>
+                      </div>
+                    </Col>
+                  </Row>
+                  <hr /> */}
+
+                  <div className="line-graph">
+                    <h2 className="py-3">Transactions</h2>
+                    <hr />
+                    <Line data={lineGraphData} options={lineChartOptions} />
+                  </div>
+
+                  <hr />
+                  <h2 className="py-3">
+                    Paysofter Promise <i className="fas fa-money-bill-wave"></i>
+                  </h2>
+                  <hr />
+                  <Row>
+                    <Col>
+                      <h5 className="py-3">Paid Promise Rate</h5>
+                      <div className="chart-container">
+                        <Pie
+                          data={paidPayoutRateData}
+                          options={pieChartOptions}
+                          width={200}
+                          height={200}
+                        />
+                      </div>
+                    </Col>
+
+                    <Col>
+                      <h5 className="py-3">Promise Approval Rate</h5>
+                      <div className="chart-container">
+                        <Pie
+                          data={unfulfilledPayoutRateData}
+                          options={pieChartOptions}
+                          width={200}
+                          height={200}
+                        />
+                      </div>
+                    </Col>
+                  </Row>
+
+                  <hr />
+                  <h2 className="py-3">
+                    Acccount Funds <i className="fas fa-money-bill-alt"></i>
+                  </h2>
+                  <hr />
+                  <Row>
+                    <Col>
+                      <h5 className="py-3">Paid Acccount Funds Rate</h5>
+                      <div className="chart-container">
+                        <Pie
+                          data={paidPayoutRateData}
+                          options={pieChartOptions}
+                          width={200}
+                          height={200}
+                        />
+                      </div>
+                    </Col>
+
+                    <Col>
+                      <h5 className="py-3">Acccount Funds Approval Rate</h5>
+                      <div className="chart-container">
+                        <Pie
+                          data={unfulfilledPayoutRateData}
+                          options={pieChartOptions}
+                          width={200}
+                          height={200}
+                        />
+                      </div>
+                    </Col>
+                  </Row>
+                  <hr />
+
+                  <div className="py-3">
+                    <h2 className="">
+                      Payouts <i className="fas fa-money-bill"></i>
+                    </h2>
+                    <hr />
+                    <Row>
+                      <Col>
+                        <h5 className="py-3">Paid Payout Rate</h5>
+                        <div className="chart-container">
+                          <Pie
+                            data={paidPayoutRateData}
+                            options={pieChartOptions}
+                            width={200}
+                            height={200}
+                          />
+                        </div>
+                      </Col>
+
+                      <Col>
+                        <h5 className="py-3">Payout Approval Rate</h5>
+                        <div className="chart-container">
+                          <Pie
+                            data={unfulfilledPayoutRateData}
+                            options={pieChartOptions}
+                            width={200}
+                            height={200}
+                          />
+                        </div>
+                      </Col>
+                    </Row>
+                  </div>
+
+                  <hr />
                 </Row>
               </div>
-              <hr />
-              
-              {/* <Col>
-                <h2 className="py-3">Shipments</h2>
-                <div className="py-3"></div>
-              </Col>
-              <hr /> */}
-
-              <Col>
-                <h2 className="py-3">Credit Points</h2>
-                <div></div>
-              </Col>
-              <hr />
-
-              <Col>
-                <h2 className="py-3">Messages</h2>
-                <div></div>
-              </Col>
-              <hr />
-
-
-            </Row>
+            )}
           </div>
-        )}
-      </div>
+        </Col>
+      </Row>
     </div>
   );
 }
 
 export default Dashboard;
- 

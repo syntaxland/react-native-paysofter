@@ -1,32 +1,17 @@
+// CheckoutScreen.js
+import React, { useEffect, useState } from "react";
+import { Link, useHistory } from "react-router-dom";
+import { Row, Col, ListGroup, Image, Button } from "react-bootstrap";
+import { createOrder } from "../../actions/orderActions";
+import { useDispatch, useSelector } from "react-redux";
 import axios from "axios";
-import React, { useEffect, useState, useCallback } from "react";
-import {
-  View,
-  Text,
-  ScrollView,
-  Image,
-  TouchableOpacity,
-  SafeAreaView,
-  RefreshControl,
-} from "react-native";
-import { useSelector, useDispatch } from "react-redux";
-import { useNavigation } from "@react-navigation/native";
-import { FontAwesomeIcon } from "@fortawesome/react-native-fontawesome";
-import { faArrowLeft } from "@fortawesome/free-solid-svg-icons";
-import { createOrder } from "../../redux/actions/orderActions";
-import { styles } from "../screenStyles";
-import Message from "../../Message";
-import Loader from "../../Loader";
-import { formatAmount } from "../../FormatAmount";
+// import ApplyPromoCode from "../ApplyPromoCode";
 
-import { API_URL } from "../../config/apiConfig";
+const API_URL = process.env.REACT_APP_API_URL;
 
-const CheckoutScreen = () => {
-  const navigation = useNavigation();
+function CheckoutScreen() {
   const dispatch = useDispatch();
-
-  const orderCreate = useSelector((state) => state.orderCreate);
-  const { loading, success, error } = orderCreate;
+  const history = useHistory();
 
   const cart = useSelector((state) => state.cart);
   const { cartItems } = cart;
@@ -34,42 +19,23 @@ const CheckoutScreen = () => {
   const userLogin = useSelector((state) => state.userLogin);
   const { userInfo } = userLogin;
 
-  useEffect(() => {
-    if (!userInfo) {
-      navigation.navigate("Login");
-    }
-  }, [userInfo, navigation]);
+  // const applyPomoCodeState = useSelector((state) => state.applyPomoCodeState);
+  // const { promoDiscount, discountPercentage } = applyPomoCodeState;
+  // console.log(
+  //   "CheckoutScreen promoDiscount:",
+  //   promoDiscount,
+  //   "discountPercentage:",
+  //   discountPercentage
+  // );
 
   const [order_id, setOrderId] = useState("");
   const [paymentMethod] = useState("Paystack");
 
-  const [refreshing, setRefreshing] = useState(false);
-
-  const wait = (timeout) => {
-    return new Promise((resolve) => {
-      setTimeout(resolve, timeout);
-    });
-  };
-
-  const onRefresh = useCallback(async () => {
-    setRefreshing(true);
-    try {
-      const response = await axios.get(`${API_URL}/api/get-order-id/`, {
-        headers: {
-          Authorization: `Bearer ${userInfo.access}`,
-        },
-      });
-      setOrderId(response.data.order_id);
-    } catch (error) {
-      console.log(error);
+  useEffect(() => {
+    if (!userInfo) {
+      history.push("/login");
     }
-    // setRefreshing(false);
-    wait(2000).then(() => setRefreshing(false));
-  }, [userInfo.access]);
-
-  // useEffect(() => {
-  //   onRefresh();
-  // }, [onRefresh]);
+  }, [userInfo, history]);
 
   useEffect(() => {
     const getOrderId = async () => {
@@ -93,13 +59,23 @@ const CheckoutScreen = () => {
     (acc, item) => acc + item.qty * item.price * 0.03,
     0
   );
-
   const totalPrice =
     cartItems.reduce((acc, item) => acc + item.qty * item.price, 0) +
     shippingPrice +
     taxPrice;
 
+  // const promoTotalPrice = totalPrice - promoDiscount;
+  // console.log(
+  //   "totalPrice:",
+  //   totalPrice,
+  //   "promoDiscount:",
+  //   promoDiscount,
+  //   "promoTotalPrice:",
+  //   promoTotalPrice
+  // );
+
   const createdAt = new Date().toISOString();
+  // const createdAt = new Date().toLocaleString()
 
   const createOrderHandler = async () => {
     const orderItems = cartItems.map((item) => ({
@@ -121,6 +97,9 @@ const CheckoutScreen = () => {
         shippingPrice,
         taxPrice,
         totalPrice,
+        // promo_discount: promoDiscount,
+        // promo_total_price: promoTotalPrice,
+        // totalPrice: totalPrice - promoDiscount,
         order_id,
         createdAt,
       })
@@ -129,81 +108,113 @@ const CheckoutScreen = () => {
       throw error;
     });
 
-    navigation.navigate("Shipment", { orderId: order_id });
+    history.push(`/shipment/${order_id}`);
   };
 
   return (
-    <SafeAreaView style={styles.safeArea}>
-      <TouchableOpacity onPress={() => navigation.goBack()}>
-        <Text style={styles.goBackIcon}>
-          <FontAwesomeIcon
-            // size={24}
-            color="blue"
-            icon={faArrowLeft}
-          />{" "}
-          {/* Go Back */}
-          Previous
-        </Text>
-      </TouchableOpacity>
-
-      <ScrollView
-        contentContainerStyle={styles.scrollView}
-        refreshControl={
-          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
-        }
-      >
-        <View style={styles.container}>
-          {loading && <Loader />}
-          {error && <Message variant="danger">{error}</Message>}
-          {success && (
-            <Message variant="success">Order created successfully!</Message>
-          )}
-
-          <View style={styles.container}>
-            <Text style={styles.title}>Order Summary</Text>
+    <Row>
+      <div className="d-flex justify-content-center">
+        <Col xs={12} sm={12} md={6} lg={6} xl={6}>
+          <h1 className="text-center py-2">Order Summary</h1>
+          <ListGroup variant="flush">
             {cartItems.map((item) => (
-              <View key={item.product} style={{ marginBottom: 10 }}>
-                <Image
-                  source={{ uri: item.image }}
-                  style={{ width: 100, height: 100 }}
-                />
-                <Text>{item.name}</Text>
-                <Text>
-                  {item.qty} x NGN {formatAmount(item.price)} = NGN{" "}
-                  {formatAmount(item.qty * item.price)}
-                </Text>
-              </View>
+              <ListGroup.Item key={item.product}>
+                <Row>
+                  <Col md={4}>
+                    <Image
+                      src={item.image}
+                      className="img-fluid"
+                      alt={item.name}
+                    />
+                  </Col>
+                  <Col md={8}>
+                    <Link to={`/product/${item.product}`}>{item.name}</Link>
+                    <p>
+                      {item.qty} x NGN {item.price} = NGN{" "}
+                      {item.qty * item.price}
+                    </p>
+                  </Col>
+                </Row>
+              </ListGroup.Item>
             ))}
-            <Text>Order ID: {order_id}</Text>
-            <Text>Payment Method: {paymentMethod}</Text>
-            <Text>Shipping Cost: NGN {formatAmount(shippingPrice)}</Text>
-            <Text>Tax: NGN {formatAmount(taxPrice)}</Text>
-            <Text>Total Amount: NGN {formatAmount(totalPrice)}</Text>
-            <Text>Timestamp: {createdAt}</Text>
+            <ListGroup.Item>Order ID: {order_id}</ListGroup.Item>
+            <ListGroup.Item>Payment Method: {paymentMethod}</ListGroup.Item>
+            <ListGroup.Item>
+              Shipping Cost: NGN{" "}
+              {shippingPrice.toLocaleString(undefined, {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2,
+              })}
+            </ListGroup.Item>
+            <ListGroup.Item>
+              Tax: NGN{" "}
+              {taxPrice.toLocaleString(undefined, {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2,
+              })}
+            </ListGroup.Item>
+            <ListGroup.Item>
+              Total Amount: NGN{" "}
+              {totalPrice.toLocaleString(undefined, {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2,
+              })}
+            </ListGroup.Item>
 
-            <View style={{ marginBottom: 10, padding: 10 }}>
-              <TouchableOpacity
-                style={{
-                  backgroundColor: cartItems.length > 0 ? "green" : "gray",
-                  padding: 10,
-                  borderRadius: 5,
-                  marginTop: 10,
-                }}
-                disabled={cartItems.length === 0}
-                onPress={createOrderHandler}
+            {/* <ListGroup.Item>
+              Promo Discount: NGN{" "}
+              {promoDiscount ? (
+                <span>
+                  {promoDiscount.toLocaleString(undefined, {
+                    minimumFractionDigits: 2,
+                    maximumFractionDigits: 2,
+                  })}{" "}
+                  ({discountPercentage}%)
+                </span>
+              ) : (
+                <span>NGN 0</span>
+              )}
+            </ListGroup.Item>
+            <ListGroup.Item>
+              Final Total Amount: NGN{" "}
+              {promoTotalPrice ? (
+                <span>
+                  {promoTotalPrice.toLocaleString(undefined, {
+                    minimumFractionDigits: 2,
+                    maximumFractionDigits: 2,
+                  })}
+                </span>
+              ) : (
+                <span>
+                  {totalPrice.toLocaleString(undefined, {
+                    minimumFractionDigits: 2,
+                    maximumFractionDigits: 2,
+                  })}
+                </span>
+              )}
+            </ListGroup.Item> */}
+
+            <ListGroup.Item>Timestamp: {createdAt}</ListGroup.Item>
+
+            {/* <div className="text-center py-2">
+              <ApplyPromoCode />
+            </div> */}
+
+            <div className="text-center py-2">
+              <Button
+                type="button"
+                variant="success"
+                className="w-100 rounded"
+                onClick={createOrderHandler}
               >
-                <Text
-                  style={{ color: "#fff", textAlign: "center", padding: 2 }}
-                >
-                  Continue to Shipment
-                </Text>
-              </TouchableOpacity>
-            </View>
-          </View>
-        </View>
-      </ScrollView>
-    </SafeAreaView>
+                Continue to Shipment
+              </Button>
+            </div>
+          </ListGroup>
+        </Col>
+      </div>
+    </Row>
   );
-};
+}
 
 export default CheckoutScreen;

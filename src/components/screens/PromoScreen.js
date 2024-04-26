@@ -1,16 +1,14 @@
 // PromoScreen.js
-import React, { useEffect, useState } from "react";
-import { View, Text, TextInput, Button } from "react-native";
+import React, { useEffect } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import { applyPromoCode, setTimer } from "../actions/promoActions";
 
-const PromoScreen = () => {
+function PromoScreen() {
   const dispatch = useDispatch();
   const { promoCode, promoError, timer } = useSelector((state) => state.promo);
-  const [inputCode, setInputCode] = useState("");
 
-  const applyPromoCodeHandler = () => {
-    dispatch(applyPromoCode(inputCode));
+  const applyPromoCodeHandler = (code) => {
+    dispatch(applyPromoCode(code));
   };
 
   useEffect(() => {
@@ -28,31 +26,29 @@ const PromoScreen = () => {
   }, [timer, dispatch]);
 
   return (
-    <View>
-      <Text>Promo Code</Text>
-      {promoError && <Text>Error: {promoError}</Text>}
+    <div>
+      <h2>Promo Code</h2>
+      {promoError && <p>Error: {promoError}</p>}
       {promoCode ? (
         <>
-          <Text>Promo code applied successfully</Text>
+          <p>Promo code applied successfully</p>
           {timer > 0 ? (
-            <Text>Time left: {timer} seconds</Text>
+            <p>Time left: {timer} seconds</p>
           ) : (
-            <Text>Promo code expired</Text>
+            <p>Promo code expired</p>
           )}
         </>
       ) : (
         <>
-          <TextInput
+          <input
+            type="text"
             placeholder="Enter promo code"
-            onChangeText={(text) => setInputCode(text)}
-            value={inputCode}
-            style={{ borderWidth: 1, borderColor: "gray", marginBottom: 16, padding: 8 }}
+            onChange={(e) => applyPromoCodeHandler(e.target.value)}
           />
-          <Button title="Apply Promo Code" onPress={applyPromoCodeHandler} />
         </>
       )}
-    </View>
+    </div>
   );
-};
+}
 
 export default PromoScreen;

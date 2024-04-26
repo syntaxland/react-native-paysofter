@@ -1,0 +1,4 @@
+// payoutConstants.js
+export const USER_PAYOUT_REQUEST = 'USER_PAYOUT_REQUEST';
+export const USER_PAYOUT_SUCCESS = 'USER_PAYOUT_SUCCESS';
+export const USER_PAYOUT_FAIL = 'USER_PAYOUT_FAIL';

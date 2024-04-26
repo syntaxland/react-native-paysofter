@@ -1,95 +1,89 @@
 // AddReviewScreen.js
 import React, { useState, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { View, Text, TextInput, Button, ScrollView } from "react-native";
-import { useNavigation, useRoute } from "@react-navigation/native";
+import { useLocation } from "react-router-dom";
+import { Form, Button, Row, Col } from "react-bootstrap";
+import { addReview } from "../../actions/orderActions";
 import Loader from "../Loader";
 import Message from "../Message";
-import { addReview } from "../../actions/orderActions";
 
-const AddReviewScreen = () => {
-  const navigation = useNavigation();
-  const route = useRoute();
+function AddReviewScreen({ match, history }) {
   const dispatch = useDispatch();
-
   const [rating, setRating] = useState(5);
   const [comment, setComment] = useState("");
 
-  const { orderItemId } = route.params;
+  const location = useLocation();
+  const query = new URLSearchParams(location.search);
+  const orderItemId = query.get("orderItemId"); 
 
+  console.log("orderItemId:", orderItemId);
   const reviewAdd = useSelector((state) => state.orderAddReview);
   const { loading, success, error } = reviewAdd;
 
-  const submitHandler = () => {
+  const submitHandler = (e) => {
+    e.preventDefault();
     dispatch(addReview(orderItemId, rating, comment));
-    setRating(5);
+    setRating("");
     setComment("");
   };
 
   useEffect(() => {
     if (success) {
       const timer = setTimeout(() => {
-        navigation.navigate("Dashboard");
+        history.push("/dashboard");
       }, 3000);
       return () => clearTimeout(timer);
     }
-  }, [success, navigation]);
+  }, [success, history]);
 
   return (
-    <ScrollView>
-      <View style={styles.container}>
-        <Text style={styles.title}>Add Review</Text>
-        {loading && <Loader />}
-        {error && <Message variant="danger">{error}</Message>}
-        {success && <Message variant="success">Review added successfully.</Message>}
-        <View style={styles.inputContainer}>
-          <Text>Rating</Text>
-          <TextInput
-            style={styles.input}
-            placeholder="Rating"
-            value={rating.toString()}
-            onChangeText={(value) => setRating(parseFloat(value))}
-          />
-        </View>
+    <div>
+      <Row className="justify-content-center">
+        <Col xs={12} md={6}>
+          <h2 className="text-center">Add Review</h2>
+          {loading && <Loader />}
+          {error && <Message variant="danger">{error}</Message>}
+          {success && (
+            <Message variant="success">Review added successfully.</Message>
+          )}
+          <Form onSubmit={submitHandler}>
+            <Form.Group controlId="rating">
+              <Form.Label>Rating</Form.Label>
+              <Form.Control
+                as="select"
+                value={rating}
+                onChange={(e) => setRating(e.target.value)}
+              >
+                <option value="1">1 - Poor</option>
+                <option value="1.5">1.5</option>
+                <option value="2">2 - Fair</option>
+                <option value="2.5">2.5</option>
+                <option value="3">3 - Good</option>
+                <option value="3.5">3.5</option>
+                <option value="4">4 - Very Good</option>
+                <option value="4.5">4.5</option>
+                <option value="5">5 - Excellent</option>
+              </Form.Control>
+            </Form.Group>
 
-        <View style={styles.inputContainer}>
-          <Text>Comment</Text>
-          <TextInput
-            style={styles.input}
-            placeholder="Comment"
-            value={comment}
-            onChangeText={(value) => setComment(value)}
-          />
-        </View>
-        <Button title="Submit Review" onPress={submitHandler} />
-      </View>
-    </ScrollView>
+            <Form.Group controlId="comment">
+              <Form.Label>Comment</Form.Label>
+              <Form.Control
+                required
+                as="textarea"
+                rows={4}
+                value={comment}
+                onChange={(e) => setComment(e.target.value)}
+              ></Form.Control>
+            </Form.Group>
+            <Button className="w-100 rounded" type="submit" variant="success">
+              Submit Review
+            </Button>
+          </Form>
+        </Col>
+      </Row>
+    </div>
   );
-};
+}
 
 export default AddReviewScreen;
-
-const styles = {
-  container: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-    padding: 20,
-  },
-  title: {
-    fontSize: 24,
-    marginBottom: 20,
-  },
-  inputContainer: {
-    width: "100%",
-    marginBottom: 10,
-  },
-  input: {
-    width: "100%",
-    height: 40,
-    borderColor: "#ccc",
-    borderWidth: 1,
-    borderRadius: 5,
-    paddingHorizontal: 10,
-  },
-};

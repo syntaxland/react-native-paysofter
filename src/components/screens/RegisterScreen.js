@@ -8,7 +8,7 @@ import React, {
 import {
   View,
   Text,
-  TextInput,
+  TextInput, 
   Button,
   SafeAreaView,
   ScrollView,
@@ -163,7 +163,7 @@ const RegisterScreen = () => {
     isTermsConditionsRead,
   ]);
 
-  console.log("formData:", formData);
+  // console.log("formData:", formData);
 
   const submitHandler = async (e) => {
     e.preventDefault();

@@ -7,23 +7,19 @@ import {
   EMAIL_OTP_VERIFY_REQUEST,
   EMAIL_OTP_VERIFY_SUCCESS,
   EMAIL_OTP_VERIFY_FAIL,
-  EMAIL_OTP_RESEND_REQUEST,
+  EMAIL_OTP_RESEND_REQUEST, 
   EMAIL_OTP_RESEND_SUCCESS,
   EMAIL_OTP_RESEND_FAIL,
-} from "../constants/emailOtpConstants";
+} from "../constants/emailOtpConstants"; 
 
 import { API_URL } from "../../config/apiConfig";
- 
+
 export const sendEmailOtp =
   (email, firstName) => async (dispatch) => {
     try {
       dispatch({
         type: EMAIL_OTP_SEND_REQUEST,
       });
-
-      // const {
-      //   userLogin: { userInfo },
-      // } = getState();
 
       const config = {
         headers: {
@@ -33,15 +29,16 @@ export const sendEmailOtp =
 
       const body = JSON.stringify({ email, first_name: firstName });
 
-      await axios.post(`${API_URL}/api/send-email-otp/`, body, config);
+      const { data } = await axios.post(`${API_URL}/api/send-email-otp/`, body, config);
 
       dispatch({
         type: EMAIL_OTP_SEND_SUCCESS,
+        payload: data,
       });
     } catch (error) {
       dispatch({
         type: EMAIL_OTP_SEND_FAIL,
-        payload:
+        payload: 
           error.response && error.response.data.detail
             ? error.response.data.detail
             : error.message,
@@ -49,11 +46,15 @@ export const sendEmailOtp =
     }
   };
 
-export const verifyEmailOtp = (otp) => async (dispatch) => {
+export const verifyEmailOtp = (otp) => async (dispatch, getState) => {
   try {
     dispatch({
       type: EMAIL_OTP_VERIFY_REQUEST,
     });
+
+    // const {
+    //   userLogin: { userInfo },
+    // } = getState();
 
     const config = {
       headers: {
@@ -61,14 +62,13 @@ export const verifyEmailOtp = (otp) => async (dispatch) => {
       },
     };
 
-    const { data } = await axios.post(`${API_URL}/api/verify-email-otp/`, { otp }, config);
+    await axios.post(`${API_URL}/api/verify-email-otp/`, { otp }, config);
 
     dispatch({
       type: EMAIL_OTP_VERIFY_SUCCESS,
-      payload: data,
     });
     // window.location.reload();
-    // window.location.href = "/login"; 
+    // window.location.href = "/login";
   } catch (error) {
     dispatch({
       type: EMAIL_OTP_VERIFY_FAIL,

@@ -103,7 +103,7 @@ export const createPromoCode = (promoData) => async (dispatch, getState) => {
       payload: data,
     });
     window.location.reload();
-    // window.location.href = "/dashboard/users";
+    // window.location.href = "/dashboard";
   } catch (error) {
     dispatch({
       type: CREATE_PROMO_FAIL,

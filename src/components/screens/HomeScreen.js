@@ -13,6 +13,8 @@ import // useDispatch,
 "react-redux";
 import { useNavigation } from "@react-navigation/native";
 import { styles } from "../screenStyles";
+import { FontAwesomeIcon } from "@fortawesome/react-native-fontawesome";
+import { faQuoteLeft, faQuoteRight } from "@fortawesome/free-solid-svg-icons";
 import Carousel from "react-native-reanimated-carousel";
 
 const quotes = [
@@ -78,7 +80,21 @@ const HomeScreen = () => {
         // padding: 20,
       }}
     >
-      <Text style={{ textAlign: "center", fontSize: 14 }}>{quotes[index]}</Text>
+      <Text style={{ textAlign: "center", fontSize: 14 }}>
+        <FontAwesomeIcon
+          icon={faQuoteLeft}
+          size={14}
+          // color="white"
+          style={styles.cartIcon}
+        />{" "}
+        {quotes[index]}{" "}
+        <FontAwesomeIcon
+          icon={faQuoteRight}
+          size={14}
+          // color="white"
+          style={styles.cartIcon}
+        />
+      </Text>
     </View>
   );
 
@@ -143,9 +159,11 @@ const HomeScreen = () => {
           />
 
           <View
-            style={{
-              // padding: 20,
-            }}
+            style={
+              {
+                // padding: 20,
+              }
+            }
           >
             <Carousel
               loop

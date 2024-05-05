@@ -1,4 +1,4 @@
-rootProject.name = 'react-native-paysofter'
+rootProject.name = 'Paysofter'
 
 dependencyResolutionManagement {
   versionCatalogs {

@@ -24,7 +24,14 @@ export const MyDrawer = (props) => {
         <Drawer.Navigator
           // initialRouteName="Home"
           screenOptions={{ headerShown: false }}
-          drawerContent={(props) => <CustomDrawerContent {...props} />}
+          // drawerContent={(props) => <CustomDrawerContent {...props} />}
+          drawerContent={(props) => (
+            <View
+             style={{ flex: 1, backgroundColor: "#0f172a" }}
+            >
+              <CustomDrawerContent {...props} />
+            </View>
+          )}
         >
           <Drawer.Screen
             name="HomeStack"
@@ -58,7 +65,7 @@ export const CustomDrawerContent = (props) => {
 
   useEffect(() => {
     const currentHour = new Date().getHours();
-    if (currentHour >= 5 && currentHour < 12) {
+    if (currentHour >= 0 && currentHour < 12) {
       setGreeting("Good morning");
     } else if (currentHour >= 12 && currentHour < 18) {
       setGreeting("Good afternoon");
@@ -66,6 +73,7 @@ export const CustomDrawerContent = (props) => {
       setGreeting("Good evening");
     }
   }, []);
+  
 
   const logoutHandler = () => {
     dispatch(logout());

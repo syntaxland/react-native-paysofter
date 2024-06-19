@@ -10,8 +10,8 @@ import FundAccount from "./FundAccount";
 import { formatAmount } from "../FormatAmount";
 
 const GetNgnAccountFundBalance = () => {
-  const dispatch = useDispatch();
-
+  const dispatch = useDispatch(); 
+  
   const userAccountBalanceState = useSelector(
     (state) => state.userAccountBalanceState
   );

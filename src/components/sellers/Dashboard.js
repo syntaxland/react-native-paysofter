@@ -10,7 +10,7 @@ import { getUserTransactions } from "../../redux/actions/transactionActions";
 import { getUserAccountFundBalance } from "../../redux/actions/AccountFundActions";
 import { getUserPayouts } from "../../redux/actions/payoutActions";
 
-import { getUserProfile } from "../../redux/actions/userProfileActions";
+import { getUserProfile } from "../../redux/actions/userProfileActions"; 
 
 import { Line, Pie } from "react-chartjs-2";
 

@@ -9,7 +9,7 @@ import Pagination from "../Pagination";
 import {formatAmount} from "../FormatAmount";
 
 function AccountFundDebits() {
-  const dispatch = useDispatch(); 
+  const dispatch = useDispatch();  
 
   const getUserAccountFundDebitsState = useSelector(
     (state) => state.getUserAccountFundDebitsState

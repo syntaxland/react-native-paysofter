@@ -4,10 +4,10 @@ import { View, StyleSheet } from "react-native";
 import { useSelector, useDispatch } from "react-redux";
 import { getUserProfile } from "../../redux/actions/userProfileActions";
 import { selecteCurrency } from "../../redux/actions/settingsActions";
-import Loader from "../Loader";
-import Message from "../Message";
+import Loader from "../../Loader";
+import Message from "../../Message"; 
 import RNPickerSelect from "react-native-picker-select";
-
+ 
 const CURRENCY_CHOICES = [
   { label: "USD", value: "USD" },
   { label: "NGN", value: "NGN" },
@@ -45,9 +45,7 @@ const SelectCurrency = () => {
     const currencyData = {
       currency: value,
     };
-    // Dispatch action to update currency in Redux store
     dispatch(selecteCurrency(currencyData));
-    // For the purpose of this example, dispatching an action is commented out
   };
 
   return (
@@ -64,7 +62,7 @@ const SelectCurrency = () => {
         items={CURRENCY_CHOICES}
         value={currency}
         onValueChange={handleCurrencyChange}
-        style={pickerSelectStyles}
+        // style={pickerSelectStyles}
         useNativeAndroidPickerStyle={false}
       />
     </View>

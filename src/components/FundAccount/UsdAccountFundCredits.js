@@ -10,7 +10,7 @@ import {formatAmount} from "../FormatAmount";
 
 function UsdAccountFundCredits() {
   const dispatch = useDispatch();
-  
+   
   const getUserUsdAccountFundCreditsState = useSelector(
     (state) => state.getUserUsdAccountFundCreditsState
   );

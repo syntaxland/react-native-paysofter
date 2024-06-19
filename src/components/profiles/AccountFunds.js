@@ -5,7 +5,7 @@ import AccountFundCredits from "../FundAccount/AccountFundCredits";
 import AccountFundDebits from "../FundAccount/AccountFundDebits";  
 
 import UsdAccountFundCredits from "../FundAccount/UsdAccountFundCredits";
-import UsdAccountFundDebits from "../FundAccount/UsdAccountFundDebits";
+import UsdAccountFundDebits from "../FundAccount/UsdAccountFundDebits"; 
 
 function AccountFunds() {
  
@@ -19,7 +19,7 @@ function AccountFunds() {
           </div>
 
           <div>
-            <UsdAccountFundCredits />
+            <UsdAccountFundCredits /> 
           </div>
 
           <div className="text-center">

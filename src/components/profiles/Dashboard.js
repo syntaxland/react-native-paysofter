@@ -1,167 +1,131 @@
-import React, { useEffect } from "react";
-import { View, Text, ScrollView, StyleSheet, TouchableOpacity } from "react-native";
+// Dashboard.js
+import React, { useEffect, useState, useCallback } from "react";
 import { useSelector, useDispatch } from "react-redux";
-import { LineChart, PieChart } from "react-native-chart-kit";
-import { getUserTransactions } from "../../redux/actions/transactionActions";
-import { getUserPayouts } from "../../redux/actions/payoutActions";
+import {
+  View,
+  Text,
+  StyleSheet,
+  ScrollView,
+  TouchableOpacity,
+  RefreshControl,
+} from "react-native";
+import { FontAwesomeIcon } from "@fortawesome/react-native-fontawesome";
+import {
+  faPhone,
+  faLightbulb,
+  faWifi,
+  faTelevision,
+  faGlobe,
+  faPlane,
+  faGamepad,
+  faCalculator,
+  faDashboard,
+} from "@fortawesome/free-solid-svg-icons";
+import { useNavigation } from "@react-navigation/native";
+import { Card } from "react-native-paper";
 import { getUserProfile } from "../../redux/actions/userProfileActions";
-import Loader from "../Loader";
-import Message from "../Message";
-import GetNgnAccountFundBalance from "../FundAccount/GetNgnAccountFundBalance";
-import GetUsdAccountFundBalance from "../FundAccount/GetUsdAccountFundBalance";
-import SelectCurrency from "../settings/SelectCurrency";
+// import GetNgnAccountFundBalance from "../FundAccount/GetNgnAccountFundBalance";
+// import GetUsdAccountFundBalance from "../FundAccount/GetUsdAccountFundBalance";
+// import SelectCurrency from "../settings/SelectCurrency";
+import Message from "../../Message";
+import Loader from "../../Loader";
+// import { styles } from "../profileStyles";
 
 const Dashboard = () => {
   const dispatch = useDispatch();
+  const navigation = useNavigation();
+
+  const userProfile = useSelector((state) => state.userProfile);
+  const { profile, loading, error } = userProfile;
+
+  const userLogin = useSelector((state) => state.userLogin);
+  const { userInfo } = userLogin;
+
+  useEffect(() => {
+    if (!userInfo) {
+      navigation.navigate("Login");
+    }
+  }, [userInfo, navigation]);
+
+  const selectedCurrency = profile?.selected_currency;
+  console.log("selected_currency:", profile?.selected_currency);
 
   useEffect(() => {
     dispatch(getUserProfile());
-    dispatch(getUserTransactions());
-    dispatch(getUserPayouts());
   }, [dispatch]);
 
-  const userProfile = useSelector((state) => state.userProfile);
-  const { profile } = userProfile;
+  const [refreshing, setRefreshing] = useState(false);
+  const onRefresh = useCallback(() => {
+    setRefreshing(true);
+    dispatch(getUserProfile());
+    setTimeout(() => setRefreshing(false), 2000);
+  }, [dispatch]);
 
-  const userTransactions = useSelector((state) => state.userTransactions);
-  const { loading: transactionLoading, error: transactionError, transactions } = userTransactions;
-
-  const userPayouts = useSelector((state) => state.userPayouts);
-  const { loading: payoutLoading, payouts, error: payoutError } = userPayouts;
-
-  const creditPointBal = useSelector((state) => state.creditPointBal);
-  const { loading: creditPointBalanceLoading, error: creditPointBalanceError, creditPointBalance } = creditPointBal;
+  const services = [
+    { title: "Airtime", icon: faPhone },
+    { title: "Electricity", icon: faLightbulb },
+    { title: "Mobile Data", icon: faWifi },
+    { title: "CableTV", icon: faTelevision },
+    { title: "Internet", icon: faGlobe },
+    { title: "Book Flight", icon: faPlane },
+    { title: "Gaming", icon: faGamepad },
+    { title: "POS Terminal", icon: faCalculator },
+  ];
 
   return (
-    <ScrollView contentContainerStyle={styles.container}>
-      {creditPointBalanceLoading || transactionLoading || payoutLoading ? (
-        <Loader />
-      ) : creditPointBalanceError || transactionError || payoutError ? (
-        <Message variant="danger">
-          {creditPointBalanceError || transactionError || payoutError}
-        </Message>
-      ) : (
-        <View style={styles.content}>
-          <Text style={styles.heading}>Transactions</Text>
-          <LineChart
-            data={{
-              labels: transactions.map((transaction) => transaction.timestamp),
-              datasets: [
-                {
-                  data: transactions.map((transaction) => transaction.amount),
-                },
-              ],
-            }}
-            width={300}
-            height={200}
-            yAxisLabel="NGN"
-            chartConfig={{
-              backgroundGradientFrom: "#fff",
-              backgroundGradientTo: "#fff",
-              decimalPlaces: 2,
-              color: (opacity = 1) => `rgba(0, 0, 0, ${opacity})`,
-              style: {
-                borderRadius: 16,
-              },
-            }}
-          />
-          <GetNgnAccountFundBalance />
-          <GetUsdAccountFundBalance />
-          <SelectCurrency />
-          <View style={styles.servicesContainer}>
-            <Text style={styles.heading}>Services</Text>
-            <TouchableOpacity style={styles.serviceButton}>
-              <Text>Airtime</Text>
-            </TouchableOpacity>
-            <TouchableOpacity style={styles.serviceButton}>
-              <Text>Electricity</Text>
-            </TouchableOpacity>
-            <TouchableOpacity style={styles.serviceButton}>
-              <Text>Mobile Data</Text>
-            </TouchableOpacity>
-            <TouchableOpacity style={styles.serviceButton}>
-              <Text>CableTV</Text>
-            </TouchableOpacity>
-            <TouchableOpacity style={styles.serviceButton}>
-              <Text>Internet</Text>
-            </TouchableOpacity>
-            <TouchableOpacity style={styles.serviceButton}>
-              <Text>Book Flight</Text>
-            </TouchableOpacity>
-            <TouchableOpacity style={styles.serviceButton}>
-              <Text>Gaming</Text>
-            </TouchableOpacity>
-            <TouchableOpacity style={styles.serviceButton}>
-              <Text>POS Terminal</Text>
-            </TouchableOpacity>
-          </View>
-          <View style={styles.pieChartsContainer}>
-            <Text style={styles.heading}>Paysofter Promise</Text>
-            <View style={styles.pieChartContainer}>
-              <Text style={styles.subHeading}>Paid Promise Rate</Text>
-              <PieChart
-                data={[
-                  {
-                    name: "Paid Payouts",
-                    population: payouts.filter((payout) => payout.is_paid).length,
-                    color: "#1F77B4",
-                    legendFontColor: "#7F7F7F",
-                    legendFontSize: 15,
-                  },
-                  {
-                    name: "Unpaid Payouts",
-                    population: payouts.filter((payout) => !payout.is_paid).length,
-                    color: "#FF6384",
-                    legendFontColor: "#7F7F7F",
-                    legendFontSize: 15,
-                  },
-                ]}
-                width={300}
-                height={200}
-                chartConfig={{
-                  backgroundGradientFrom: "#fff",
-                  backgroundGradientTo: "#fff",
-                  color: (opacity = 1) => `rgba(0, 0, 0, ${opacity})`,
-                }}
-                accessor="population"
-                backgroundColor="transparent"
-                paddingLeft="15"
-              />
+    <ScrollView
+      contentContainerStyle={styles.container}
+      refreshControl={
+        <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+      }
+    >
+      <View style={styles.cardContainer}>
+        <Card style={styles.card}>
+          <Card.Content>
+            <Text style={styles.header}>
+              <FontAwesomeIcon icon={faDashboard} /> Dashboard
+            </Text>
+          </Card.Content>
+        </Card>
+      </View>
+      <View style={styles.innerContainer}>
+        {loading ? (
+          <Loader />
+        ) : error ? (
+          <Message variant="danger">{error}</Message>
+        ) : (
+          <>
+            <View style={styles.currencySelector}>
+              {/* <SelectCurrency /> */}
             </View>
-            <View style={styles.pieChartContainer}>
-              <Text style={styles.subHeading}>Promise Approval Rate</Text>
-              <PieChart
-                data={[
-                  {
-                    name: "Delivered Payouts",
-                    population: payouts.filter((payout) => payout.is_approved).length,
-                    color: "#008000",
-                    legendFontColor: "#7F7F7F",
-                    legendFontSize: 15,
-                  },
-                  {
-                    name: "Undelivered Payouts",
-                    population: payouts.filter((payout) => !payout.is_approved).length,
-                    color: "#FFA500",
-                    legendFontColor: "#7F7F7F",
-                    legendFontSize: 15,
-                  },
-                ]}
-                width={300}
-                height={200}
-                chartConfig={{
-                  backgroundGradientFrom: "#fff",
-                  backgroundGradientTo: "#fff",
-                  color: (opacity = 1) => `rgba(0, 0, 0, ${opacity})`,
-                }}
-                accessor="population"
-                backgroundColor="transparent"
-                paddingLeft="15"
-              />
+
+            {/* <View style={styles.accountBalance}>
+              {selectedCurrency === "NGN" && <GetNgnAccountFundBalance />}
+              {selectedCurrency === "USD" && <GetUsdAccountFundBalance />}
+            </View> */}
+
+            <Text style={styles.sectionTitle}>Services</Text>
+            <View style={styles.servicesContainer}>
+              {services.map((service, index) => (
+                <TouchableOpacity
+                  key={index}
+                  style={styles.serviceButton}
+                  onPress={() => {}}
+                >
+                  <Text style={styles.buttonText}>
+                    {service.title}{" "}
+                    <FontAwesomeIcon
+                      icon={service.icon}
+                      style={styles.icon}
+                      color="#fff"
+                    />
+                  </Text>
+                </TouchableOpacity>
+              ))}
             </View>
-          </View>
-        </View>
-      )}
+          </>
+        )}
+      </View>
     </ScrollView>
   );
 };
@@ -169,37 +133,62 @@ const Dashboard = () => {
 const styles = StyleSheet.create({
   container: {
     flexGrow: 1,
-    paddingVertical: 20,
+    justifyContent: "center",
+    alignItems: "center",
+    padding: 10,
   },
-  content: {
+  innerContainer: {
+    width: "100%",
     alignItems: "center",
   },
-  heading: {
-    fontSize: 18,
+  currencySelector: {
+    width: "100%",
+    alignItems: "center",
+    marginVertical: 10,
+  },
+  accountBalance: {
+    width: "100%",
+    alignItems: "center",
+    marginVertical: 10,
+  },
+  sectionTitle: {
+    fontSize: 24,
     fontWeight: "bold",
-    marginBottom: 10,
+    marginVertical: 20,
   },
   servicesContainer: {
-    marginTop: 20,
+    width: "100%",
     alignItems: "center",
   },
   serviceButton: {
-    backgroundColor: "#ccc",
+    backgroundColor: "#007bff",
     padding: 10,
+    borderRadius: 25,
     marginVertical: 5,
-    borderRadius: 5,
-  },
-  pieChartsContainer: {
-    marginTop: 20,
+    width: "80%",
     alignItems: "center",
   },
-  pieChartContainer: {
-    marginBottom: 20,
-  },
-  subHeading: {
+  buttonText: {
+    color: "#fff",
     fontSize: 16,
+  },
+  icon: {
+    marginLeft: 10,
+  },
+
+  header: {
+    fontSize: 24,
     fontWeight: "bold",
-    marginBottom: 10,
+    textAlign: "center",
+    // paddingBottom: 10,
+    padding: 20,
+  },
+  headerCard: {
+    marginBottom: 16,
+    borderRadius: 8,
+  },
+  cardContainer: {
+    padding: 10,
   },
 });
 

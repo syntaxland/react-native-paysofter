@@ -8,7 +8,7 @@ import { useHistory } from "react-router-dom";
 import Message from "../Message";
 import Loader from "../Loader";
  
-function BuyerConfirmPromise({ promiseId, amount }) {
+function BuyerConfirmPromise({ promiseId, amount }) { 
   const dispatch = useDispatch();
   const history = useHistory();
 
@@ -44,7 +44,7 @@ function BuyerConfirmPromise({ promiseId, amount }) {
       return () => clearTimeout(timer);
     }
     // eslint-disable-next-line
-  }, [dispatch, success, history]);
+  }, [dispatch, success, history]); 
 
   const promiseData = {
     password: password,

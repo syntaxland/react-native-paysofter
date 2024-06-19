@@ -5,7 +5,7 @@ import { Table } from "react-bootstrap";
 import { getUserAccountFundCredits } from "../../redux/actions/AccountFundActions"; 
 import Message from "../Message";
 import Loader from "../Loader";
-import Pagination from "../Pagination";
+import Pagination from "../Pagination"; 
 import {formatAmount} from "../FormatAmount";
 
 function AccountFundCredits() {

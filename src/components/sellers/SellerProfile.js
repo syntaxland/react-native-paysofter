@@ -11,7 +11,7 @@ import {
   getBusinessBankAccount,
   updateBusinessBankAccount,
   getBvn,
-  updateBvn,
+  updateBvn, 
   getSellerPhoto,
   updateSellerPhoto,
   getBusinessStatus,

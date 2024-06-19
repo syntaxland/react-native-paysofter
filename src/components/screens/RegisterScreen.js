@@ -8,7 +8,7 @@ import React, {
 import {
   View,
   Text,
-  TextInput, 
+  TextInput,
   Button,
   SafeAreaView,
   ScrollView,
@@ -23,6 +23,8 @@ import {
   faPhone,
   faEye,
   faEyeSlash,
+  faCode,
+  // faUserPlus
 } from "@fortawesome/free-solid-svg-icons";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigation } from "@react-navigation/native";
@@ -30,6 +32,8 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import PhoneInput from "react-native-phone-input";
 import { register } from "../../redux/actions/userActions";
 import { sendEmailOtp } from "../../redux/actions/emailOtpActions";
+
+import { Card } from "react-native-paper";
 import { styles } from "../screenStyles";
 import Message from "../../Message";
 import Loader from "../../Loader";
@@ -61,7 +65,7 @@ const RegisterScreen = () => {
 
   const [passwordVisible, setPasswordVisible] = useState(false);
   const [confirmPasswordVisible, setConfirmPasswordVisible] = useState(false);
-  // const [referralCode, setReferralCode] = useState("");
+  const [referralCode, setReferralCode] = useState("");
 
   const [isTermsConditionsRead, setIsTermsConditionsRead] = useState(false);
   const [termsConditionsError, setTermsConditionsError] = useState("");
@@ -70,13 +74,6 @@ const RegisterScreen = () => {
 
   const userRegister = useSelector((state) => state.userRegister);
   const { loading, success, error } = userRegister;
-
-  // useEffect(() => {
-  //   const { referralCode } = navigation.getParam('referralCode', '');
-  //   if (referralCode) {
-  //     setReferralCode(referralCode);
-  //   }
-  // }, []);
 
   // const [refreshing, setRefreshing] = useState(false);
   // const wait = (timeout) => {
@@ -133,6 +130,10 @@ const RegisterScreen = () => {
         setPhoneNumberError("");
         break;
 
+      case "referralCode":
+        setReferralCode(value);
+        break;
+
       default:
         break;
     }
@@ -149,7 +150,7 @@ const RegisterScreen = () => {
       email: lowerCaseEmail,
       password,
       phone_number: phoneNumber,
-      // referral_code: referralCode,
+      referral_code: referralCode,
       is_terms_conditions_read: isTermsConditionsRead,
     };
   }, [
@@ -159,7 +160,7 @@ const RegisterScreen = () => {
     lowerCaseUsername,
     password,
     phoneNumber,
-    // referralCode,
+    referralCode,
     isTermsConditionsRead,
   ]);
 
@@ -263,157 +264,204 @@ const RegisterScreen = () => {
   return (
     <SafeAreaView>
       <ScrollView>
+        <View style={styles.cardContainer}>
+          <Card style={styles.headerCard}>
+            <Card.Content>
+              <Text style={styles.header}>Register</Text>
+            </Card.Content>
+          </Card>
+        </View>
         <View style={styles.container}>
-          <Text style={styles.title}>Register</Text>
+          {/* <Text style={styles.title}>Register</Text> */}
           {loading && <Loader />}
           {error && <Message variant="error">{error}</Message>}
           {formError && <Message variant="error">{formError}</Message>}
 
-          <View style={styles.inputContainer}>
-            <FontAwesomeIcon icon={faUser} style={styles.icon} />
-            <TextInput
-              style={styles.input}
-              placeholder="Username"
-              value={username}
-              onChangeText={(value) => handleFieldChange("username", value)}
-            />
-          </View>
-          {usernameError && <Text style={styles.error}>{usernameError}</Text>}
+          <View style={styles.cardContainer}>
+            <Card style={styles.headerCard}>
+              <Card.Content>
+                <View style={styles.inputContainer}>
+                  <FontAwesomeIcon icon={faUser} style={styles.icon} />
+                  <TextInput
+                    style={styles.input}
+                    placeholder="Username"
+                    value={username}
+                    onChangeText={(value) =>
+                      handleFieldChange("username", value)
+                    }
+                  />
+                </View>
+                {usernameError && (
+                  <Text style={styles.error}>{usernameError}</Text>
+                )}
 
-          <View style={styles.inputContainer}>
-            <FontAwesomeIcon icon={faUser} style={styles.icon} />
-            <TextInput
-              style={styles.input}
-              placeholder="First Name"
-              value={firstName}
-              onChangeText={(value) => handleFieldChange("firstName", value)}
-            />
-          </View>
-          {firstNameError && <Text style={styles.error}>{firstNameError}</Text>}
+                <View style={styles.inputContainer}>
+                  <FontAwesomeIcon icon={faUser} style={styles.icon} />
+                  <TextInput
+                    style={styles.input}
+                    placeholder="First Name"
+                    value={firstName}
+                    onChangeText={(value) =>
+                      handleFieldChange("firstName", value)
+                    }
+                  />
+                </View>
+                {firstNameError && (
+                  <Text style={styles.error}>{firstNameError}</Text>
+                )}
 
-          <View style={styles.inputContainer}>
-            <FontAwesomeIcon icon={faUser} style={styles.icon} />
-            <TextInput
-              style={styles.input}
-              placeholder="Last Name"
-              value={lastName}
-              onChangeText={(value) => handleFieldChange("lastName", value)}
-            />
-          </View>
-          {lastNameError && <Text style={styles.error}>{lastNameError}</Text>}
+                <View style={styles.inputContainer}>
+                  <FontAwesomeIcon icon={faUser} style={styles.icon} />
+                  <TextInput
+                    style={styles.input}
+                    placeholder="Last Name"
+                    value={lastName}
+                    onChangeText={(value) =>
+                      handleFieldChange("lastName", value)
+                    }
+                  />
+                </View>
+                {lastNameError && (
+                  <Text style={styles.error}>{lastNameError}</Text>
+                )}
 
-          <View style={styles.inputContainer}>
-            <FontAwesomeIcon icon={faEnvelope} style={styles.icon} />
-            <TextInput
-              style={styles.input}
-              placeholder="Email"
-              value={email}
-              onChangeText={(value) => handleFieldChange("email", value)}
-            />
-          </View>
-          {emailError && <Text style={styles.error}>{emailError}</Text>}
+                <View style={styles.inputContainer}>
+                  <FontAwesomeIcon icon={faEnvelope} style={styles.icon} />
+                  <TextInput
+                    style={styles.input}
+                    placeholder="Email"
+                    value={email}
+                    onChangeText={(value) => handleFieldChange("email", value)}
+                  />
+                </View>
+                {emailError && <Text style={styles.error}>{emailError}</Text>}
 
-          <View style={styles.inputContainer}>
-            <FontAwesomeIcon icon={faKey} style={styles.icon} />
-            <TextInput
-              style={styles.input}
-              placeholder="Password"
-              secureTextEntry={!passwordVisible}
-              value={password}
-              onChangeText={(value) => handleFieldChange("password", value)}
-            />
-            <TouchableOpacity
-              style={styles.eyeIconContainer}
-              onPress={() => setPasswordVisible(!passwordVisible)}
-            >
-              <FontAwesomeIcon
-                icon={passwordVisible ? faEye : faEyeSlash}
-                style={styles.eyeIcon}
-              />
-            </TouchableOpacity>
-          </View>
-          {passwordError && <Text style={styles.error}>{passwordError}</Text>}
+                <View style={styles.inputContainer}>
+                  <FontAwesomeIcon icon={faKey} style={styles.icon} />
+                  <TextInput
+                    style={styles.input}
+                    placeholder="Password"
+                    secureTextEntry={!passwordVisible}
+                    value={password}
+                    onChangeText={(value) =>
+                      handleFieldChange("password", value)
+                    }
+                  />
+                  <TouchableOpacity
+                    style={styles.eyeIconContainer}
+                    onPress={() => setPasswordVisible(!passwordVisible)}
+                  >
+                    <FontAwesomeIcon
+                      icon={passwordVisible ? faEye : faEyeSlash}
+                      style={styles.eyeIcon}
+                    />
+                  </TouchableOpacity>
+                </View>
+                {passwordError && (
+                  <Text style={styles.error}>{passwordError}</Text>
+                )}
 
-          <View style={styles.inputContainer}>
-            <FontAwesomeIcon icon={faKey} style={styles.icon} />
-            <TextInput
-              style={styles.input}
-              placeholder="Confirm Password"
-              secureTextEntry={!confirmPasswordVisible}
-              value={confirmPassword}
-              onChangeText={(value) =>
-                handleFieldChange("confirmPassword", value)
-              }
-            />
-            <TouchableOpacity
-              style={styles.eyeIconContainer}
-              onPress={() => setConfirmPasswordVisible(!confirmPasswordVisible)}
-            >
-              <FontAwesomeIcon
-                icon={confirmPasswordVisible ? faEye : faEyeSlash}
-                style={styles.eyeIcon}
-              />
-            </TouchableOpacity>
-          </View>
-          {confirmPasswordError && (
-            <Text style={styles.error}>{confirmPasswordError}</Text>
-          )}
+                <View style={styles.inputContainer}>
+                  <FontAwesomeIcon icon={faKey} style={styles.icon} />
+                  <TextInput
+                    style={styles.input}
+                    placeholder="Confirm Password"
+                    secureTextEntry={!confirmPasswordVisible}
+                    value={confirmPassword}
+                    onChangeText={(value) =>
+                      handleFieldChange("confirmPassword", value)
+                    }
+                  />
+                  <TouchableOpacity
+                    style={styles.eyeIconContainer}
+                    onPress={() =>
+                      setConfirmPasswordVisible(!confirmPasswordVisible)
+                    }
+                  >
+                    <FontAwesomeIcon
+                      icon={confirmPasswordVisible ? faEye : faEyeSlash}
+                      style={styles.eyeIcon}
+                    />
+                  </TouchableOpacity>
+                </View>
+                {confirmPasswordError && (
+                  <Text style={styles.error}>{confirmPasswordError}</Text>
+                )}
 
-          <View style={styles.inputContainer}>
-            <FontAwesomeIcon icon={faPhone} style={styles.icon} />
-            <PhoneInput
-              initialCountry={"us"}
-              value={phoneNumber}
-              onChangePhoneNumber={(value) => {
-                setPhoneNumber(value);
-                handleFieldChange("phoneNumber", value);
-              }}
-              style={styles.input}
-              textStyle={{ fontSize: 16 }}
-              textProps={{ placeholder: "Phone Number" }}
-            />
-          </View>
-          {phoneNumberError && (
-            <Text style={styles.error}>{phoneNumberError}</Text>
-          )}
+                <View style={styles.inputContainer}>
+                  <FontAwesomeIcon icon={faPhone} style={styles.icon} />
+                  <PhoneInput
+                    initialCountry={"us"}
+                    value={phoneNumber}
+                    onChangePhoneNumber={(value) => {
+                      setPhoneNumber(value);
+                      handleFieldChange("phoneNumber", value);
+                    }}
+                    style={styles.input}
+                    textStyle={{ fontSize: 16 }}
+                    textProps={{ placeholder: "Phone Number" }}
+                  />
+                </View>
+                {phoneNumberError && (
+                  <Text style={styles.error}>{phoneNumberError}</Text>
+                )}
 
-          <BouncyCheckbox
-            isChecked={isTermsConditionsRead}
-            onPress={(isChecked) => {
-              setIsTermsConditionsRead(isChecked);
-              handleFieldChange("isTermsConditionsRead", isChecked);
-            }}
-            text="I agree to the Terms and Conditions"
-            textStyle={{
-              marginLeft: 8,
-              textDecorationLine: "none",
-            }}
-            size={25}
-            fillColor="green"
-            unFillColor="#FFFFFF"
-            iconStyle={{ borderColor: "red" }}
-            innerIconStyle={{ borderWidth: 2 }}
-          />
-          <TouchableOpacity onPress={handleTermsAndConditions}>
-            <Text style={{ color: "blue" }}>Terms & Conditions</Text>
-          </TouchableOpacity>
-          {termsConditionsError && (
-            <Text style={styles.error}>{termsConditionsError}</Text>
-          )}
+                <View style={styles.inputContainer}>
+                  <FontAwesomeIcon icon={faCode} style={styles.icon} />
+                  <TextInput
+                    style={styles.input}
+                    placeholder="Enter referral code if any."
+                    value={referralCode}
+                    // onChangeText={(value) => handleFieldChange("referralCode", value)}
+                    onChangeText={(value) => {
+                      if (value.length <= 10) {
+                        handleFieldChange("referralCode", value);
+                      }
+                    }}
+                    maxLength={10}
+                  />
+                </View>
+
+                <BouncyCheckbox
+                  isChecked={isTermsConditionsRead}
+                  onPress={(isChecked) => {
+                    setIsTermsConditionsRead(isChecked);
+                    handleFieldChange("isTermsConditionsRead", isChecked);
+                  }}
+                  text="I agree to the Terms and Conditions"
+                  textStyle={{
+                    marginLeft: 8,
+                    textDecorationLine: "none",
+                  }}
+                  size={25}
+                  fillColor="green"
+                  unFillColor="#FFFFFF"
+                  iconStyle={{ borderColor: "red" }}
+                  innerIconStyle={{ borderWidth: 2 }}
+                />
+                <TouchableOpacity onPress={handleTermsAndConditions}>
+                  <Text style={{ color: "blue", textAlign: "center" }}>Terms & Conditions</Text>
+                </TouchableOpacity>
+                {termsConditionsError && (
+                  <Text style={styles.error}>{termsConditionsError}</Text>
+                )}
+              </Card.Content>
+            </Card>
+          </View>
 
           <View style={styles.buttonContainer}>
-            <Button
-              title="Register"
-              onPress={submitHandler}
-              disabled={loading}
-            />
+            <TouchableOpacity onPress={submitHandler} disabled={loading}>
+              <Text style={styles.roundedPrimaryBtn}>Register</Text>
+            </TouchableOpacity>
           </View>
 
           <View style={styles.buttonContainer}>
-            <Button
-              title="Already have an account? Login"
+            <TouchableOpacity
               onPress={() => navigation.navigate("Login")}
-            />
+              disabled={loading}
+            >
+              <Text style={styles.roundedSuccessBtn}>Login</Text>
+            </TouchableOpacity>
           </View>
         </View>
       </ScrollView>

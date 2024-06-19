@@ -7,7 +7,7 @@ import Message from "../Message";
 import Loader from "../Loader";
 
 function SellerPhoto({ history }) {
-  const dispatch = useDispatch();
+  const dispatch = useDispatch(); 
 
   const userLogin = useSelector((state) => state.userLogin);
   const { userInfo } = userLogin;

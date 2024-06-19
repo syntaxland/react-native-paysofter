@@ -7,11 +7,14 @@ import {
   Button,
   SafeAreaView,
   ScrollView,
+    TouchableOpacity,
 } from "react-native";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigation } from "@react-navigation/native";
-import { FontAwesomeIcon } from "@fortawesome/react-native-fontawesome"; 
+import { FontAwesomeIcon } from "@fortawesome/react-native-fontawesome";
 import { faUser, faKey } from "@fortawesome/free-solid-svg-icons";
+
+import { Card } from "react-native-paper";
 import { login } from "../../redux/actions/userActions";
 import Loader from "../../Loader";
 import Message from "../../Message";
@@ -58,46 +61,72 @@ const LoginScreen = () => {
   return (
     <SafeAreaView>
       <ScrollView>
+        <View style={styles.cardContainer}>
+          <Card style={styles.headerCard}>
+            <Card.Content>
+              <Text style={styles.header}>Login</Text>
+            </Card.Content>
+          </Card>
+        </View>
         <View style={styles.container}>
-          <Text style={styles.title}>Login</Text>
           {loading && <Loader />}
           {error && <Message variant="error">{error}</Message>}
           {success && <Message variant="success">Login successful</Message>}
 
-          <View style={styles.inputContainer}>
-            <FontAwesomeIcon icon={faUser} style={styles.icon} />
-            <TextInput
-              style={styles.input}
-              placeholder="Email"
-              value={email}
-              onChangeText={setEmail}
-            />
-          </View>
+          <View style={styles.cardContainer}>
+            <Card style={styles.headerCard}>
+              <Card.Content>
+                <View style={styles.inputContainer}>
+                  <FontAwesomeIcon icon={faUser} style={styles.icon} />
+                  <TextInput
+                    style={styles.input}
+                    placeholder="Email"
+                    value={email}
+                    onChangeText={setEmail}
+                  />
+                </View>
 
-          <View style={styles.inputContainer}>
-            <FontAwesomeIcon icon={faKey} style={styles.icon} />
-            <TextInput
-              style={styles.input}
-              placeholder="Password"
-              secureTextEntry
-              value={password}
-              onChangeText={setPassword}
-            />
+                <View style={styles.inputContainer}>
+                  <FontAwesomeIcon icon={faKey} style={styles.icon} />
+                  <TextInput
+                    style={styles.input}
+                    placeholder="Password"
+                    secureTextEntry
+                    value={password}
+                    onChangeText={setPassword}
+                  />
+                </View>
+              </Card.Content>
+            </Card>
           </View>
 
           <View style={styles.buttonContainer}>
-            <Button
-              title="Login"
+            <TouchableOpacity
               onPress={submitHandler}
               disabled={loading || !email || !password}
-            />
+            >
+              <Text style={styles.roundedPrimaryBtn}>Login</Text>
+            </TouchableOpacity>
           </View>
+
           <View style={styles.buttonContainer}>
-            <Button
-              title="Register"
+            <TouchableOpacity
               onPress={() => navigation.navigate("Register")}
-            />
+              // disabled={loading}
+            >
+              <Text style={styles.roundedSuccessBtn}>Register</Text>
+            </TouchableOpacity>
           </View>
+
+          <View style={styles.buttonContainer}>
+            <Text style={styles.primaryText}>Forgot Password? </Text>
+            <TouchableOpacity
+            // onPress={() => navigation.navigate("Reset Password")}
+            >
+              <Text style={styles.roundedDangerBtn}>Reset Password</Text>
+            </TouchableOpacity>
+          </View>
+          
         </View>
       </ScrollView>
     </SafeAreaView>

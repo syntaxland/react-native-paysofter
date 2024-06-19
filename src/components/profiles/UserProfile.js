@@ -1,25 +1,44 @@
 // UserProfile.js
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { useHistory } from "react-router-dom";
-// import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-// import { faExclamationTriangle } from "@fortawesome/free-solid-svg-icons";
+import {
+  View,
+  Text,
+  TextInput,
+  Button,
+  ScrollView,
+  StyleSheet,
+  TouchableOpacity,
+  RefreshControl,
+} from "react-native";
+import { FontAwesomeIcon } from "@fortawesome/react-native-fontawesome";
+import {
+  // faExclamationTriangle,
+  faUserCheck,
+  faUser,
+  faCheckCircle,
+  faTimesCircle,
+  faCopy,
+  faCheck,
+  faEye,
+  faEyeSlash,
+} from "@fortawesome/free-solid-svg-icons";
 import {
   getUserProfile,
   updateUserProfile,
-  // updateUserAvatar,
 } from "../../redux/actions/userProfileActions";
-import { resendEmailOtp } from "../../redux/actions/emailOtpActions";
-import { Form, Button, Row, Col, Container, Accordion } from "react-bootstrap";
-import Message from "../Message";
-import Loader from "../Loader";
+import { sendEmailOtp } from "../../redux/actions/emailOtpActions";
+import { List } from "react-native-paper";
+import * as Clipboard from "expo-clipboard";
+import { Card } from "react-native-paper";
+import Message from "../../Message";
+import Loader from "../../Loader";
 
 function UserProfile() {
   const dispatch = useDispatch();
 
   const userProfile = useSelector((state) => state.userProfile);
   const { loading: profileLoading, error: profileError, profile } = userProfile;
-  console.log("profile:", profile);
 
   const updateProfile = useSelector((state) => state.updateProfile);
   const { loading, success, error } = updateProfile;
@@ -27,27 +46,29 @@ function UserProfile() {
   const userLogin = useSelector((state) => state.userLogin);
   const { userInfo } = userLogin;
 
+  useEffect(() => {
+    if (!userInfo) {
+      navigation.navigate("Login");
+    }
+  }, [userInfo]);
+
+  const [refreshing, setRefreshing] = useState(false);
+  const onRefresh = useCallback(() => {
+    setRefreshing(true);
+    dispatch(updateUserProfile());
+    dispatch(getUserProfile());
+    setTimeout(() => setRefreshing(false), 2000);
+  }, [dispatch]);
+
   const [successMessage, setSuccessMessage] = useState("");
-  const [isSecurityCodeCopied, setIsSecurityCodeCopied] = useState(false);
   const [securityCodeVisible, setSecurityCodeVisible] = useState(false);
+  const [isSecurityCodeCopied, setIsSecurityCodeCopied] = useState(false);
   const [isAccountIdCopied, setIsAccountIdCopied] = useState(false);
-
-  const history = useHistory();
-
-  // const handleAvatarChange = (e) => {
-  //   const avatar = e.target.files[0];
-  //   if (avatar) {
-  //     const formData = new FormData();
-  //     formData.append("avatar", avatar);
-  //     dispatch(updateUserAvatar(formData));
-  //   }
-  // };
 
   const [userData, setUserData] = useState({
     first_name: "",
     last_name: "",
     phone_number: "",
-    // avatar: "",
   });
 
   useEffect(() => {
@@ -62,7 +83,7 @@ function UserProfile() {
         first_name: userProfile.profile.first_name,
         last_name: userProfile.profile.last_name,
         phone_number: userProfile.profile.phone_number,
-        // avatar: userProfile.profile.avatar,
+        avatar: userProfile.profile.avatar,
       });
     }
   }, [userProfile]);
@@ -73,7 +94,7 @@ function UserProfile() {
         first_name: userInfo.first_name,
         last_name: userInfo.last_name,
         phone_number: userInfo.phone_number,
-        // avatar: userInfo.avatar,
+        avatar: userInfo.avatar,
       });
     }
   }, [userInfo]);
@@ -87,59 +108,44 @@ function UserProfile() {
     }
   }, [success]);
 
-  // const handleInputChange = (e) => {
-  //   const { name, value } = e.target;
-  //   setUserData({ ...userData, [name]: value });
+  // const handleAvatarChange = (e) => {
+  //   const avatar = e.target.files[0];
+  //   if (avatar) {
+  //     const formData = new FormData();
+  //     formData.append("avatar", avatar);
+  //     dispatch(updateUserAvatar(formData));
+  //   }
   // };
 
-  const handleInputChange = (e) => {
-    const { name, value, files } = e.target;
-    if (name === "avatar") {
-      setUserData((prevUserData) => ({
-        ...prevUserData,
-        avatar: files[0],
-      }));
-    } else {
-      setUserData((prevUserData) => ({
-        ...prevUserData,
-        [name]: value,
-      }));
-    }
+  const handleInputChange = (name, value) => {
+    setUserData({ ...userData, [name]: value });
   };
 
   const handleUpdateProfile = () => {
     dispatch(updateUserProfile(userData));
   };
 
-  // const handleDeleteAccount = () => {
-  //   history.push("/delete-account");
-  // };
-
   const handleResendEmailOtp = () => {
-    dispatch(resendEmailOtp(userInfo.email, userInfo.first_name));
-    history.push("/verify-email-otp");
+    dispatch(sendEmailOtp(userInfo?.email, userInfo?.first_name));
+    navigation.navigate("VerifyEmailOtp");
   };
 
   const handleVerifyEmail = () => {
-    if (!userInfo.is_verified) {
+    if (!userInfo?.is_verified) {
       handleResendEmailOtp();
     }
   };
 
-  // const handleChangePassword = () => {
-  //   history.push("/change-password");
-  // };
-
-  const copyToClipboardSecCode = (text) => {
-    navigator.clipboard.writeText(text);
+  const copyToClipboard = async (text) => {
+    await Clipboard.setStringAsync(text);
     setIsSecurityCodeCopied(true);
     setTimeout(() => {
       setIsSecurityCodeCopied(false);
     }, 3000);
   };
 
-  const copyToClipboardAccountID = (text) => {
-    navigator.clipboard.writeText(text);
+  const copyToClipboardAccountId = async (text) => {
+    await Clipboard.setStringAsync(text);
     setIsAccountIdCopied(true);
     setTimeout(() => {
       setIsAccountIdCopied(false);
@@ -150,25 +156,26 @@ function UserProfile() {
     setSecurityCodeVisible(!securityCodeVisible);
   };
 
-  // const formatAccountID = (accountID) => {
-  //   if (accountID) {
-  //     return accountID.match(/.{1,4}/g).join("-");
-  //   }
-  //   return "";
-  // };
-
   return (
-    <Container Fluid>
-      <Row>
-        {userInfo.is_verified ? (
-          <h2 className="text-center">
-            Profile <i className="fas fa-user-check"></i>
-          </h2>
-        ) : (
-          <h2 className="text-center">
-            Profile <i className="fas fa-user"></i>
-          </h2>
-        )}
+    <ScrollView
+      refreshControl={
+        <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+      }
+    >
+      <View style={styles.container}>
+        <View style={styles.cardContainer}>
+          <Card style={styles.card}>
+            <Card.Content>
+              <Text style={styles.header}>
+                {" "}
+                Profile{" "}
+                <FontAwesomeIcon
+                  icon={userInfo.is_verified ? faUserCheck : faUser}
+                />
+              </Text>
+            </Card.Content>
+          </Card>
+        </View>
 
         {loading && <Loader />}
         {profileLoading && <Loader />}
@@ -180,297 +187,248 @@ function UserProfile() {
         {error && <Message variant="danger">{error}</Message>}
         {profileError && <Message variant="danger">{error}</Message>}
 
-        <p>
+        <Text>
           Verified{" "}
-          {userInfo.is_verified ? (
-            <i
-              className="fas fa-check-circle"
-              style={{ fontSize: "18px", color: "white" }}
-            ></i>
-          ) : (
-            <i
-              className="fas fa-times-circle"
-              style={{ fontSize: "18px", color: "red" }}
-            ></i>
-          )}
-        </p>
+          <FontAwesomeIcon
+            icon={userInfo?.is_verified ? faCheckCircle : faTimesCircle}
+            style={{ color: userInfo.is_verified ? "white" : "red" }}
+          />
+        </Text>
 
-        <Col>
-          <Accordion defaultActiveKey={["0"]} alwaysOpen>
-            <Accordion.Item eventKey="0">
-              <Accordion.Header>Bio</Accordion.Header>
-              <Accordion.Body>
-                <Form encType="multipart/form-data">
-                  {!userInfo.is_verified && (
-                    <Button variant="primary" onClick={handleVerifyEmail}>
-                      Verify Email
-                    </Button>
+        <View style={styles.item}>
+          <List.Accordion
+            title="Bio"
+            left={(props) => <List.Icon {...props} icon="account" />}
+          >
+            {!userInfo.is_verified && (
+              <Button title="Verify Email" onPress={handleVerifyEmail} />
+            )}
+
+            <TextInput
+              style={styles.input}
+              placeholder="Username"
+              value={profile?.username}
+              editable={false}
+              onChangeText={(value) => handleInputChange("username", value)}
+            />
+
+            <TextInput
+              style={styles.input}
+              placeholder="First Name"
+              value={userData.first_name}
+              onChangeText={(value) => handleInputChange("first_name", value)}
+            />
+
+            <TextInput
+              style={styles.input}
+              placeholder="Last Name"
+              value={userData.last_name}
+              onChangeText={(value) => handleInputChange("last_name", value)}
+            />
+
+            <TextInput
+              style={styles.input}
+              placeholder="Email Address"
+              value={profile?.email}
+              editable={false}
+              onChangeText={(value) => handleInputChange("email", value)}
+            />
+
+            <TextInput
+              style={styles.input}
+              placeholder="Phone Number"
+              value={userData?.phone_number}
+              onChangeText={(value) => handleInputChange("phone_number", value)}
+            />
+
+            <Button
+              title="Update Profile"
+              onPress={handleUpdateProfile}
+              color="green"
+            />
+          </List.Accordion>
+        </View>
+
+        {/* <View style={styles.item}>
+          <List.Accordion
+            title="Update Avatar"
+            left={(props) => <List.Icon {...props} icon="camera" />}
+          >
+            <TextInput
+              style={styles.input}
+              placeholder="Avatar"
+              type="file"
+              accept="image/*"
+              onChange={handleAvatarChange}
+            />
+          </List.Accordion>
+        </View> */}
+
+        <View style={styles.item}>
+          <List.Accordion
+            title="Account Details"
+            left={(props) => <List.Icon {...props} icon="key" />}
+          >
+            <Text style={styles.title}>Account ID</Text>
+            <View style={styles.accountIdContainer}>
+              <TextInput
+                style={styles.input}
+                placeholder="Account ID"
+                value={profile?.account_id}
+                editable={false}
+              />
+              {/* <TouchableOpacity
+                style={styles.copyButton}
+                onPress={() => copyToClipboardAccountId(profile?.account_id)}
+              >
+                <FontAwesomeIcon icon={faCopy} size={24} />
+              </TouchableOpacity> */}
+
+              <TouchableOpacity
+                style={styles.copyButton}
+                onPress={() => copyToClipboardAccountId(profile?.account_id)}
+              >
+                <Text style={styles.label}>
+                  {isAccountIdCopied ? (
+                    <Text style={styles.label}>
+                      Copied{" "}
+                      <FontAwesomeIcon
+                        icon={faCheck}
+                        size={24}
+                        // style={styles.icon}
+                      />
+                    </Text>
+                  ) : (
+                    <Text style={styles.label}>
+                      <FontAwesomeIcon
+                        icon={faCopy}
+                        size={24}
+                        // style={styles.icon}
+                      />{" "}
+                      Copy
+                    </Text>
                   )}
+                </Text>
+              </TouchableOpacity>
+            </View>
 
-<Form.Group>
-                    <Form.Label>Username</Form.Label>
-                    <Form.Control
-                      type="text"
-                      name="username"
-                      // value={userData.first_name}
-                      value={profile.username}
-                      onChange={handleInputChange}
-                      readOnly
-                    />
-                  </Form.Group>
+            <Text style={styles.title}>Security Code</Text>
+            <View style={styles.securityCodeContainer}>
+              <TextInput
+                style={styles.input}
+                placeholder="Security Code"
+                secureTextEntry={!securityCodeVisible}
+                value={profile.security_code}
+                editable={false}
+              />
 
-                  <Form.Group>
-                    <Form.Label>Account ID</Form.Label>
-                    <Form.Control
-                      type="text"
-                      name="first_name"
-                      value={profile.account_id}
-                      // value={formatAccountID(profile.account_id)}
-                      readOnly
-                    />
+              <TouchableOpacity
+                style={styles.copyButton}
+                onPress={() => copyToClipboard(profile?.security_code)}
+              >
+                <Text style={styles.label}>
+                  {isSecurityCodeCopied ? (
+                    <Text style={styles.label}>
+                      Copied{" "}
+                      <FontAwesomeIcon
+                        icon={faCheck}
+                        size={24}
+                        // style={styles.icon}
+                      />
+                    </Text>
+                  ) : (
+                    <Text style={styles.label}>
+                      <FontAwesomeIcon
+                        icon={faCopy}
+                        size={24}
+                        // style={styles.icon}
+                      />{" "}
+                      Copy
+                    </Text>
+                  )}
+                </Text>
+              </TouchableOpacity>
 
-                    <Button
-                      variant="outline"
-                      className="rounded"
-                      size="sm"
-                      onClick={() =>
-                        copyToClipboardAccountID(profile.account_id)
-                      }
-                    >
-                      {isAccountIdCopied ? (
-                        <span>
-                          <i className="fa fa-check"></i> Copied
-                        </span>
-                      ) : (
-                        <span>
-                          <i className="fa fa-copy"></i> Copy
-                        </span>
-                      )}
-                    </Button>
-                  </Form.Group>
-
-                  <Form.Group>
-                    <Form.Label>Securty Code</Form.Label>
-                    <Form.Control
-                      type={securityCodeVisible ? "text" : "password"}
-                      name="first_name"
-                      value={profile.security_code}
-                      readOnly
-                    />
-                    <div>
-                      <span>
-                        <Button
-                          variant="outline"
-                          className="rounded"
-                          size="sm"
-                          onClick={toggleSecurityCodeVisibility}
-                        >
-                          {securityCodeVisible ? (
-                            <span>
-                              <i className="fa fa-eye-slash"></i> Hide
-                            </span>
-                          ) : (
-                            <span>
-                              <i className="fa fa-eye"></i> Show
-                            </span>
-                          )}
-                        </Button>
-                        {/* {securityCodeVisible ? profile.security_code : "****"} */}
-                      </span>
-                      <Button
-                        variant="outline"
-                        className="rounded"
-                        size="sm"
-                        onClick={() =>
-                          copyToClipboardSecCode(profile.security_code)
-                        }
-                      >
-                        {isSecurityCodeCopied ? (
-                          <span>
-                            <i className="fa fa-check"></i> Copied
-                          </span>
-                        ) : (
-                          <span>
-                            <i className="fa fa-copy"></i> Copy
-                          </span>
-                        )}
-                      </Button>
-                    </div>
-                  </Form.Group>
-
-                  <Form.Group>
-                    <Form.Label>First Name</Form.Label>
-                    <Form.Control
-                      type="text"
-                      name="first_name"
-                      // value={userData.first_name}
-                      value={
-                        userData.first_name
-                          ? userData.first_name.charAt(0).toUpperCase() +
-                            userData.first_name.slice(1)
-                          : ""
-                      }
-                      onChange={handleInputChange}
-                    />
-                  </Form.Group>
-
-                  <Form.Group>
-                    <Form.Label>Last Name</Form.Label>
-                    <Form.Control
-                      type="text"
-                      name="last_name"
-                      // value={userData.last_name}
-                      value={
-                        userData.last_name
-                          ? userData.last_name.charAt(0).toUpperCase() +
-                            userData.last_name.slice(1)
-                          : ""
-                      }
-                      onChange={handleInputChange}
-                    />
-                  </Form.Group>
-                  <Form.Group>
-                    <Form.Label>Email Adress</Form.Label>
-                    <Form.Control
-                      type="text"
-                      name="email"
-                      value={profile.email}
-                      readOnly
-                      onChange={handleInputChange}
-                    />
-                  </Form.Group>
-                  <Form.Group>
-                    <Form.Label>Phone Number</Form.Label>
-                    <Form.Control
-                      type="text"
-                      name="phone_number"
-                      value={userData.phone_number}
-                      onChange={handleInputChange}
-                    />
-                  </Form.Group>
-
-                  <Form.Group>
-                    <Form.Label>Avatar</Form.Label>
-                    <Form.Control
-                      type="file"
-                      name="avatar"
-                      accept="image/*"
-                      onChange={handleInputChange}
-                    />
-                  </Form.Group>
-
-                  <div className="d-flex justify-content-right pt-3">
-                    <Button
-                      className="rounded"
-                      variant="success"
-                      onClick={handleUpdateProfile}
-                    >
-                      Update Profile
-                    </Button>{" "}
-                  </div>
-                </Form>
-              </Accordion.Body>
-            </Accordion.Item>
-
-            {/* <Accordion.Item eventKey="1">
-              <Accordion.Header>Change Password</Accordion.Header>
-              <Accordion.Body>
-                <Form.Group>
-                  <Form.Label>Password</Form.Label>
-                  <Form.Control
-                    type="password"
-                    name="password"
-                    placeholder="****************"
-                    value={userInfo.password}
-                    readOnly
-                    onChange={handleInputChange}
-                  />
-                </Form.Group>
-                <Button
-                  className="rounded"
-                  variant="success"
-                  onClick={handleChangePassword}
-                >
-                  Change Password
-                </Button>
-              </Accordion.Body>
-            </Accordion.Item> */}
-
-            {/* <Accordion.Item eventKey="2">
-              <Accordion.Header>Update Avatar</Accordion.Header>
-              <Accordion.Body>
-                <Form.Group>
-                  <Form.Label>Avatar</Form.Label>
-                  <Form.Control
-                    type="file"
-                    name="avatar"
-                    accept="image/*"
-                    onChange={handleAvatarChange}
-                  />
-                </Form.Group>
-              </Accordion.Body>
-            </Accordion.Item> */}
-
-            <Accordion.Item eventKey="3">
-              <Accordion.Header>Referrals</Accordion.Header>
-              <Accordion.Body>
-                <div>
-                  <div>Referred Users: ()</div>
-                  <div>Referral Link: {profile.referral_link}</div>
-                  <div>Referral Code: {profile.referral_code}</div>
-                  <div>
-                    {" "}
-                    <Button>Generate New Referral Link</Button>
-                  </div>
-                </div>
-              </Accordion.Body>
-            </Accordion.Item>
-
-            {/* <Accordion.Item eventKey="4">
-              <Accordion.Header>API Endpoints</Accordion.Header>
-              <Accordion.Body>
-                <Row>
-                  <div className="text-center py-2">
-                    <h2>Test API keys</h2>
-                  </div>
-                  <Col>Test API key: {profile.test_api_key}</Col>
-                  <Col>Test Secret Key: {profile.test_api_secret_key}</Col>
-
-                  <div className="text-center py-2">
-                    <h2>Live API keys</h2>
-                  </div>
-
-                  <Col>Live API Key: {profile.live_api_key}</Col>
-                  <Col>Live API Secret Key: {profile.live_api_secret_key}</Col>
-                </Row>
-              </Accordion.Body>
-            </Accordion.Item> */}
-
-            {/* <Accordion.Item eventKey="5">
-              <Accordion.Header>Delete Account</Accordion.Header>
-              <Accordion.Body>
-                <p>
-                  <FontAwesomeIcon
-                    icon={faExclamationTriangle}
-                    className="warning-icon"
-                  />{" "}
-                  Warning! This action is irreversible and all your data will be
-                  deleted from our database.
-                </p>
-                <Button
-                  variant="danger"
-                  onClick={handleDeleteAccount}
-                  className="rounded"
-                >
-                  Delete Account
-                </Button>
-              </Accordion.Body>
-            </Accordion.Item> */}
-          </Accordion>
-        </Col>
-      </Row>
-    </Container>
+              <TouchableOpacity
+                style={styles.toggleVisibilityButton}
+                onPress={toggleSecurityCodeVisibility}
+              >
+                <Text style={styles.toggleVisibilityText}>
+                  {securityCodeVisible ? (
+                    <Text>
+                      <FontAwesomeIcon icon={faEyeSlash} size={24} /> Hide
+                    </Text>
+                  ) : (
+                    <Text>
+                      <FontAwesomeIcon icon={faEye} size={24} /> Show
+                    </Text>
+                  )}
+                </Text>
+              </TouchableOpacity>
+            </View>
+          </List.Accordion>
+        </View>
+      </View>
+    </ScrollView>
   );
 }
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    padding: 20,
+    backgroundColor: "#fff",
+  },
+  header: {
+    fontSize: 24,
+    fontWeight: "bold",
+    textAlign: "center",
+    paddingBottom: 20,
+  },
+  title: {
+    fontSize: 16,
+    fontWeight: "bold",
+    // textAlign: "center",
+    paddingBottom: 5,
+  },
+  item: {
+    marginBottom: 20,
+  },
+  input: {
+    height: 40,
+    borderColor: "gray",
+    borderWidth: 1,
+    marginBottom: 10,
+    paddingHorizontal: 10,
+  },
+  warning: {
+    color: "orange",
+    marginBottom: 10,
+  },
+  securityCodeContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+  },
+  accountIdContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+  },
+  copyButton: {
+    marginLeft: 10,
+  },
+  toggleVisibilityButton: {
+    marginLeft: 10,
+  },
+  toggleVisibilityText: {
+    color: "blue",
+  },
+  card: {
+    marginBottom: 16,
+    borderRadius: 8,
+  },
+  cardContainer: {
+    padding: 16,
+  },
+});
 
 export default UserProfile;

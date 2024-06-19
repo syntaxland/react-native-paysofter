@@ -426,7 +426,7 @@ export const settleDisputedPromise =
             : error.message,
       });
     }
-  };
+  }; 
 
 // export const createPromiseMessages =
 //   (promiseMessageData) => async (dispatch, getState) => {

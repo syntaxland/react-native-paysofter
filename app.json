@@ -2,7 +2,7 @@
   "expo": {
     "name": "Paysofter",
     "slug": "paysofter",
-    "version": "2.0.3",
+    "version": "2.0.6",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
@@ -22,6 +22,22 @@
     },
     "plugins": [
       [
+        "expo-image-picker",
+        {
+          "photosPermission": "custom photos permission",
+          "cameraPermission": "Allow $(PRODUCT_NAME) to open the camera",
+          "microphonePermission": false
+        }
+      ],
+      [
+        "expo-media-library",
+        {
+          "photosPermission": "Allow $(PRODUCT_NAME) to access your photos.",
+          "savePhotosPermission": "Allow $(PRODUCT_NAME) to save photos.",
+          "isAccessMediaLocationEnabled": true
+        }
+      ],
+      [
         "expo-build-properties",
         {
           "android": {
@@ -30,7 +46,7 @@
               "foregroundImage": "./assets/adaptive-icon.png",
               "backgroundColor": "#ffffff"
             },
-            "versionCode": 5,
+            "versionCode": 6,
             "package": "com.jondebosco.paysofter"
           },
           "ios": {

@@ -70,6 +70,7 @@ import { getUserProfile } from "../redux/actions/userProfileActions";
 //   listAllSupportTickets,
 // } from "../redux/actions/supportActions";
 import AccountDetails from "../components/profiles/AccountDetails";
+import Footer from "../Footer";
 
 const Drawer = createDrawerNavigator();
 
@@ -132,11 +133,11 @@ export const CustomDrawerContent = (props) => {
   const { profile } = userProfile;
 
   const [greeting, setGreeting] = useState("");
-  const [showCreditPointLinks, setShowCreditPointLinks] = useState(false);
+  const [showAccountFundLinks, setShowAccountFundLinks] = useState(false);
   const [showAdminLinks, setShowAdminLinks] = useState(false);
 
-  const toggleCreditPointLinks = () => {
-    setShowCreditPointLinks(!showCreditPointLinks);
+  const toggleAccountFundLinks = () => {
+    setShowAccountFundLinks(!showAccountFundLinks);
   };
 
   const toggleAdminLinks = () => {
@@ -253,7 +254,10 @@ export const CustomDrawerContent = (props) => {
   // };
 
   return (
-    <DrawerContentScrollView {...props}>
+    <DrawerContentScrollView
+      {...props}
+      contentContainerStyle={styles.drawerScrollView}
+    >
       <View style={styles.greetingContainer}>
         <View style={styles.drawerItemContainer}>
           <Text style={styles.greetingText}>
@@ -273,9 +277,11 @@ export const CustomDrawerContent = (props) => {
         </View>
       </View>
 
-      <View style={styles.accountContainer}>
-        <AccountDetails />
-      </View>
+      {userInfo && (
+        <View style={styles.accountContainer}>
+          <AccountDetails />
+        </View>
+      )}
 
       {userInfo && (
         <View style={styles.drawerContainer}>
@@ -351,12 +357,12 @@ export const CustomDrawerContent = (props) => {
             />
 
             <TouchableOpacity
-              onPress={toggleCreditPointLinks}
+              onPress={toggleAccountFundLinks}
               style={styles.toggleContainer}
             >
               <DrawerItem
                 label="Accont Funds"
-                onPress={toggleCreditPointLinks}
+                onPress={toggleAccountFundLinks}
                 style={styles.drawerItem}
                 labelStyle={styles.drawerItemLabel}
               />
@@ -368,7 +374,7 @@ export const CustomDrawerContent = (props) => {
             </TouchableOpacity>
           </View>
 
-          {showCreditPointLinks && (
+          {showAccountFundLinks && (
             <>
               <View style={styles.drawerItemContainer}>
                 <FontAwesomeIcon
@@ -821,14 +827,25 @@ export const CustomDrawerContent = (props) => {
           }
         }}
         style={styles.accountStyle}
-        // style={styles.drawerItem}
         labelStyle={styles.drawerItemLabel}
       />
+
+      <View style={styles.versionContainer}>
+        <Text style={styles.versionText}>Version: 2.0.8</Text>
+        <Footer />
+      </View>
     </DrawerContentScrollView>
   );
 };
 
 const styles = StyleSheet.create({
+  drawerScrollView: {
+    // flex: 1,
+    // justifyContent: "space-between",
+  },
+  flexGrow: {
+    flexGrow: 1,
+  },
   title: {
     fontSize: 16,
     paddingVertical: 15,
@@ -847,8 +864,8 @@ const styles = StyleSheet.create({
     color: "#fff",
   },
   accountContainer: {
-    paddingHorizontal: 16,
-    paddingVertical: 8,
+    paddingHorizontal: 2,
+    paddingVertical: 2,
     borderBottomWidth: 1,
     borderBottomColor: "#ECECEC",
   },
@@ -910,5 +927,16 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     flex: 1,
+  },
+  versionContainer: {
+    marginTop: 100,
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderBottomWidth: 1,
+    // borderBottomColor: "#ECECEC",
+  },
+  versionText: {
+    color: "gray",
+    textAlign: "center" 
   },
 });

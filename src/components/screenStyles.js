@@ -192,3 +192,20 @@ export const styles = StyleSheet.create({
     marginRight: 20,
   },
 });
+
+export const paperCardStyles = StyleSheet.create({
+  header: {
+    fontSize: 24,
+    fontWeight: "bold",
+    textAlign: "center",
+    // paddingBottom: 10,
+    padding: 10,
+  },
+  headerCard: {
+    marginBottom: 16,
+    borderRadius: 8,
+  },
+  cardContainer: {
+    padding: 10,
+  },
+});

@@ -3,6 +3,7 @@ import React, { useEffect } from "react";
 import { Text, StyleSheet } from "react-native";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import { useSelector, useDispatch } from "react-redux";
+import { useNavigation } from "@react-navigation/native";
 import { getUserProfile } from "../redux/actions/userProfileActions";
 import HomeScreen from "../components/screens/HomeScreen";
 // import PostFreeAd from "../components/marketplace/PostFreeAd";
@@ -22,6 +23,7 @@ const Tab = createBottomTabNavigator();
 
 export const HomeTabs = () => {
   const dispatch = useDispatch();
+  const navigation = useNavigation();
 
   const userLogin = useSelector((state) => state.userLogin);
   const { userInfo } = userLogin;
@@ -136,7 +138,20 @@ export const HomeTabs = () => {
         }}
         component={HomeScreen}
       />
-      <Tab.Screen name="Dashboard" component={Dashboard} />
+
+      {/* <Tab.Screen name="Dashboard" component={Dashboard} /> */}
+      <Tab.Screen
+        name="Dashboard"
+        component={Dashboard}
+        listeners={({ navigation }) => ({
+          tabPress: (e) => {
+            if (!userInfo) {
+              e.preventDefault();
+              navigation.navigate("Login");
+            }
+          },
+        })}
+      />
 
       {/* {userInfo && (
         <>

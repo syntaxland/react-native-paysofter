@@ -28,14 +28,14 @@ import VerifyEmailOtp from "../components/emailOtp/VerifyEmailOtp";
 // import SellerPaidAdMessage from "../components/marketplace/SellerPaidAdMessage";
 // import Billing from "../components/marketplace/Billing";
 // import SellerProfile from "../components/marketplace/SellerProfile";
-// // CreditPoint
-// import GetBuyCreditPoint from "../components/CreditPoint/GetBuyCreditPoint";
-// import GetUserCpsBonuses from "../components/CreditPoint/GetUserCpsBonuses";
-// import GetAdCpsCharges from "../components/CreditPoint/GetAdCpsCharges";
-// import GetUsdBuyCreditPoint from "../components/CreditPoint/GetUsdBuyCreditPoint";
-// import GetSellCreditPoint from "../components/CreditPoint/GetSellCreditPoint";
-// import GetBuyerCreditPoint from "../components/CreditPoint/GetBuyerCreditPoint";
-// import PaysofterButton from "../components/CreditPoint/payment/PaysofterButton";
+// // FundAccount
+import UsdAccountFundCredits from "../components/FundAccount/UsdAccountFundCredits";
+import AccountFundCredits from "../components/FundAccount/AccountFundCredits";
+import AccountFundDebits from "../components/FundAccount/AccountFundDebits";
+import UsdAccountFundDebits from "../components/FundAccount/UsdAccountFundDebits";
+// import GetSellFundAccount from "../components/FundAccount/GetSellFundAccount";
+// import GetBuyerFundAccount from "../components/FundAccount/GetBuyerFundAccount";
+// import PaysofterButton from "../components/FundAccount/payment/PaysofterButton";
 // // profiles
 import Dashboard from "../components/profiles/Dashboard";
 // import SavedAds from "../components/profiles/SavedAds";
@@ -79,16 +79,19 @@ export const HomeStack = () => {
       <Stack.Screen name="Followed Sellers" component={FollowedSellers} />
       <Stack.Screen name="Settings" component={Settings} />
        */}
-      {/* marketplace */}
-      {/* <Stack.Screen name="Bought NGN CPS List" component={GetBuyCreditPoint} />
-      <Stack.Screen name="CPS Bonuses" component={GetUserCpsBonuses} />
-      <Stack.Screen name="CPS Ad Charges" component={GetAdCpsCharges} />
+      {/* AccountFund */}
+      <Stack.Screen name="Fund Credits (NGN)" component={AccountFundCredits} />
+      <Stack.Screen name="Fund Credits (USD)" component={UsdAccountFundCredits} />
+      <Stack.Screen name="Fund Debits (NGN)" component={AccountFundDebits} />
+       <Stack.Screen name="Fund Debits (USD)" component={UsdAccountFundDebits} />
+      {/* 
+      
       <Stack.Screen
         name="Bought USD CPS List"
-        component={GetUsdBuyCreditPoint}
+        component={GetUsdBuyFundAccount}
       />
-      <Stack.Screen name="Sold CPS List" component={GetSellCreditPoint} />
-      <Stack.Screen name="Recieved CPS List" component={GetBuyerCreditPoint} />
+      <Stack.Screen name="Sold CPS List" component={GetSellFundAccount} />
+      <Stack.Screen name="Recieved CPS List" component={GetBuyerFundAccount} />
       <Stack.Screen name="Post Free Ad" component={PostFreeAd} />
       <Stack.Screen name="Post Paid Ad" component={PostPaidAd} />
       <Stack.Screen name="Ad Detail" component={FreeAdProductDetail} />

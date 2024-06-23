@@ -96,7 +96,11 @@ const Dashboard = () => {
         ) : (
           <>
             <View style={styles.currencySelector}>
-              {/* <SelectCurrency /> */}
+              <View style={styles.cardContainer}>
+                <Card style={styles.card}>
+                  <Card.Content>{/* <SelectCurrency /> */}</Card.Content>
+                </Card>
+              </View>
             </View>
 
             {/* <View style={styles.accountBalance}>
@@ -104,24 +108,30 @@ const Dashboard = () => {
               {selectedCurrency === "USD" && <GetUsdAccountFundBalance />}
             </View> */}
 
-            <Text style={styles.sectionTitle}>Services</Text>
-            <View style={styles.servicesContainer}>
-              {services.map((service, index) => (
-                <TouchableOpacity
-                  key={index}
-                  style={styles.serviceButton}
-                  onPress={() => {}}
-                >
-                  <Text style={styles.buttonText}>
-                    {service.title}{" "}
-                    <FontAwesomeIcon
-                      icon={service.icon}
-                      style={styles.icon}
-                      color="#fff"
-                    />
-                  </Text>
-                </TouchableOpacity>
-              ))}
+            <View style={styles.cardContainer}>
+              <Card style={styles.card}>
+                <Card.Content>
+                  <Text style={styles.sectionTitle}>Services</Text>
+                  <View style={styles.servicesContainer}>
+                    {services.map((service, index) => (
+                      <TouchableOpacity
+                        key={index}
+                        style={styles.serviceButton}
+                        onPress={() => {}}
+                      >
+                        <Text style={styles.buttonText}>
+                          {service.title}{" "}
+                          <FontAwesomeIcon
+                            icon={service.icon}
+                            style={styles.icon}
+                            color="#fff"
+                          />
+                        </Text>
+                      </TouchableOpacity>
+                    ))}
+                  </View>
+                </Card.Content>
+              </Card>
             </View>
           </>
         )}

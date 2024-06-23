@@ -23,6 +23,7 @@ import {
   faEye,
   faEyeSlash,
 } from "@fortawesome/free-solid-svg-icons";
+import { useNavigation } from "@react-navigation/native";
 import {
   getUserProfile,
   updateUserProfile,
@@ -36,6 +37,7 @@ import Loader from "../../Loader";
 
 function UserProfile() {
   const dispatch = useDispatch();
+  const navigation = useNavigation();
 
   const userProfile = useSelector((state) => state.userProfile);
   const { loading: profileLoading, error: profileError, profile } = userProfile;

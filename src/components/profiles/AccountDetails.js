@@ -2,6 +2,7 @@
 import React, { useState, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { View, Text, StyleSheet, TouchableOpacity } from "react-native";
+import { useNavigation } from "@react-navigation/native";
 import { FontAwesomeIcon } from "@fortawesome/react-native-fontawesome";
 import {
   faUser,
@@ -9,6 +10,7 @@ import {
   faCheck,
   faEye,
   faEyeSlash,
+  faRefresh,
 } from "@fortawesome/free-solid-svg-icons";
 import { getUserProfile } from "../../redux/actions/userProfileActions";
 import * as Clipboard from "expo-clipboard";
@@ -18,6 +20,7 @@ import Loader from "../../Loader";
 
 function AccountDetails() {
   const dispatch = useDispatch();
+  const navigation = useNavigation();
 
   const userProfile = useSelector((state) => state.userProfile);
   const { loading: profileLoading, error: profileError, profile } = userProfile;
@@ -68,6 +71,10 @@ function AccountDetails() {
     return "";
   };
 
+  const handleRefresh = () => {
+    dispatch(getUserProfile());
+  };
+
   return (
     <View style={styles.container}>
       <View style={styles.cardContainer}>
@@ -89,102 +96,116 @@ function AccountDetails() {
             {profileError && <Message variant="danger">{profileError}</Message>}
 
             <View style={styles.item}>
-              <View>
-                <Text style={styles.title}>
-                  Account ID:
-                  {formatAccountId(profile.account_id)}
-                </Text>
-                <View style={styles.accountContainer}>
-                  <TouchableOpacity
-                    style={styles.copyButton}
-                    onPress={() =>
-                      copyToClipboardAccountId(profile?.account_id)
-                    }
-                  >
-                    <Text style={styles.label}>
-                      {isAccountIdCopied ? (
-                        <Text style={styles.label}>
-                          Copied{" "}
-                          <FontAwesomeIcon
-                            icon={faCheck}
-                            size={24}
-                            color={styles.iconColor.color}
-                          />
-                        </Text>
-                      ) : (
-                        <Text style={styles.label}>
-                          <FontAwesomeIcon
-                            icon={faCopy}
-                            size={24}
-                            color={styles.iconColor.color}
-                          />{" "}
-                          Copy
-                        </Text>
-                      )}
+              <Card style={styles.innerCard}>
+                <Card.Content>
+                  <View>
+                    <Text style={styles.title}>
+                      Account ID:
+                      {formatAccountId(profile.account_id)}
                     </Text>
-                  </TouchableOpacity>
-                </View>
+                    <View style={styles.accountContainer}>
+                      <TouchableOpacity
+                        style={styles.copyButton}
+                        onPress={() =>
+                          copyToClipboardAccountId(profile?.account_id)
+                        }
+                      >
+                        <Text style={styles.label}>
+                          {isAccountIdCopied ? (
+                            <Text style={styles.label}>
+                              Copied{" "}
+                              <FontAwesomeIcon
+                                icon={faCheck}
+                                size={24}
+                                color={styles.iconColor.color}
+                              />
+                            </Text>
+                          ) : (
+                            <Text style={styles.label}>
+                              <FontAwesomeIcon
+                                icon={faCopy}
+                                size={24}
+                                color={styles.iconColor.color}
+                              />{" "}
+                              Copy
+                            </Text>
+                          )}
+                        </Text>
+                      </TouchableOpacity>
+                    </View>
 
-                <Text style={styles.title}>
-                  Security Code:{" "}
-                  {securityCodeVisible ? profile.security_code : "****"}
-                </Text>
-                <View style={styles.accountContainer}>
-                  <TouchableOpacity
-                    style={styles.copyButton}
-                    onPress={() => copyToClipboard(profile?.security_code)}
-                  >
-                    <Text style={styles.label}>
-                      {isSecurityCodeCopied ? (
-                        <Text style={styles.label}>
-                          Copied{" "}
-                          <FontAwesomeIcon
-                            icon={faCheck}
-                            size={24}
-                            color={styles.iconColor.color}
-                          />
-                        </Text>
-                      ) : (
-                        <Text style={styles.label}>
-                          <FontAwesomeIcon
-                            icon={faCopy}
-                            size={24}
-                            color={styles.iconColor.color}
-                          />{" "}
-                          Copy
-                        </Text>
-                      )}
+                    <Text style={styles.title}>
+                      <TouchableOpacity
+                        style={styles.refreshButton}
+                        onPress={handleRefresh}
+                      >
+                        <FontAwesomeIcon
+                          icon={faRefresh}
+                          size={18}
+                          color="gray"
+                        />
+                      </TouchableOpacity>{" "}
+                      Security Code:{" "}
+                      {securityCodeVisible ? profile.security_code : "****"}
                     </Text>
-                  </TouchableOpacity>
+                    <View style={styles.accountContainer}>
+                      <TouchableOpacity
+                        style={styles.copyButton}
+                        onPress={() => copyToClipboard(profile?.security_code)}
+                      >
+                        <Text style={styles.label}>
+                          {isSecurityCodeCopied ? (
+                            <Text style={styles.label}>
+                              Copied{" "}
+                              <FontAwesomeIcon
+                                icon={faCheck}
+                                size={24}
+                                color={styles.iconColor.color}
+                              />
+                            </Text>
+                          ) : (
+                            <Text style={styles.label}>
+                              <FontAwesomeIcon
+                                icon={faCopy}
+                                size={24}
+                                color={styles.iconColor.color}
+                              />{" "}
+                              Copy
+                            </Text>
+                          )}
+                        </Text>
+                      </TouchableOpacity>
 
-                  <TouchableOpacity
-                    style={styles.toggleVisibilityButton}
-                    onPress={toggleSecurityCodeVisibility}
-                  >
-                    <Text style={styles.label}>
-                      {securityCodeVisible ? (
-                        <Text>
-                          <FontAwesomeIcon
-                            icon={faEyeSlash}
-                            size={24}
-                            color={styles.iconColor.color}
-                          />{" "}
-                          Hide
+                      <TouchableOpacity
+                        style={styles.toggleVisibilityButton}
+                        onPress={toggleSecurityCodeVisibility}
+                      >
+                        <Text style={styles.label}>
+                          {securityCodeVisible ? (
+                            <Text>
+                              <FontAwesomeIcon
+                                icon={faEyeSlash}
+                                size={24}
+                                color={styles.iconColor.color}
+                              />{" "}
+                              Hide
+                            </Text>
+                          ) : (
+                            <Text>
+                              <FontAwesomeIcon
+                                icon={faEye}
+                                size={24}
+                                color={styles.iconColor.color}
+                              />{" "}
+                              Show
+                            </Text>
+                          )}
                         </Text>
-                      ) : (
-                        <Text>
-                          <FontAwesomeIcon
-                            icon={faEye}
-                            size={24}
-                            color={styles.iconColor.color}
-                          />{" "}
-                          Show
-                        </Text>
-                      )}
-                    </Text>
-                  </TouchableOpacity>
-                </View>
-              </View>
+                      </TouchableOpacity>
+                    </View>
+                  </View>
+                </Card.Content>
+              </Card>
             </View>
           </Card.Content>
         </Card>
@@ -196,7 +217,7 @@ function AccountDetails() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    padding: 5,
+    padding: 2,
     backgroundColor: "#0f172a",
   },
   header: {
@@ -214,7 +235,6 @@ const styles = StyleSheet.create({
     padding: 5,
   },
   item: {
-    // marginBottom: 20,
     padding: 10,
   },
   accountContainer: {
@@ -245,7 +265,7 @@ const styles = StyleSheet.create({
     padding: 2,
   },
   cardContainer: {
-    padding: 16,
+    padding: 2,
   },
   label: {
     color: "#fff",

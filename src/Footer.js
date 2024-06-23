@@ -16,7 +16,7 @@ function Footer() {
         paddingVertical: 10,
       }}
     >
-      <View style={{ alignItems: "center", textAlign: "center" }}>
+      <View style={{ alignItems: "center", textAlign: "center" }}> 
         <Text
           style={{
             fontSize: 12,

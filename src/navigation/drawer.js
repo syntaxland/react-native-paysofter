@@ -58,17 +58,15 @@ import {
 } from "@fortawesome/free-solid-svg-icons";
 import { logout } from "../redux/actions/userActions";
 import { getUserProfile } from "../redux/actions/userProfileActions";
-// import { getUserMessages } from "../redux/actions/messagingActions";
-// import {
-//   GetActiveBuyerFreeAdMessages,
-//   GetActiveBuyerPaidAdMessages,
-//   listBuyerFreeAdMessages,
-//   listBuyerPaidAdMessages,
-// } from "../redux/actions/marketplaceSellerActions";
-// import {
-//   listSupportTicket,
-//   listAllSupportTickets,
-// } from "../redux/actions/supportActions";
+import { getUserMessages } from "../redux/actions/messagingActions";
+import {
+  listSupportTicket,
+  listAllSupportTickets,
+} from "../redux/actions/supportActions";
+import {
+  getBuyerPromises,
+  getSellerPromises,
+} from "../redux/actions/PromiseActions";
 import AccountDetails from "../components/profiles/AccountDetails";
 import Footer from "../Footer";
 
@@ -147,13 +145,11 @@ export const CustomDrawerContent = (props) => {
   useEffect(() => {
     if (userInfo) {
       dispatch(getUserProfile());
-      // dispatch(getUserMessages());
-      // dispatch(GetActiveBuyerFreeAdMessages());
-      // dispatch(GetActiveBuyerPaidAdMessages());
-      // dispatch(listBuyerFreeAdMessages());
-      // dispatch(listBuyerPaidAdMessages());
-      // dispatch(listSupportTicket());
-      // dispatch(listAllSupportTickets());
+      dispatch(getUserMessages());
+      dispatch(getBuyerPromises());
+      dispatch(getSellerPromises());
+      dispatch(listSupportTicket());
+      dispatch(listAllSupportTickets());
     }
   }, [dispatch, userInfo]);
 
@@ -166,45 +162,25 @@ export const CustomDrawerContent = (props) => {
     (total, userMessages) => total + userMessages.msg_count,
     0
   );
-  // const listBuyerFreeAdMessagesState = useSelector(
-  //   (state) => state.listBuyerFreeAdMessagesState
-  // );
-  // const { freeAdMessages } = listBuyerFreeAdMessagesState;
+  const getSellerPromiseState = useSelector(
+    (state) => state.getSellerPromiseState
+  );
+  const { promises: sellerPromises } = getSellerPromiseState;
 
-  // const listBuyerPaidAdMessagesState = useSelector(
-  //   (state) => state.listBuyerPaidAdMessagesState
-  // );
-  // const { paidAdMessages } = listBuyerPaidAdMessagesState;
+  const getBuyerPromiseState = useSelector(
+    (state) => state.getBuyerPromiseState
+  );
+  const { promises: buyerPromises } = getBuyerPromiseState;
 
-  // const msgFreeAdCounted = freeAdMessages?.reduce(
-  //   (total, userMessages) => total + userMessages.seller_free_ad_msg_count,
-  //   0
-  // );
+  const sellerMsgCounted = sellerPromises?.reduce(
+    (total, userMessages) => total + userMessages.seller_msg_count,
+    0
+  );
 
-  // const msgPaidAdCounted = paidAdMessages?.reduce(
-  //   (total, userMessages) => total + userMessages.seller_paid_ad_msg_count,
-  //   0
-  // );
-
-  // const GetActiveBuyerFreeAdMessageState = useSelector(
-  //   (state) => state.GetActiveBuyerFreeAdMessageState
-  // );
-  // const { activeBuyerFreeAdMessages } = GetActiveBuyerFreeAdMessageState;
-
-  // const GetActiveBuyerPaidAdMessageState = useSelector(
-  //   (state) => state.GetActiveBuyerPaidAdMessageState
-  // );
-  // const { activeBuyerPaidAdMessages } = GetActiveBuyerPaidAdMessageState;
-
-  // const msgActiveFreeAdCounted = activeBuyerFreeAdMessages?.reduce(
-  //   (total, userMessages) => total + userMessages.buyer_free_ad_msg_count,
-  //   0
-  // );
-
-  // const msgActivePaidAdCounted = activeBuyerPaidAdMessages?.reduce(
-  //   (total, userMessages) => total + userMessages.buyer_paid_ad_msg_count,
-  //   0
-  // );
+  const buyerMsgCounted = buyerPromises?.reduce(
+    (total, userMessages) => total + userMessages.buyer_msg_count,
+    0
+  );
 
   const listSupportTicketState = useSelector(
     (state) => state.listSupportTicketState
@@ -224,12 +200,8 @@ export const CustomDrawerContent = (props) => {
     0
   );
 
-  // const totalMsgCount =
-  //   msgCounted +
-  //   msgPaidAdCounted +
-  //   msgFreeAdCounted +
-  //   msgActiveFreeAdCounted +
-  //   msgActivePaidAdCounted;
+  // const totalMsgCount = msgCounted + buyerMsgCounted;
+  const totalMsgCount = msgCounted + buyerMsgCounted + sellerMsgCounted;
 
   useEffect(() => {
     const currentHour = new Date().getHours();
@@ -285,7 +257,7 @@ export const CustomDrawerContent = (props) => {
 
       {userInfo && (
         <View style={styles.drawerContainer}>
-          <Text style={styles.title}>User Metrics</Text>
+          <Text style={styles.title}>User Info</Text>
 
           <View style={styles.drawerItemContainer}>
             <FontAwesomeIcon
@@ -446,8 +418,8 @@ export const CustomDrawerContent = (props) => {
               style={styles.icon}
             />
             <DrawerItem
-              label="Paysofter Promise"
-              onPress={() => navigation.navigate("Paysofter Promise")}
+              label="Buyer Promises"
+              onPress={() => navigation.navigate("Buyer Promises")}
               style={styles.drawerItem}
               labelStyle={styles.drawerItemLabel}
             />
@@ -483,11 +455,11 @@ export const CustomDrawerContent = (props) => {
                 style={styles.drawerItem}
                 labelStyle={styles.drawerItemLabel}
               />
-              {/* <Text>
+              <Text>
                 {totalMsgCount > 0 && (
                   <Text style={styles.msgCounter}>{totalMsgCount}</Text>
                 )}
-              </Text> */}
+              </Text>
             </View>
           </View>
 
@@ -565,7 +537,7 @@ export const CustomDrawerContent = (props) => {
             </View>
           ) : (
             <>
-              <Text style={styles.title}>Seller Aspect</Text>
+              <Text style={styles.title}>Seller Details</Text>
               <View style={styles.drawerItemContainer}>
                 <FontAwesomeIcon
                   color={styles.iconColor}
@@ -574,8 +546,8 @@ export const CustomDrawerContent = (props) => {
                   style={styles.icon}
                 />
                 <DrawerItem
-                  label="Dashboard (Seller)"
-                  onPress={() => navigation.navigate("Dashboard (Seller)")}
+                  label="Seller Dashboard"
+                  onPress={() => navigation.navigate("Seller Dashboard")}
                   style={styles.drawerItem}
                   labelStyle={styles.drawerItemLabel}
                 />
@@ -604,8 +576,8 @@ export const CustomDrawerContent = (props) => {
                   style={styles.icon}
                 />
                 <DrawerItem
-                  label="Paysofter Promise"
-                  onPress={() => navigation.navigate("Paysofter Promise")}
+                  label="Seller Promises"
+                  onPress={() => navigation.navigate("Seller Promises")}
                   style={styles.drawerItem}
                   labelStyle={styles.drawerItemLabel}
                 />
@@ -664,8 +636,8 @@ export const CustomDrawerContent = (props) => {
                   style={styles.icon}
                 />
                 <DrawerItem
-                  label="SDK & Webhooks"
-                  onPress={() => navigation.navigate("SDK & Webhooks")}
+                  label="Webhooks"
+                  onPress={() => navigation.navigate("Webhooks")}
                   style={styles.drawerItem}
                   labelStyle={styles.drawerItemLabel}
                 />
@@ -722,13 +694,13 @@ export const CustomDrawerContent = (props) => {
                     style={styles.drawerItem}
                     labelStyle={styles.drawerItemLabel}
                   />
-                  {/* <Text>
+                  <Text>
                     {adminSupportMsgCounted > 0 && (
                       <Text style={styles.msgCounter}>
                         {adminSupportMsgCounted}
                       </Text>
                     )}
-                  </Text> */}
+                  </Text>
                 </View>
               </View>
 
@@ -756,7 +728,7 @@ export const CustomDrawerContent = (props) => {
                 />
                 <DrawerItem
                   label="Testing"
-                  onPress={() => navigation.navigate("Testing")}
+                  onPress={() => navigation.navigate("Seller BVN")}
                   style={styles.drawerItem}
                   labelStyle={styles.drawerItemLabel}
                 />
@@ -937,6 +909,6 @@ const styles = StyleSheet.create({
   },
   versionText: {
     color: "gray",
-    textAlign: "center" 
+    textAlign: "center",
   },
 });

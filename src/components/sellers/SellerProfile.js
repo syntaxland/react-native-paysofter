@@ -1,31 +1,57 @@
 // SellerProfile.js
 import React, { useState, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
-// import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-// import { faExclamationTriangle } from "@fortawesome/free-solid-svg-icons";
 import {
   getSellerAccount,
   updateSellerAccount,
-  getBusinessOwnerDetails,
-  updateBusinessOwnerDetails,
-  getBusinessBankAccount,
-  updateBusinessBankAccount,
-  getBvn,
-  updateBvn, 
   getSellerPhoto,
   updateSellerPhoto,
-  getBusinessStatus,
-  updateBusinessStatus,
+  
 } from "../../redux/actions/sellerActions";
-import { Form, Button, Row, Col, Container, Accordion } from "react-bootstrap";
-import Message from "../Message";
-import Loader from "../Loader";
-import LoaderButton from "../LoaderButton";
-import DatePicker from "react-datepicker";
-// import { parseISO } from "date-fns";
+import {
+  View,
+  Text,
+  TextInput,
+  Button,
+  ScrollView,
+  Image,
+  StyleSheet,
+  Alert,
+} from "react-native";
+import { List } from "react-native-paper";
+import * as ImagePicker from "expo-image-picker";
+import DateTimePicker from "@react-native-community/datetimepicker";
+import PhoneInput from "react-native-phone-input";
+import RNPickerSelect from "react-native-picker-select";
+import Message from "../../Message";
+import Loader from "../../Loader";
+import {
+  ID_TYPE_CHOICES,
+  COUNTRY_CHOICES,
+  BUSINESS_TYPE_CHOICES,
+  STAFF_SIZE_CHOICES,
+  BUSINESS_INDUSTRY_CHOICES,
+  BUSINESS_CATEGORY_CHOICES,
+} from "../../constants";
 
 function SellerProfile() {
   const dispatch = useDispatch();
+
+  const [idTypeChoices, setIdTypeChoices] = useState([]);
+  const [countryChoices, setCountryChoices] = useState([]);
+  const [businessTypeChoices, setBusinessTypeChoices] = useState([]);
+  const [staffSizeChoices, setStaffSizeChoices] = useState([]);
+  const [industryChoices, setIndustryChoices] = useState([]);
+  const [businessCategoryChoices, setBusinessCategoryChoices] = useState([]);
+
+  useEffect(() => {
+    setIdTypeChoices(ID_TYPE_CHOICES);
+    setCountryChoices(COUNTRY_CHOICES);
+    setBusinessTypeChoices(BUSINESS_TYPE_CHOICES);
+    setStaffSizeChoices(STAFF_SIZE_CHOICES);
+    setIndustryChoices(BUSINESS_INDUSTRY_CHOICES);
+    setBusinessCategoryChoices(BUSINESS_CATEGORY_CHOICES);
+  }, []);
 
   const getSellerAccountState = useSelector(
     (state) => state.getSellerAccountState
@@ -35,7 +61,6 @@ function SellerProfile() {
     error: getSellerAccountError,
     sellerAccount,
   } = getSellerAccountState;
-  console.log("sellerAccount:", sellerAccount);
 
   const updateSellerAccountState = useSelector(
     (state) => state.updateSellerAccountState
@@ -46,70 +71,8 @@ function SellerProfile() {
     error: updateSellerAccountError,
   } = updateSellerAccountState;
 
-  const getBusinessStatusState = useSelector(
-    (state) => state.getBusinessStatusState
-  );
-  const { businessStatus } = getBusinessStatusState;
-  console.log("businessStatus:", businessStatus);
-
-  const updateBusinessStatusState = useSelector(
-    (state) => state.updateBusinessStatusState
-  );
-  const {
-    loading: updateBusinessStatusLoading,
-    success: updateBusinessStatusSuccess,
-    error: updateBusinessStatusError,
-  } = updateBusinessStatusState;
-
-  const getBusinessOwnerDetailsState = useSelector(
-    (state) => state.getBusinessOwnerDetailsState
-  );
-  const { sellerDetails } = getBusinessOwnerDetailsState;
-  console.log(
-    "sellerDetails:",
-    sellerDetails,
-    "proof_of_address",
-    sellerDetails?.proof_of_address
-  );
-
-  const updateBusinessOwnerDetailsState = useSelector(
-    (state) => state.updateBusinessOwnerDetailsState
-  );
-  const {
-    loading: updateBusinessOwnerDetailsLoading,
-    success: updateBusinessOwnerDetailsSuccess,
-    error: updateBusinessOwnerDetailsError,
-  } = updateBusinessOwnerDetailsState;
-
-  const getBankAccountState = useSelector((state) => state.getBankAccountState);
-  const { sellerBankAccount } = getBankAccountState;
-  console.log("sellerBankAccount:", sellerBankAccount);
-
-  const updateBankAccountState = useSelector(
-    (state) => state.updateBankAccountState
-  );
-  const {
-    loading: updateBankAccountLoading,
-    success: updateBankAccountSuccess,
-    error: updateBankAccountError,
-  } = updateBankAccountState;
-
-  const getSellerBvnState = useSelector((state) => state.getSellerBvnState);
-  const { sellerBvn } = getSellerBvnState;
-  console.log("sellerBvn:", sellerBvn);
-
-  const updateSellerBvnState = useSelector(
-    (state) => state.updateSellerBvnState
-  );
-  const {
-    loading: updateSellerBvnLoading,
-    success: updateSellerBvnSuccess,
-    error: updateSellerBvnError,
-  } = updateSellerBvnState;
-
   const getSellerPhotoState = useSelector((state) => state.getSellerPhotoState);
   const { sellerPhoto } = getSellerPhotoState;
-  console.log("sellerPhoto:", sellerPhoto);
 
   const updateSellerPhotoState = useSelector(
     (state) => state.updateSellerPhotoState
@@ -120,322 +83,132 @@ function SellerProfile() {
     error: updateSellerPhotoError,
   } = updateSellerPhotoState;
 
+ 
+
   const userLogin = useSelector((state) => state.userLogin);
   const { userInfo } = userLogin;
 
   useEffect(() => {
     if (!userInfo) {
-      window.location.href = "/login";
+      Alert.alert("Redirecting to login...");
     }
   }, [userInfo]);
 
-  const ID_TYPE_CHOICES = [
-    // ["NIN", "NIN"],
-    ["Intl Passport", "Intl Passport"],
-    ["Driving License", "Driving License"],
-    ["Govt Issued ID", "Govt Issued ID"],
-  ];
-
-  const BUSINESS_TYPE_CHOICES = [
-    ["Registered", "Registered"],
-    ["Unregistered", "Unregistered"],
-  ];
-
-  const STAFF_SIZE_CHOICES = [
-    ["Small", "Small (1-50 employees)"],
-    ["Medium", "Medium (51-250 employees)"],
-    ["Large", "Large (251+ employees)"],
-  ];
-
-  const BUSINESS_INDUSTRY_CHOICES = [
-    ["Information Technology", "Information Technology"],
-    ["Healthcare", "Healthcare"],
-    ["Finance", "Finance"],
-    ["Education", "Education"],
-    ["Retail", "Retail"],
-    ["Manufacturing", "Manufacturing"],
-    ["Services", "Services"],
-    ["Entertainment", "Entertainment"],
-    ["Food & Beverage", "Food & Beverage"],
-    ["Travel & Tourism", "Travel & Tourism"],
-    ["Real Estate", "Real Estate"],
-    ["Construction", "Construction"],
-    ["Automotive", "Automotive"],
-    ["Agriculture", "Agriculture"],
-    ["Energy", "Energy"],
-    ["Environmental", "Environmental"],
-    ["Government", "Government"],
-    ["Nonprofit", "Nonprofit"],
-    ["Others", "Others"],
-  ];
-
-  const BUSINESS_CATEGORY_CHOICES = [
-    ["Startup", "Startup"],
-    ["Small Business", "Small Business"],
-    ["Medium Business", "Medium Business"],
-    ["Large Business", "Large Business"],
-    ["Corporation", "Corporation"],
-    ["Sole Proprietorship", "Sole Proprietorship"],
-    ["Partnership", "Partnership"],
-    ["Franchise", "Franchise"],
-    ["Family Owned", "Family Owned"],
-    ["Online Business", "Online Business"],
-    ["Brick and Mortar", "Brick and Mortar"],
-    ["Service Provider", "Service Provider"],
-    ["Retailer", "Retailer"],
-    ["Wholesaler", "Wholesaler"],
-    ["Manufacturer", "Manufacturer"],
-    ["Restaurant", "Restaurant"],
-    ["Hospitality", "Hospitality"],
-    ["Healthcare", "Healthcare"],
-    ["Education", "Education"],
-    ["Tech", "Tech"],
-    ["Creative", "Creative"],
-    ["Entertainment", "Entertainment"],
-    ["Travel", "Travel"],
-    ["Construction", "Construction"],
-    ["Automotive", "Automotive"],
-    ["Agriculture", "Agriculture"],
-    ["Energy", "Energy"],
-    ["Environmental", "Environmental"],
-    ["Government", "Government"],
-    ["Nonprofit", "Nonprofit"],
-    ["Others", "Others"],
-  ];
-
   const [businessDataChanges, setBusinessDataChanges] = useState(false);
-  const [businessStatusDataChanges, setBusinessStatusDataChanges] =
-    useState(false);
-  const [businessOwnerDataChanges, setBusinessOwnerDataChanges] =
-    useState(false);
-  const [bankDataChanges, setBankDataChanges] = useState(false);
-  const [bvnDataChanges, setBvnDataChanges] = useState(false);
   const [photoDataChanges, setPhotoDataChanges] = useState(false);
 
   const [successMessage, setSuccessMessage] = useState("");
   const [businessData, setBusinessData] = useState({
+    business_name: "",
+    business_status: "",
+    business_reg_num: "",
+    business_reg_cert: "",
     business_address: "",
-    business_type: "",
     staff_size: "",
     business_industry: "",
     business_category: "",
     business_description: "",
     business_phone: "",
-    business_email: "",
-    support_email: "",
     business_website: "",
     country: "",
-  });
-
-  const [businessStatusData, setBusinessStatusData] = useState({
-    business_name: "",
-    business_status: "",
-    business_reg_num: "",
-    business_reg_cert: "",
-  });
-
-  const [businessOwnerData, setBusinessOwnerData] = useState({
-    director_name: "",
     id_type: "",
     id_number: "",
     id_card_image: "",
     dob: "",
-    address: "",
-    proof_of_address: "",
-  });
-
-  const [bankData, setBankData] = useState({
-    account_name: "",
-    bank_account_number: "",
-    bank_name: "",
-  });
-
-  const [bvnData, setBvnData] = useState({
-    bvn: "",
+    home_address: "",
   });
 
   const [photoData, setPhotoData] = useState({
     photo: "",
   });
 
-  const handleInputChange = (e) => {
-    const { name, value } = e.target;
-    setBusinessData({ ...businessData, [name]: value });
-    setBusinessDataChanges(true);
-  };
+  const [apiKeyData, setapiKeyData] = useState({
+    live_api_key: "",
+  });
 
   useEffect(() => {
     if (sellerAccount) {
       setBusinessData({
         business_name: sellerAccount?.business_name,
-        trading_name: sellerAccount?.trading_name,
-        // business_reg_num: sellerAccount?.business_reg_num,
+        business_reg_num: sellerAccount?.business_reg_num,
+        business_reg_cert: sellerAccount?.business_reg_cert,
         business_address: sellerAccount?.business_address,
-        // business_type: sellerAccount?.business_type,
+        business_status: sellerAccount?.business_status,
         staff_size: sellerAccount?.staff_size,
         business_industry: sellerAccount?.business_industry,
         business_category: sellerAccount?.business_category,
         business_description: sellerAccount?.business_description,
         business_phone: sellerAccount?.business_phone,
-        business_email: sellerAccount?.business_email,
-        support_email: sellerAccount?.support_email,
         business_website: sellerAccount?.business_website,
         country: sellerAccount?.country,
+        id_type: sellerAccount?.id_type,
+        id_number: sellerAccount?.id_number,
+        id_card_image: sellerAccount?.id_card_image,
+        dob: sellerAccount?.dob,
+        home_address: sellerAccount?.home_address,
       });
       setBusinessDataChanges(false);
     }
   }, [sellerAccount]);
 
-  const handleBusinessStatusInputChange = (e) => {
-    const { name, value, files } = e.target;
-    if (files) {
-      setBusinessStatusData({ ...businessStatusData, [name]: files[0] });
-    } else {
-      setBusinessStatusData({ ...businessStatusData, [name]: value });
-    }
-    setBusinessStatusDataChanges(true);
+  const handleBusinessDataChanges = (name, value) => {
+    setBusinessData({ ...businessData, [name]: value });
+    setBusinessDataChanges(true);
   };
 
-  useEffect(() => {
-    if (businessStatus) {
-      setBusinessStatusData({
-        business_name: businessStatus?.business_name,
-        business_status: businessStatus?.business_status,
-        business_reg_num: businessStatus?.business_reg_num,
-        business_reg_cert: businessStatus?.business_reg_cert,
-      });
-      setBusinessStatusDataChanges(false);
-    }
-  }, [businessStatus]);
+  const handleUpdateBusinessAccount = () => {
+    const businessFormData = new FormData();
+    businessFormData.append("business_name", businessData.business_name);
+    businessFormData.append("business_reg_num", businessData.business_reg_num);
+    businessFormData.append("business_address", businessData.business_address);
+    businessFormData.append("business_status", businessData.business_status);
+    businessFormData.append("staff_size", businessData.staff_size);
+    businessFormData.append("id_type", businessData.id_type);
+    businessFormData.append("id_number", businessData.id_number);
+    businessFormData.append("dob", businessData.dob);
+    businessFormData.append("home_address", businessData.home_address);
+    businessFormData.append(
+      "business_industry",
+      businessData.business_industry
+    );
+    businessFormData.append(
+      "business_category",
+      businessData.business_category
+    );
+    businessFormData.append(
+      "business_description",
+      businessData.business_description
+    );
+    businessFormData.append("business_phone", businessData?.business_phone);
+    businessFormData.append("business_website", businessData.business_website);
+    businessFormData.append("country", businessData.country);
 
-  const handleUpdateBusinessStatus = () => {
-    const businessStatusFormData = new FormData();
-    businessStatusFormData.append(
-      "director_name",
-      businessStatusData.director_name
-    );
-    businessStatusFormData.append(
-      "business_name",
-      businessStatusData.business_name
-    );
-    businessStatusFormData.append(
-      "business_status",
-      businessStatusData.business_status
-    );
-    businessStatusFormData.append(
-      "business_reg_num",
-      businessStatusData.business_reg_num
-    );
-
-    if (businessStatusData.business_reg_cert instanceof File) {
-      businessStatusFormData.append(
+    if (businessData.business_reg_cert instanceof File) {
+      businessFormData.append(
         "business_reg_cert",
-        businessStatusData.business_reg_cert
+        businessData.business_reg_cert
       );
     }
 
-    console.log("businessStatusFormData:", businessStatusFormData);
+    if (businessData.id_card_image instanceof File) {
+      businessFormData.append("id_card_image", businessData.id_card_image);
+    }
 
-    dispatch(updateBusinessStatus(businessStatusFormData));
+    dispatch(updateSellerAccount(businessFormData));
   };
 
-  const handleBusinessOwnerInputChange = (e) => {
-    const { name, value, files } = e.target;
+  const handlePhotoInputChange = async () => {
+    let result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      allowsEditing: true,
+      aspect: [4, 3],
+      quality: 1,
+    });
 
-    // if (name === "dob" && typeof value === "string") {
-    //   const parsedDate = parseISO(value);
-    //   setBusinessOwnerData({ ...businessOwnerData, [name]: parsedDate });
-    // } else 
-    if (files) {
-      setBusinessOwnerData({ ...businessOwnerData, [name]: files[0] });
-    } else {
-      setBusinessOwnerData({ ...businessOwnerData, [name]: value });
+    if (!result.cancelled) {
+      setPhotoData({ photo: result.uri });
+      setPhotoDataChanges(true);
     }
-    setBusinessOwnerDataChanges(true);
-  };
-
-  useEffect(() => {
-    if (sellerDetails) {
-      setBusinessOwnerData({
-        director_name: sellerDetails?.director_name,
-        id_type: sellerDetails?.id_type,
-        id_number: sellerDetails?.id_number,
-        id_card_image: sellerDetails?.id_card_image,
-        dob: sellerDetails?.dob,
-        address: sellerDetails?.address,
-        proof_of_address: sellerDetails?.proof_of_address,
-      });
-      setBusinessOwnerDataChanges(false);
-    }
-  }, [sellerDetails]);
-
-  const handleUpdateBusinessOwnerDetail = () => {
-    const businessOwnerFormData = new FormData();
-    businessOwnerFormData.append(
-      "director_name",
-      businessOwnerData.director_name
-    );
-    businessOwnerFormData.append("id_type", businessOwnerData.id_type);
-    businessOwnerFormData.append("id_number", businessOwnerData.id_number);
-    businessOwnerFormData.append("dob", businessOwnerData.dob);
-    businessOwnerFormData.append("address", businessOwnerData.address);
-
-    if (businessOwnerData.proof_of_address instanceof File) {
-      businessOwnerFormData.append(
-        "proof_of_address",
-        businessOwnerData.proof_of_address
-      );
-    }
-
-    if (businessOwnerData.id_card_image instanceof File) {
-      businessOwnerFormData.append(
-        "id_card_image",
-        businessOwnerData.id_card_image
-      );
-    }
-
-    console.log("proof_of_address:", businessOwnerData.proof_of_address);
-    console.log("businessOwnerFormData:", businessOwnerFormData);
-
-    dispatch(updateBusinessOwnerDetails(businessOwnerFormData));
-  };
-
-  const handleBankAccountInputChange = (e) => {
-    const { name, value } = e.target;
-    setBankData({ ...bankData, [name]: value });
-    setBankDataChanges(true);
-  };
-
-  useEffect(() => {
-    if (sellerBankAccount) {
-      setBankData({
-        account_name: sellerBankAccount?.account_name,
-        bank_account_number: sellerBankAccount?.bank_account_number,
-        bank_name: sellerBankAccount?.bank_name,
-      });
-      setBankDataChanges(false);
-    }
-  }, [sellerBankAccount]);
-
-  const handleBvnInputChange = (e) => {
-    const { name, value } = e.target;
-    setBvnData({ ...bvnData, [name]: value });
-    setBvnDataChanges(true);
-  };
-
-  useEffect(() => {
-    if (sellerBvn) {
-      setBvnData({
-        bvn: sellerBvn?.bvn,
-      });
-      setBvnDataChanges(false);
-    }
-  }, [sellerBvn]);
-
-  const handlePhotoInputChange = (e) => {
-    const file = e.target.files[0];
-    setPhotoData({ photo: file });
-    setPhotoDataChanges(true);
   };
 
   useEffect(() => {
@@ -454,20 +227,33 @@ function SellerProfile() {
       photoFormData.append("photo", photoData.photo);
     }
 
-    console.log("photoFormData:", photoFormData);
-    console.log("photoData.photo:", photoData.photo);
-    console.log("photoData:", photoData);
-
     dispatch(updateSellerPhoto(photoFormData));
   };
+
+  // useEffect(() => {
+  //   if (sellerApiKey) {
+  //     setapiKeyData({
+  //       live_api_key: sellerApiKey?.live_api_key,
+  //     });
+  //     setSellerApiKeyDataChanges(false);
+  //   }
+  // }, [sellerApiKey]);
+
+  // const handleSellerApiKeyDataChanges = (name, value) => {
+  //   setapiKeyData({ ...apiKeyData, [name]: value });
+  //   setSellerApiKeyDataChanges(true);
+  // };
+
+  // const handleSellerApiKey = () => {
+  //   const apiKeyFormData = new FormData();
+  //   apiKeyFormData.append("live_api_key", apiKeyData.live_api_key);
+
+  //   // dispatch(updateSellerPaysofterApiKey(apiKeyFormData));
+  // };
 
   useEffect(() => {
     if (userInfo) {
       dispatch(getSellerAccount());
-      dispatch(getBusinessStatus());
-      dispatch(getBusinessOwnerDetails());
-      dispatch(getBusinessBankAccount());
-      dispatch(getBvn());
       dispatch(getSellerPhoto());
     }
   }, [dispatch, userInfo]);
@@ -477,727 +263,317 @@ function SellerProfile() {
 
     if (updateSellerAccountSuccess) {
       successMessage = "Seller account updated successfully.";
-    } else if (updateBusinessStatusSuccess) {
-      successMessage = "Business status updated successfully.";
-    } else if (updateBusinessOwnerDetailsSuccess) {
-      successMessage = "Business owner details updated successfully.";
-    } else if (updateBankAccountSuccess) {
-      successMessage = "Business bank account updated successfully.";
-    } else if (updateSellerBvnSuccess) {
-      successMessage = "BVN updated successfully.";
     } else if (updateSellerPhotoSuccess) {
       successMessage = "Seller photo updated successfully.";
-    }
+    } 
 
     if (successMessage) {
       setSuccessMessage(successMessage);
-
-      setTimeout(() => {
-        setSuccessMessage("");
-        window.location.reload();
-      }, 3000);
+      setTimeout(() => setSuccessMessage(""), 3000);
     }
   }, [
     updateSellerAccountSuccess,
-    updateBusinessStatusSuccess,
-    updateBusinessOwnerDetailsSuccess,
-    updateBankAccountSuccess,
-    updateSellerBvnSuccess,
     updateSellerPhotoSuccess,
   ]);
 
-  const handleUpdateBusinessAccount = () => {
-    dispatch(updateSellerAccount(businessData));
+  const renderBusinessInformationForm = () => {
+    return (
+      <View style={styles.container}>
+        <Text style={styles.title}>Business Information</Text>
+        <View style={styles.formGroup}>
+          <Text>Business Name</Text>
+          <TextInput
+            style={styles.input}
+            value={businessData.business_name}
+            onChangeText={(text) =>
+              handleBusinessDataChanges("business_name", text)
+            }
+          />
+        </View>
+        <View style={styles.formGroup}>
+          <Text>Business Registration Number</Text>
+          <TextInput
+            style={styles.input}
+            value={businessData.business_reg_num}
+            onChangeText={(text) =>
+              handleBusinessDataChanges("business_reg_num", text)
+            }
+          />
+        </View>
+        <View style={styles.formGroup}>
+          <Text>Business Address</Text>
+          <TextInput
+            style={styles.input}
+            value={businessData.business_address}
+            onChangeText={(text) =>
+              handleBusinessDataChanges("business_address", text)
+            }
+          />
+        </View>
+        <View style={styles.formGroup}>
+          <Text>ID Type</Text>
+          <RNPickerSelect
+            onValueChange={(value) =>
+              handleBusinessDataChanges("id_type", value)
+            }
+            items={idTypeChoices?.map((choice) => ({
+              label: choice[1],
+              value: choice[0],
+            }))}
+            style={pickerSelectStyles}
+          />
+        </View>
+        <View style={styles.formGroup}>
+          <Text>ID Number</Text>
+          <TextInput
+            style={styles.input}
+            value={businessData.id_number}
+            onChangeText={(text) =>
+              handleBusinessDataChanges("id_number", text)
+            }
+          />
+        </View>
+
+        <View style={styles.formGroup}>
+          <Text>Date of Birth</Text>
+          <DateTimePicker
+            value={new Date(businessData.dob)}
+            mode="date"
+            display="default"
+            // onChange={(event, date) =>
+            //   handleBusinessDataChanges("dob", date.toISOString().split("T")[0])
+            // }
+          />
+        </View>
+
+        <View style={styles.formGroup}>
+          <Text>Home Address</Text>
+          <TextInput
+            style={styles.input}
+            value={businessData.home_address}
+            onChangeText={(text) =>
+              handleBusinessDataChanges("home_address", text)
+            }
+          />
+        </View>
+        <View style={styles.formGroup}>
+          <Text>Staff Size</Text>
+          <RNPickerSelect
+            onValueChange={(value) =>
+              handleBusinessDataChanges("staff_size", value)
+            }
+            items={staffSizeChoices?.map((choice) => ({
+              label: choice[1],
+              value: choice[0],
+            }))}
+            style={pickerSelectStyles}
+          />
+        </View>
+        <View style={styles.formGroup}>
+          <Text>Business Industry</Text>
+          <RNPickerSelect
+            onValueChange={(value) =>
+              handleBusinessDataChanges("business_industry", value)
+            }
+            items={industryChoices?.map((choice) => ({
+              label: choice[1],
+              value: choice[0],
+            }))}
+            style={pickerSelectStyles}
+          />
+        </View>
+        <View style={styles.formGroup}>
+          <Text>Business Category</Text>
+          <RNPickerSelect
+            onValueChange={(value) =>
+              handleBusinessDataChanges("business_category", value)
+            }
+            items={businessCategoryChoices?.map((choice) => ({
+              label: choice[1],
+              value: choice[0],
+            }))}
+            style={pickerSelectStyles}
+          />
+        </View>
+        <View style={styles.formGroup}>
+          <Text>Business Description</Text>
+          <TextInput
+            style={styles.input}
+            value={businessData.business_description}
+            onChangeText={(text) =>
+              handleBusinessDataChanges("business_description", text)
+            }
+          />
+        </View>
+        <View style={styles.formGroup}>
+          <Text>Business Phone</Text>
+          <PhoneInput
+            initialCountry="us"
+            value={businessData.business_phone}
+            onChangePhoneNumber={(text) =>
+              handleBusinessDataChanges("business_phone", text)
+            }
+          />
+        </View>
+        <View style={styles.formGroup}>
+          <Text>Business Website</Text>
+          <TextInput
+            style={styles.input}
+            value={businessData.business_website}
+            onChangeText={(text) =>
+              handleBusinessDataChanges("business_website", text)
+            }
+          />
+        </View>
+        <View style={styles.formGroup}>
+          <Text>Country</Text>
+          <RNPickerSelect
+            onValueChange={(value) =>
+              handleBusinessDataChanges("country", value)
+            }
+            items={countryChoices?.map((choice) => ({
+              label: choice[1],
+              value: choice[0],
+            }))}
+            style={pickerSelectStyles}
+          />
+        </View>
+        <Button
+          title="Update Business Information"
+          onPress={handleUpdateBusinessAccount}
+        />
+      </View>
+    );
   };
 
-  const handleUpdateBusinessBankAccount = () => {
-    dispatch(updateBusinessBankAccount(bankData));
+  const renderPhotoForm = () => {
+    return (
+      <View style={styles.container}>
+        <Text style={styles.title}>Seller Photo</Text>
+        <View style={styles.formGroup}>
+          <Image source={{ uri: photoData.photo }} style={styles.photo} />
+          <Button title="Change Photo" onPress={handlePhotoInputChange} />
+        </View>
+        <Button title="Update Photo" onPress={handleUpdatePhoto} />
+      </View>
+    );
   };
 
-  const handleUpdateBvn = () => {
-    dispatch(updateBvn(bvnData));
-  };
+  // const renderApiKeyForm = () => {
+  //   return (
+  //     <View style={styles.container}>
+  //       <Text style={styles.title}>Seller API Key</Text>
+  //       <View style={styles.formGroup}>
+  //         <Text>Live API Key</Text>
+  //         <TextInput
+  //           style={styles.input}
+  //           value={apiKeyData.live_api_key}
+  //           onChangeText={(text) =>
+  //             handleSellerApiKeyDataChanges("live_api_key", text)
+  //           }
+  //         />
+  //       </View>
+  //       <Button title="Update API Key" onPress={handleSellerApiKey} />
+  //     </View>
+  //   );
+  // };
 
   return (
-    <Container Fluid>
-      <Row className="d-flex justify-content-center py-2">
-        <h2 className="text-center py-2">
-          Business Profile <i className="fas fa-user"></i>
-        </h2>
-
-        <div className="d-flex justify-content-center text-center py-2">
-          {successMessage && (
-            <Message variant="success" fixed>
-              {successMessage}
-            </Message>
-          )}
-
-          {getSellerAccountLoading && <Loader />}
-          {getSellerAccountError && (
-            <Message variant="danger" fixed>
-              {getSellerAccountError}
-            </Message>
-          )}
-
-          {updateSellerAccountLoading && <Loader />}
-          {updateSellerAccountError && (
-            <Message variant="danger" fixed>
-              {updateSellerAccountError}
-            </Message>
-          )}
-
-          {updateBusinessStatusLoading && <Loader />}
-          {updateBusinessStatusError && (
-            <Message variant="danger" fixed>
-              {updateBusinessStatusError}
-            </Message>
-          )}
-
-          {updateBusinessOwnerDetailsLoading && <Loader />}
-          {updateBusinessOwnerDetailsError && (
-            <Message variant="danger" fixed>
-              {updateBusinessOwnerDetailsError}
-            </Message>
-          )}
-
-          {updateBankAccountLoading && <Loader />}
-          {updateBankAccountError && (
-            <Message variant="danger" fixed>
-              {updateBankAccountError}
-            </Message>
-          )}
-
-          {updateSellerBvnLoading && <Loader />}
-          {updateSellerBvnError && (
-            <Message variant="danger" fixed>
-              {updateSellerBvnError}
-            </Message>
-          )}
-
-          {updateSellerPhotoLoading && <Loader />}
-          {updateSellerPhotoError && (
-            <Message variant="danger" fixed>
-              {updateSellerPhotoError}
-            </Message>
-          )}
-        </div>
-        <p className="d-flex justify-content-end">
-          <i> Verified </i>
-          {sellerAccount?.is_seller_verified ? (
-            <i
-              className="fas fa-check-circle"
-              style={{ fontSize: "18px", color: "blue" }}
-            ></i>
-          ) : (
-            <i
-              className="fas fa-times-circle"
-              style={{ fontSize: "18px", color: "red" }}
-            ></i>
-          )}
-        </p>
-
-        <Col>
-          <Accordion defaultActiveKey={["0"]} alwaysOpen>
-            <Accordion.Item eventKey="0">
-              <Accordion.Header>Business Account</Accordion.Header>
-              <Accordion.Body>
-                <Form>
-                  <Form.Group>
-                    <Form.Label>Business Name</Form.Label>
-                    <Form.Control
-                      type="text"
-                      name="business_name"
-                      value={businessData.business_name}
-                      onChange={handleInputChange}
-                    />
-                  </Form.Group>
-
-                  <Form.Group>
-                    <Form.Label>Trading Name</Form.Label>
-                    <Form.Control
-                      type="text"
-                      name="trading_name"
-                      value={businessData.trading_name}
-                      onChange={handleInputChange}
-                    />
-                  </Form.Group>
-
-                  {/* <Form.Group>
-                    <Form.Label>Business Registration Number</Form.Label>
-                    <Form.Control
-                      type="text"
-                      name="business_reg_num"
-                      value={businessData.business_reg_num}
-                      onChange={handleInputChange}
-                    />
-                  </Form.Group> */}
-
-                  <Form.Group>
-                    <Form.Label>Business Address</Form.Label>
-                    <Form.Control
-                      type="text"
-                      name="business_address"
-                      value={businessData.business_address}
-                      onChange={handleInputChange}
-                    />
-                  </Form.Group>
-
-                  {/* <Form.Group>
-                    <Form.Label>Business Status</Form.Label>
-                    <Form.Control
-                      as="select"
-                      name="business_type"
-                      value={businessData.business_type}
-                      onChange={handleInputChange}
-                    >
-                      <option value="">Select Business Status</option>
-                      {BUSINESS_TYPE_CHOICES.map((type) => (
-                        <option key={type[0]} value={type[0]}>
-                          {type[1]}
-                        </option>
-                      ))}
-                    </Form.Control>
-                  </Form.Group> */}
-
-                  <Form.Group>
-                    <Form.Label>Staff Size</Form.Label>
-                    <Form.Control
-                      as="select"
-                      name="staff_size"
-                      value={businessData.staff_size}
-                      onChange={handleInputChange}
-                    >
-                      <option value="">Select Staff Size</option>
-                      {STAFF_SIZE_CHOICES.map((size) => (
-                        <option key={size[0]} value={size[0]}>
-                          {size[1]}
-                        </option>
-                      ))}
-                    </Form.Control>
-                  </Form.Group>
-
-                  <Form.Group>
-                    <Form.Label>Business Industry</Form.Label>
-                    <Form.Control
-                      as="select"
-                      name="business_industry"
-                      value={businessData.business_industry}
-                      onChange={handleInputChange}
-                    >
-                      <option value="">Select Business Industry</option>
-                      {BUSINESS_INDUSTRY_CHOICES.map((industry) => (
-                        <option key={industry[0]} value={industry[0]}>
-                          {industry[1]}
-                        </option>
-                      ))}
-                    </Form.Control>
-                  </Form.Group>
-
-                  <Form.Group>
-                    <Form.Label>Business Category</Form.Label>
-                    <Form.Control
-                      as="select"
-                      name="business_category"
-                      value={businessData.business_category}
-                      onChange={handleInputChange}
-                    >
-                      <option value="">Select Business Category</option>
-                      {BUSINESS_CATEGORY_CHOICES.map((category) => (
-                        <option key={category[0]} value={category[0]}>
-                          {category[1]}
-                        </option>
-                      ))}
-                    </Form.Control>
-                  </Form.Group>
-
-                  <Form.Group>
-                    <Form.Label>Business Description</Form.Label>
-                    <Form.Control
-                      type="text"
-                      name="business_description"
-                      value={businessData.business_description}
-                      onChange={handleInputChange}
-                    />
-                  </Form.Group>
-
-                  <Form.Group>
-                    <Form.Label>Business Phone</Form.Label>
-                    <Form.Control
-                      type="text"
-                      name="business_phone"
-                      value={businessData.business_phone}
-                      onChange={handleInputChange}
-                    />
-                  </Form.Group>
-
-                  <Form.Group>
-                    <Form.Label>Business Email</Form.Label>
-                    <Form.Control
-                      type="text"
-                      name="business_email"
-                      value={businessData.business_email}
-                      onChange={handleInputChange}
-                    />
-                  </Form.Group>
-
-                  <Form.Group>
-                    <Form.Label>Support Email</Form.Label>
-                    <Form.Control
-                      type="text"
-                      name="support_email"
-                      value={businessData.support_email}
-                      onChange={handleInputChange}
-                    />
-                  </Form.Group>
-
-                  <Form.Group>
-                    <Form.Label>Business Website</Form.Label>
-                    <Form.Control
-                      type="text"
-                      name="business_website"
-                      value={businessData.business_website}
-                      onChange={handleInputChange}
-                    />
-                  </Form.Group>
-
-                  <Form.Group>
-                    <Form.Label>Country</Form.Label>
-                    <Form.Control
-                      type="text"
-                      name="country"
-                      value={businessData.country}
-                      onChange={handleInputChange}
-                    />
-                  </Form.Group>
-
-                  <div className="d-flex justify-content-end py-2">
-                    <Button
-                      className="rounded"
-                      variant="primary"
-                      onClick={handleUpdateBusinessAccount}
-                      disabled={
-                        !businessDataChanges ||
-                        updateSellerAccountLoading ||
-                        updateSellerAccountSuccess
-                      }
-                    >
-                      <span className="d-flex justify-content-between">
-                        {updateSellerAccountLoading && <LoaderButton />}
-                        Update Business Account
-                      </span>
-                    </Button>{" "}
-                  </div>
-                </Form>
-              </Accordion.Body>
-            </Accordion.Item>
-
-            <Accordion.Item eventKey="1">
-              <Accordion.Header>Business Status</Accordion.Header>
-              <Accordion.Body>
-                <Form>
-                  <Form.Group>
-                    <Form.Label>Business Name</Form.Label>
-                    <Form.Control
-                      type="text"
-                      name="business_name"
-                      value={businessStatusData.business_name}
-                      onChange={handleBusinessStatusInputChange}
-                    />
-                  </Form.Group>
-
-                  <Form.Group>
-                    <Form.Label>Business Status</Form.Label>
-                    <Form.Control
-                      as="select"
-                      name="business_status"
-                      value={businessStatusData.business_status}
-                      onChange={handleBusinessStatusInputChange}
-                    >
-                      <option value="">Select Business Status</option>
-                      {BUSINESS_TYPE_CHOICES.map((type) => (
-                        <option key={type[0]} value={type[0]}>
-                          {type[1]}
-                        </option>
-                      ))}
-                    </Form.Control>
-                  </Form.Group>
-
-                  <Form.Group>
-                    <Form.Label>Business Registration Number</Form.Label>
-                    <Form.Control
-                      type="text"
-                      name="business_reg_num"
-                      value={businessStatusData.business_reg_num}
-                      onChange={handleBusinessStatusInputChange}
-                    />
-                  </Form.Group>
-
-                  <Form.Group>
-                    <Form.Label>Business Registration Certificate</Form.Label>
-
-                    <div className="py-2">
-                      {businessStatus?.business_reg_cert && (
-                        <img
-                          src={businessStatus?.business_reg_cert}
-                          alt="Business Reg Cert"
-                          style={{ maxWidth: "100%", maxHeight: "100px" }}
-                        />
-                      )}
-                    </div>
-                    <Form.Control
-                      type="file"
-                      name="business_reg_cert"
-                      onChange={handleBusinessStatusInputChange}
-                    />
-                  </Form.Group>
-                </Form>
-                <div className="d-flex justify-content-end py-2">
-                  <Button
-                    className="rounded"
-                    variant="primary"
-                    onClick={handleUpdateBusinessStatus}
-                    disabled={
-                      !businessStatusDataChanges ||
-                      updateBusinessStatusLoading ||
-                      updateBusinessStatusSuccess
-                    }
-                  >
-                    <span className="d-flex justify-content-between">
-                      {updateBusinessStatusLoading && <LoaderButton />}
-                      Update Business Status
-                    </span>
-                  </Button>
-                </div>
-              </Accordion.Body>
-            </Accordion.Item>
-
-            <Accordion.Item eventKey="2">
-              <Accordion.Header>Business Owner Detail</Accordion.Header>
-              <Accordion.Body>
-                <Form>
-                  <Form.Group>
-                    <Form.Label>Director Name</Form.Label>
-                    <Form.Control
-                      type="text"
-                      name="business_name"
-                      value={businessOwnerData.director_name}
-                      onChange={handleBusinessStatusInputChange}
-                    />
-                  </Form.Group>
-
-                  <Form.Group>
-                    <Form.Label>Personal ID Type</Form.Label>
-                    <Form.Control
-                      as="select"
-                      name="id_type"
-                      value={businessOwnerData.id_type}
-                      onChange={handleBusinessOwnerInputChange}
-                    >
-                      <option value="">ID Type</option>
-                      {ID_TYPE_CHOICES.map((type) => (
-                        <option key={type[0]} value={type[0]}>
-                          {type[1]}
-                        </option>
-                      ))}
-                    </Form.Control>
-                  </Form.Group>
-
-                  <Form.Group>
-                    <Form.Label>Personal ID Number</Form.Label>
-                    <Form.Control
-                      type="text"
-                      name="id_number"
-                      value={businessOwnerData.id_number}
-                      onChange={handleBusinessOwnerInputChange}
-                    />
-                  </Form.Group>
-
-                  <Form.Group>
-                    <Form.Label>ID Card Image</Form.Label>
-
-                    <div className="py-2">
-                      {sellerDetails?.id_card_image && (
-                        <img
-                          src={sellerDetails?.id_card_image}
-                          alt="ID Card "
-                          style={{ maxWidth: "100%", maxHeight: "100px" }}
-                        />
-                      )}
-                    </div>
-                    <Form.Control
-                      type="file"
-                      name="id_card_image"
-                      onChange={handleBusinessOwnerInputChange}
-                    />
-                  </Form.Group>
-
-                  <Form.Group>
-                    <Form.Label>Date of Birth</Form.Label>
-                    {/* <Form.Control
-                      type="text"
-                      name="dob"
-                      value={businessOwnerData.dob}
-                      onChange={handleBusinessOwnerInputChange}
-                    /> */}
-                    <div>
-                      <DatePicker
-                        selected={
-                          businessOwnerData.dob ? new Date(businessOwnerData.dob) : null
-                        }
-                        onChange={(date) =>
-                          handleBusinessOwnerInputChange({
-                            target: { name: "dob", value: date },
-                          })
-                        }
-                        dateFormat="dd/MM/yyyy"
-                        showYearDropdown
-                        scrollableYearDropdown
-                        yearDropdownItemNumber={100}
-                        scrollableMonthYearDropdown
-                        className="rounded py-2 mb-2 form-control"
-                        placeholderText="Select date of birth"
-                      />
-                    </div>
-                  </Form.Group>
-
-                  <Form.Group>
-                    <Form.Label>Address</Form.Label>
-                    <Form.Control
-                      type="text"
-                      name="address"
-                      value={businessOwnerData.address}
-                      onChange={handleBusinessOwnerInputChange}
-                    />
-                  </Form.Group>
-
-                  <Form.Group>
-                    <Form.Label>Proof Of Address</Form.Label>
-
-                    <div className="py-2">
-                      {sellerDetails?.proof_of_address && (
-                        <img
-                          src={sellerDetails?.proof_of_address}
-                          alt="Proof of Address"
-                          style={{ maxWidth: "100%", maxHeight: "100px" }}
-                        />
-                      )}
-                    </div>
-                    <Form.Control
-                      type="file"
-                      name="proof_of_address"
-                      onChange={handleBusinessOwnerInputChange}
-                    />
-                  </Form.Group>
-                </Form>
-                <div className="d-flex justify-content-end py-2">
-                  <Button
-                    className="rounded"
-                    variant="primary"
-                    onClick={handleUpdateBusinessOwnerDetail}
-                    disabled={
-                      !businessOwnerDataChanges ||
-                      updateBusinessOwnerDetailsLoading ||
-                      updateBusinessOwnerDetailsSuccess
-                    }
-                  >
-                    <span className="d-flex justify-content-between">
-                      {updateBusinessOwnerDetailsLoading && <LoaderButton />}
-                      Update Business Owner Detail
-                    </span>
-                  </Button>
-                </div>
-              </Accordion.Body>
-            </Accordion.Item>
-
-            <Accordion.Item eventKey="3">
-              <Accordion.Header>Business Bank Account</Accordion.Header>
-              <Accordion.Body>
-                <Form>
-                  <Form.Group>
-                    <Form.Label>Account Name</Form.Label>
-                    <Form.Control
-                      type="text"
-                      name="account_name"
-                      value={bankData.account_name}
-                      onChange={handleBankAccountInputChange}
-                    />
-                  </Form.Group>
-
-                  <Form.Group>
-                    <Form.Label>Bank Account Number</Form.Label>
-                    <Form.Control
-                      type="text"
-                      name="bank_account_number"
-                      value={bankData.bank_account_number}
-                      onChange={handleBankAccountInputChange}
-                    />
-                  </Form.Group>
-
-                  <Form.Group>
-                    <Form.Label>Bank Name</Form.Label>
-                    <Form.Control
-                      type="text"
-                      name="bank_name"
-                      value={bankData.bank_name}
-                      onChange={handleBankAccountInputChange}
-                    />
-                  </Form.Group>
-                </Form>
-                <div className="d-flex justify-content-end py-2">
-                  <Button
-                    className="rounded"
-                    variant="primary"
-                    onClick={handleUpdateBusinessBankAccount}
-                    disabled={
-                      !bankDataChanges ||
-                      updateBankAccountLoading ||
-                      updateBankAccountSuccess
-                    }
-                  >
-                    <span className="d-flex justify-content-between">
-                      {updateBankAccountLoading && <LoaderButton />}
-                      Update Business Bank Account
-                    </span>
-                  </Button>
-                </div>
-              </Accordion.Body>
-            </Accordion.Item>
-
-            <Accordion.Item eventKey="3">
-              <Accordion.Header>USD Account</Accordion.Header>
-              <Accordion.Body>
-                <Form>
-                  <Form.Group>
-                    <Form.Label>Account Name</Form.Label>
-                    <Form.Control
-                      type="text"
-                      name="account_name"
-                      value={bankData.account_name}
-                      onChange={handleBankAccountInputChange}
-                    />
-                  </Form.Group>
-
-                  <Form.Group>
-                    <Form.Label>Bank Account Number</Form.Label>
-                    <Form.Control
-                      type="text"
-                      name="bank_account_number"
-                      value={bankData.bank_account_number}
-                      onChange={handleBankAccountInputChange}
-                    />
-                  </Form.Group>
-
-                  <Form.Group>
-                    <Form.Label>Bank Name</Form.Label>
-                    <Form.Control
-                      type="text"
-                      name="bank_name"
-                      value={bankData.bank_name}
-                      onChange={handleBankAccountInputChange}
-                    />
-                  </Form.Group>
-                </Form>
-                <div className="d-flex justify-content-end py-2">
-                  <Button
-                    className="rounded"
-                    variant="primary"
-                    onClick={handleUpdateBusinessBankAccount}
-                    disabled={
-                      !bankDataChanges ||
-                      updateBankAccountLoading ||
-                      updateBankAccountSuccess
-                    }
-                  >
-                    <span className="d-flex justify-content-between">
-                      {updateBankAccountLoading && <LoaderButton />}
-                      Update USD Account
-                    </span>
-                  </Button>
-                </div>
-              </Accordion.Body>
-            </Accordion.Item>
-
-            <Accordion.Item eventKey="4">
-              <Accordion.Header>Bank Verification Number</Accordion.Header>
-              <Accordion.Body>
-                <Form>
-                  <Form.Group>
-                    <Form.Label>BVN</Form.Label>
-                    <Form.Control
-                      type="text"
-                      name="bvn"
-                      value={bvnData.bvn}
-                      onChange={handleBvnInputChange}
-                    />
-                  </Form.Group>
-                </Form>
-                <div className="d-flex justify-content-end py-2">
-                  <Button
-                    className="rounded"
-                    variant="primary"
-                    onClick={handleUpdateBvn}
-                    disabled={
-                      !bvnDataChanges ||
-                      updateSellerBvnLoading ||
-                      updateSellerBvnSuccess
-                    }
-                  >
-                    <span className="d-flex justify-content-between">
-                      {updateSellerBvnLoading && <LoaderButton />}
-                      Update BVN
-                    </span>
-                  </Button>
-                </div>
-              </Accordion.Body>
-            </Accordion.Item>
-
-            <Accordion.Item eventKey="5">
-              <Accordion.Header>Seller Photo</Accordion.Header>
-              <Accordion.Body>
-                <Form>
-                  <Form.Group>
-                    {/* <Form.Label>Seller Photo</Form.Label> */}
-                    <div className="py-2">
-                      {sellerPhoto?.photo && (
-                        <img
-                          src={sellerPhoto.photo}
-                          alt="Seller"
-                          style={{ maxWidth: "100%", maxHeight: "100px" }}
-                        />
-                      )}
-                    </div>
-
-                    <Form.Control
-                      type="file"
-                      name="photo"
-                      onChange={handlePhotoInputChange}
-                    />
-                  </Form.Group>
-                </Form>
-                <div className="d-flex justify-content-end py-2">
-                  <Button
-                    className="rounded"
-                    variant="primary"
-                    onClick={handleUpdatePhoto}
-                    disabled={
-                      !photoDataChanges ||
-                      updateSellerPhotoLoading ||
-                      updateSellerPhotoSuccess
-                    }
-                  >
-                    <span className="d-flex justify-content-between">
-                      {updateSellerPhotoLoading && <LoaderButton />}
-                      Update Photo
-                    </span>
-                  </Button>
-                </div>
-              </Accordion.Body>
-            </Accordion.Item>
-          </Accordion>
-        </Col>
-      </Row>
-    </Container>
+    <ScrollView>
+      {successMessage && (
+        <Text style={styles.successMessage}>{successMessage}</Text>
+      )}
+      <List.Section>
+        <List.Accordion
+          title="Business Information"
+          left={(props) => <List.Icon {...props} icon="account" />}
+        >
+          {renderBusinessInformationForm()}
+        </List.Accordion>
+        <List.Accordion
+          title="Seller Photo"
+          left={(props) => <List.Icon {...props} icon="image" />}
+        >
+          {renderPhotoForm()}
+        </List.Accordion>
+        <List.Accordion
+          title="Seller Details"
+          left={(props) => <List.Icon {...props} icon="key" />}
+        >
+          {/* {renderApiKeyForm()} */}
+        </List.Accordion>
+      </List.Section>
+    </ScrollView>
   );
 }
+
+const styles = StyleSheet.create({
+  container: {
+    padding: 20,
+    backgroundColor: "#fff",
+  },
+  title: {
+    fontSize: 24,
+    fontWeight: "bold",
+    marginBottom: 20,
+  },
+  formGroup: {
+    marginBottom: 15,
+  },
+  input: {
+    height: 40,
+    borderColor: "#ccc",
+    borderWidth: 1,
+    borderRadius: 5,
+    paddingLeft: 10,
+  },
+  photo: {
+    width: 100,
+    height: 100,
+    borderRadius: 50,
+    marginBottom: 10,
+  },
+  successMessage: {
+    color: "green",
+    fontSize: 18,
+    textAlign: "center",
+    marginBottom: 20,
+  },
+  header: {
+    padding: 10,
+    backgroundColor: "#f5f5f5",
+  },
+  headerText: {
+    fontSize: 18,
+    fontWeight: "bold",
+  },
+  content: {
+    padding: 20,
+    backgroundColor: "#fff",
+  },
+});
+
+const pickerSelectStyles = StyleSheet.create({
+  inputIOS: {
+    fontSize: 16,
+    paddingVertical: 12,
+    paddingHorizontal: 10,
+    borderWidth: 1,
+    borderColor: "gray",
+    borderRadius: 4,
+    color: "black",
+    paddingRight: 30, // to ensure the text is never behind the icon
+  },
+  inputAndroid: {
+    fontSize: 16,
+    paddingHorizontal: 10,
+    paddingVertical: 8,
+    borderWidth: 0.5,
+    borderColor: "purple",
+    borderRadius: 8,
+    color: "black",
+    paddingRight: 30, // to ensure the text is never behind the icon
+  },
+});
 
 export default SellerProfile;

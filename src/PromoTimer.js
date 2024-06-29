@@ -17,7 +17,7 @@ const PromoTimer = ({ expirationDate }) => {
       return `${days}d ${hours}h ${minutes}m ${seconds}s`;
     }
 
-    return "00d 00h 00m 00s"; // Modify this as per your requirement for expired promo
+    return "00d 00h 00m 00s"; 
   };
 
   const [timeRemaining, setTimeRemaining] = useState(calculateTimeRemaining());

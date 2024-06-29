@@ -4,10 +4,11 @@ import {
   USER_FUND_ACCOUNT_REQUEST,
   USER_FUND_ACCOUNT_SUCCESS,
   USER_FUND_ACCOUNT_FAIL,
+  RESET_USER_FUND_ACCOUNT_STATE,
   USER_ACCOUNT_FUND_BALANCE_REQUEST,
   USER_ACCOUNT_FUND_BALANCE_SUCCESS,
   USER_ACCOUNT_FUND_BALANCE_FAIL,
-  USER_ACCOUNT_FUND_LIST_REQUEST, 
+  USER_ACCOUNT_FUND_LIST_REQUEST,
   USER_ACCOUNT_FUND_LIST_SUCCESS,
   USER_ACCOUNT_FUND_LIST_FAIL,
   SET_MAX_FUND_WITHDRAWAL_REQUEST,
@@ -16,6 +17,7 @@ import {
   TOGGLE_ACCCOUNT_FUND_REQUEST,
   TOGGLE_ACCCOUNT_FUND_SUCCESS,
   TOGGLE_ACCCOUNT_FUND_FAIL,
+  RESET_TOGGLE_ACCCOUNT_FUND_STATE,
   DISABLE_ACCCOUNT_FUND_REQUEST,
   DISABLE_ACCCOUNT_FUND_SUCCESS,
   DISABLE_ACCCOUNT_FUND_FAIL,
@@ -40,96 +42,99 @@ import {
   TOGGLE_USD_ACCCOUNT_FUND_REQUEST,
   TOGGLE_USD_ACCCOUNT_FUND_SUCCESS,
   TOGGLE_USD_ACCCOUNT_FUND_FAIL,
+  RESET_TOGGLE_USD_ACCCOUNT_FUND_STATE,
   USER_FUND_USD_ACCOUNT_REQUEST,
   USER_FUND_USD_ACCOUNT_SUCCESS,
   USER_FUND_USD_ACCOUNT_FAIL,
-
+  RESET_USER_USD_FUND_ACCOUNT_STATE,
   GET_USER_USD_FUND_ACCOUNT_CREDITS_REQUEST,
-GET_USER_USD_FUND_ACCOUNT_CREDITS_SUCCESS,
-GET_USER_USD_FUND_ACCOUNT_CREDITS_FAIL,
-GET_USER_USD_FUND_ACCOUNT_DEBITS_REQUEST,
-GET_USER_USD_FUND_ACCOUNT_DEBITS_SUCCESS,
-GET_USER_USD_FUND_ACCOUNT_DEBITS_FAIL,
-
-SET_MAX_USD_FUND_WITHDRAWAL_REQUEST,
-SET_MAX_USD_FUND_WITHDRAWAL_SUCCESS,
-SET_MAX_USD_FUND_WITHDRAWAL_FAIL,
+  GET_USER_USD_FUND_ACCOUNT_CREDITS_SUCCESS,
+  GET_USER_USD_FUND_ACCOUNT_CREDITS_FAIL,
+  GET_USER_USD_FUND_ACCOUNT_DEBITS_REQUEST,
+  GET_USER_USD_FUND_ACCOUNT_DEBITS_SUCCESS,
+  GET_USER_USD_FUND_ACCOUNT_DEBITS_FAIL,
+  SET_MAX_USD_FUND_WITHDRAWAL_REQUEST,
+  SET_MAX_USD_FUND_WITHDRAWAL_SUCCESS,
+  SET_MAX_USD_FUND_WITHDRAWAL_FAIL,
 } from "../constants/AccountFundConstants";
 
 // const API_URL = process.env.REACT_APP_API_URL;
 import { API_URL } from "../../config/apiConfig";
 
-export const setMaxUsdWithdrawal = (amountData) => async (dispatch, getState) => {
-  try {
-    dispatch({
-      type: SET_MAX_USD_FUND_WITHDRAWAL_REQUEST,
-    });
+export const setMaxUsdWithdrawal =
+  (amountData) => async (dispatch, getState) => {
+    try {
+      dispatch({
+        type: SET_MAX_USD_FUND_WITHDRAWAL_REQUEST,
+      });
 
-    const {
-      userLogin: { userInfo },
-    } = getState();
+      const {
+        userLogin: { userInfo },
+      } = getState();
 
-    const config = {
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${userInfo.access}`,
-      },
-    };
+      const config = {
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${userInfo.access}`,
+        },
+      };
 
-    const { data } = await axios.post(
-      `${API_URL}/api/set-maximum-usd-withdrawal/`,
-      amountData,
-      config
-    );
+      const { data } = await axios.post(
+        `${API_URL}/api/set-maximum-usd-withdrawal/`,
+        amountData,
+        config
+      );
 
-    dispatch({
-      type: SET_MAX_USD_FUND_WITHDRAWAL_SUCCESS,
-      payload: data,
-    });
-    // window.location.reload();
-    // window.location.href = "/dashboard/users";
-  } catch (error) {
-    dispatch({
-      type: SET_MAX_USD_FUND_WITHDRAWAL_FAIL,
-      payload:
-        error.response && error.response.data.detail
-          ? error.response.data.detail
-          : error.message,
-    });
-  }
-};
+      dispatch({
+        type: SET_MAX_USD_FUND_WITHDRAWAL_SUCCESS,
+        payload: data,
+      });
+    } catch (error) {
+      dispatch({
+        type: SET_MAX_USD_FUND_WITHDRAWAL_FAIL,
+        payload:
+          error.response && error.response.data.detail
+            ? error.response.data.detail
+            : error.message,
+      });
+    }
+  };
 
-export const getUserUsdAccountFundCredits = () => async (dispatch, getState) => {
-  try {
-    dispatch({ type: GET_USER_USD_FUND_ACCOUNT_CREDITS_REQUEST });
+export const getUserUsdAccountFundCredits =
+  () => async (dispatch, getState) => {
+    try {
+      dispatch({ type: GET_USER_USD_FUND_ACCOUNT_CREDITS_REQUEST });
 
-    const {
-      userLogin: { userInfo },
-    } = getState();
+      const {
+        userLogin: { userInfo },
+      } = getState();
 
-    const config = {
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${userInfo.access}`,
-      },
-    };
+      const config = {
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${userInfo.access}`,
+        },
+      };
 
-    const { data } = await axios.get(
-      `${API_URL}/api/get-user-usd-account-fund-credits/`,
-      config
-    );
+      const { data } = await axios.get(
+        `${API_URL}/api/get-user-usd-account-fund-credits/`,
+        config
+      );
 
-    dispatch({ type: GET_USER_USD_FUND_ACCOUNT_CREDITS_SUCCESS, payload: data });
-  } catch (error) {
-    dispatch({
-      type: GET_USER_USD_FUND_ACCOUNT_CREDITS_FAIL,
-      payload:
-        error.response && error.response.data.detail
-          ? error.response.data.detail
-          : error.message,
-    });
-  }
-};
+      dispatch({
+        type: GET_USER_USD_FUND_ACCOUNT_CREDITS_SUCCESS,
+        payload: data,
+      });
+    } catch (error) {
+      dispatch({
+        type: GET_USER_USD_FUND_ACCOUNT_CREDITS_FAIL,
+        payload:
+          error.response && error.response.data.detail
+            ? error.response.data.detail
+            : error.message,
+      });
+    }
+  };
 
 export const getUserUsdAccountFundDebits = () => async (dispatch, getState) => {
   try {
@@ -190,8 +195,6 @@ export const fundUserUsdAccount = (fundData) => async (dispatch, getState) => {
       type: USER_FUND_USD_ACCOUNT_SUCCESS,
       payload: data,
     });
-    window.location.reload();
-    window.location.href = "/dashboard/users";
   } catch (error) {
     dispatch({
       type: USER_FUND_USD_ACCOUNT_FAIL,
@@ -201,6 +204,10 @@ export const fundUserUsdAccount = (fundData) => async (dispatch, getState) => {
           : error.message,
     });
   }
+};
+
+export const resetFundUserUsdAccount = () => (dispatch) => {
+  dispatch({ type: RESET_USER_USD_FUND_ACCOUNT_STATE });
 };
 
 export const toggleUsdAccountFund =
@@ -231,8 +238,6 @@ export const toggleUsdAccountFund =
         type: TOGGLE_USD_ACCCOUNT_FUND_SUCCESS,
         payload: data,
       });
-      window.location.href = "/dashboard";
-      window.location.reload();
     } catch (error) {
       dispatch({
         type: TOGGLE_USD_ACCCOUNT_FUND_FAIL,
@@ -243,6 +248,10 @@ export const toggleUsdAccountFund =
       });
     }
   };
+
+export const resetToggleUsdAccountFundState = () => (dispatch) => {
+  dispatch({ type: RESET_TOGGLE_USD_ACCCOUNT_FUND_STATE });
+};
 
 export const getUserUsdAccountFundBalance =
   () => async (dispatch, getState) => {
@@ -310,8 +319,6 @@ export const activateAccountFund =
         type: ADMIN_ACTIVATE_ACCCOUNT_FUND_SUCCESS,
         payload: data,
       });
-      window.location.reload();
-      window.location.href = "/dashboard/users";
     } catch (error) {
       dispatch({
         type: ADMIN_ACTIVATE_ACCCOUNT_FUND_FAIL,
@@ -388,8 +395,6 @@ export const fundUserAccount =
         type: USER_FUND_ACCOUNT_SUCCESS,
         payload: data,
       });
-      window.location.reload();
-      window.location.href = "/dashboard/users";
     } catch (error) {
       dispatch({
         type: USER_FUND_ACCOUNT_FAIL,
@@ -400,6 +405,10 @@ export const fundUserAccount =
       });
     }
   };
+
+export const resetFundUserAccount = () => (dispatch) => {
+  dispatch({ type: RESET_USER_FUND_ACCOUNT_STATE });
+};
 
 export const getUserAccountFundDebits = () => async (dispatch, getState) => {
   try {
@@ -492,8 +501,6 @@ export const setMaxWithdrawal = (amountData) => async (dispatch, getState) => {
       type: SET_MAX_FUND_WITHDRAWAL_SUCCESS,
       payload: data,
     });
-    window.location.reload();
-    // window.location.href = "/dashboard/users";
   } catch (error) {
     dispatch({
       type: SET_MAX_FUND_WITHDRAWAL_FAIL,
@@ -532,8 +539,6 @@ export const toggleAccountFund = (toggleData) => async (dispatch, getState) => {
       type: TOGGLE_ACCCOUNT_FUND_SUCCESS,
       payload: data,
     });
-    window.location.href = "/dashboard";
-    window.location.reload();
   } catch (error) {
     dispatch({
       type: TOGGLE_ACCCOUNT_FUND_FAIL,
@@ -543,6 +548,10 @@ export const toggleAccountFund = (toggleData) => async (dispatch, getState) => {
           : error.message,
     });
   }
+};
+
+export const resetToggleAccountFundState = () => (dispatch) => {
+  dispatch({ type: RESET_TOGGLE_ACCCOUNT_FUND_STATE });
 };
 
 export const disableAccountFund = (amountData) => async (dispatch) => {
@@ -572,8 +581,6 @@ export const disableAccountFund = (amountData) => async (dispatch) => {
       type: DISABLE_ACCCOUNT_FUND_SUCCESS,
       payload: data,
     });
-    // window.location.href = "/dashboard";
-    // window.location.reload();
   } catch (error) {
     dispatch({
       type: DISABLE_ACCCOUNT_FUND_FAIL,
@@ -613,8 +620,6 @@ export const verifyOtpDisableAccountFund =
         type: VERIFY_OTP_DISABLE_ACCCOUNT_FUND_SUCCESS,
         payload: data,
       });
-      // window.location.href = "/dashboard";
-      window.location.reload();
     } catch (error) {
       dispatch({
         type: VERIFY_OTP_DISABLE_ACCCOUNT_FUND_FAIL,

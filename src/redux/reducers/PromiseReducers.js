@@ -9,6 +9,7 @@ import {
   BUYER_CONFIRM_PROMISE_REQUEST,
   BUYER_CONFIRM_PROMISE_SUCCESS,
   BUYER_CONFIRM_PROMISE_FAIL,
+  RESET_BUYER_CONFIRM_PROMISE_STATE,
   SELLER_CONFIRM_PROMISE_REQUEST,
   SELLER_CONFIRM_PROMISE_SUCCESS,
   SELLER_CONFIRM_PROMISE_FAIL,
@@ -21,33 +22,33 @@ import {
   SETTLE_DISPUTED_PROMISE_REQUEST,
   SETTLE_DISPUTED_PROMISE_SUCCESS,
   SETTLE_DISPUTED_PROMISE_FAIL,
+  RESET_SETTLE_DISPUTED_PROMISE_STATE,
   GET_ALL_PROMISE_REQUEST,
   GET_ALL_PROMISE_SUCCESS,
   GET_ALL_PROMISE_FAIL,
-
   CANCEL_PROMISE_REQUEST,
-CANCEL_PROMISE_SUCCESS,
-CANCEL_PROMISE_FAIL,
-
-BUYER_CREATE_PROMISE_MESSAGE_REQUEST,
-BUYER_CREATE_PROMISE_MESSAGE_SUCCESS,
-BUYER_CREATE_PROMISE_MESSAGE_FAIL,
-SELLER_CREATE_PROMISE_MESSAGE_REQUEST,
-SELLER_CREATE_PROMISE_MESSAGE_SUCCESS,
-SELLER_CREATE_PROMISE_MESSAGE_FAIL,
-
-LIST_BUYER_PROMISE_MESSAGE_REQUEST,
-LIST_BUYER_PROMISE_MESSAGE_SUCCESS,
-LIST_BUYER_PROMISE_MESSAGE_FAIL,
-LIST_SELLER_PROMISE_MESSAGE_REQUEST,
-LIST_SELLER_PROMISE_MESSAGE_SUCCESS,
-LIST_SELLER_PROMISE_MESSAGE_FAIL,
-CLEAR_BUYER_PROMISE_MESSAGE_COUNTER_REQUEST,
-CLEAR_BUYER_PROMISE_MESSAGE_COUNTER_SUCCESS,
-CLEAR_BUYER_PROMISE_MESSAGE_COUNTER_FAIL,
-CLEAR_SELLEE_PROMISE_MESSAG_COUNTERE_REQUEST,
-CLEAR_SELLEE_PROMISE_MESSAG_COUNTERE_SUCCESS,
-CLEAR_SELLEE_PROMISE_MESSAG_COUNTERE_FAIL,
+  CANCEL_PROMISE_SUCCESS,
+  CANCEL_PROMISE_FAIL,
+  BUYER_CREATE_PROMISE_MESSAGE_REQUEST,
+  BUYER_CREATE_PROMISE_MESSAGE_SUCCESS,
+  BUYER_CREATE_PROMISE_MESSAGE_FAIL,
+  RESET_BUYER_CREATE_PROMISE_MESSAGE_STATE,
+  SELLER_CREATE_PROMISE_MESSAGE_REQUEST,
+  SELLER_CREATE_PROMISE_MESSAGE_SUCCESS,
+  SELLER_CREATE_PROMISE_MESSAGE_FAIL,
+  RESET_SELLER_CREATE_PROMISE_MESSAGE_STATE,
+  LIST_BUYER_PROMISE_MESSAGE_REQUEST,
+  LIST_BUYER_PROMISE_MESSAGE_SUCCESS,
+  LIST_BUYER_PROMISE_MESSAGE_FAIL,
+  LIST_SELLER_PROMISE_MESSAGE_REQUEST,
+  LIST_SELLER_PROMISE_MESSAGE_SUCCESS,
+  LIST_SELLER_PROMISE_MESSAGE_FAIL,
+  CLEAR_BUYER_PROMISE_MESSAGE_COUNTER_REQUEST,
+  CLEAR_BUYER_PROMISE_MESSAGE_COUNTER_SUCCESS,
+  CLEAR_BUYER_PROMISE_MESSAGE_COUNTER_FAIL,
+  CLEAR_SELLEE_PROMISE_MESSAG_COUNTERE_REQUEST,
+  CLEAR_SELLEE_PROMISE_MESSAG_COUNTERE_SUCCESS,
+  CLEAR_SELLEE_PROMISE_MESSAG_COUNTERE_FAIL,
 } from "../constants/PromiseConstants";
 
 const initialState = {
@@ -60,12 +61,19 @@ const initialState = {
   sellerPromiseMessages: [],
 };
 
-export const listBuyerPromiseMessagesReducer = (state = initialState, action) => {
+export const listBuyerPromiseMessagesReducer = (
+  state = initialState,
+  action
+) => {
   switch (action.type) {
     case LIST_BUYER_PROMISE_MESSAGE_REQUEST:
       return { ...state, loading: true };
     case LIST_BUYER_PROMISE_MESSAGE_SUCCESS:
-      return { loading: false, success: true, buyerPromiseMessages: action.payload };
+      return {
+        loading: false,
+        success: true,
+        buyerPromiseMessages: action.payload,
+      };
     case LIST_BUYER_PROMISE_MESSAGE_FAIL:
       return { loading: false, error: action.payload };
     default:
@@ -73,12 +81,19 @@ export const listBuyerPromiseMessagesReducer = (state = initialState, action) =>
   }
 };
 
-export const listSellerPromiseMessagesReducer = (state = initialState, action) => {
+export const listSellerPromiseMessagesReducer = (
+  state = initialState,
+  action
+) => {
   switch (action.type) {
     case LIST_SELLER_PROMISE_MESSAGE_REQUEST:
       return { ...state, loading: true };
     case LIST_SELLER_PROMISE_MESSAGE_SUCCESS:
-      return { loading: false, success: true, sellerPromiseMessages: action.payload };
+      return {
+        loading: false,
+        success: true,
+        sellerPromiseMessages: action.payload,
+      };
     case LIST_SELLER_PROMISE_MESSAGE_FAIL:
       return { loading: false, error: action.payload };
     default:
@@ -86,7 +101,10 @@ export const listSellerPromiseMessagesReducer = (state = initialState, action) =
   }
 };
 
-export const buyerClearPromiseMessageReducer = (state = initialState, action) => {
+export const buyerClearPromiseMessageReducer = (
+  state = initialState,
+  action
+) => {
   switch (action.type) {
     case CLEAR_BUYER_PROMISE_MESSAGE_COUNTER_REQUEST:
       return { ...state, loading: true };
@@ -99,7 +117,10 @@ export const buyerClearPromiseMessageReducer = (state = initialState, action) =>
   }
 };
 
-export const sellerClearPromiseMessageReducer = (state = initialState, action) => {
+export const sellerClearPromiseMessageReducer = (
+  state = initialState,
+  action
+) => {
   switch (action.type) {
     case CLEAR_SELLEE_PROMISE_MESSAG_COUNTERE_REQUEST:
       return { ...state, loading: true };
@@ -125,7 +146,10 @@ export const sellerClearPromiseMessageReducer = (state = initialState, action) =
 //   }
 // };
 
-export const buyerCreatePromiseMessageReducer = (state = initialState, action) => {
+export const buyerCreatePromiseMessageReducer = (
+  state = initialState,
+  action
+) => {
   switch (action.type) {
     case BUYER_CREATE_PROMISE_MESSAGE_REQUEST:
       return { ...state, loading: true };
@@ -133,12 +157,17 @@ export const buyerCreatePromiseMessageReducer = (state = initialState, action) =
       return { loading: false, success: true };
     case BUYER_CREATE_PROMISE_MESSAGE_FAIL:
       return { loading: false, error: action.payload };
+    case RESET_BUYER_CREATE_PROMISE_MESSAGE_STATE:
+      return {};
     default:
       return state;
   }
 };
 
-export const sellerCreatePromiseMessageReducer = (state = initialState, action) => {
+export const sellerCreatePromiseMessageReducer = (
+  state = initialState,
+  action
+) => {
   switch (action.type) {
     case SELLER_CREATE_PROMISE_MESSAGE_REQUEST:
       return { ...state, loading: true };
@@ -146,6 +175,8 @@ export const sellerCreatePromiseMessageReducer = (state = initialState, action) 
       return { loading: false, success: true };
     case SELLER_CREATE_PROMISE_MESSAGE_FAIL:
       return { loading: false, error: action.payload };
+    case RESET_SELLER_CREATE_PROMISE_MESSAGE_STATE:
+      return {};
     default:
       return state;
   }
@@ -185,6 +216,8 @@ export const settleDisputedPromiseReducer = (state = initialState, action) => {
       return { loading: false, success: true };
     case SETTLE_DISPUTED_PROMISE_FAIL:
       return { loading: false, error: action.payload };
+    case RESET_SETTLE_DISPUTED_PROMISE_STATE:
+      return {};
     default:
       return state;
   }
@@ -202,8 +235,6 @@ export const settleDisputedPromiseReducer = (state = initialState, action) => {
 //       return state;
 //   }
 // };
-
-
 
 export const getBuyerpromiseReducer = (state = initialState, action) => {
   switch (action.type) {
@@ -239,6 +270,8 @@ export const buyerConfirmPromiseReducer = (state = initialState, action) => {
       return { loading: false, success: true };
     case BUYER_CONFIRM_PROMISE_FAIL:
       return { loading: false, error: action.payload };
+    case RESET_BUYER_CONFIRM_PROMISE_STATE:
+      return {};
     default:
       return state;
   }

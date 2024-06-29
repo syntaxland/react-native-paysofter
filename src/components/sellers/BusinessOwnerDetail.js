@@ -1,25 +1,35 @@
 // BusinessOwnerDetail.js
 import React, { useState, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { Form, Button, Container, Row, Col } from "react-bootstrap";
+import {
+  View,
+  Text,
+  TextInput,
+  Button,
+  StyleSheet,
+  TouchableOpacity,
+  ScrollView,
+  Platform,
+  Image,
+} from "react-native";
 import { businessOwnerDetail } from "../../redux/actions/sellerActions";
-import Message from "../Message";
-import Loader from "../Loader";
-import LoaderButton from "../LoaderButton";
-import DatePicker from "react-datepicker";
-// import { parseISO } from "date-fns";
+import Message from "../../Message";
+import Loader from "../../Loader";
+import * as ImagePicker from "expo-image-picker";
+import DateTimePicker from "@react-native-community/datetimepicker";
+import { Picker } from "@react-native-picker/picker";
 
-function BusinessOwnerDetail({ history }) {
+const BusinessOwnerDetail = ({ navigation }) => {
   const dispatch = useDispatch();
 
-  const userLogin = useSelector((state) => state.userLogin); 
+  const userLogin = useSelector((state) => state.userLogin);
   const { userInfo } = userLogin;
 
   useEffect(() => {
     if (!userInfo) {
-      history.push("/login");
+      navigation.navigate("Login");
     }
-  }, [userInfo, history]);
+  }, [userInfo, navigation]);
 
   const businessOwnerDetailState = useSelector(
     (state) => state.businessOwnerDetailState
@@ -35,16 +45,17 @@ function BusinessOwnerDetail({ history }) {
   const [idNumber, setIdNumber] = useState("");
   const [idNumberError, setIdNumberError] = useState("");
 
-  const [idCardImage, setIdCardImage] = useState("");
+  const [idCardImage, setIdCardImage] = useState(null);
   const [idCardImageError, setIdCardImageError] = useState("");
 
-  const [dob, setDob] = useState("");
+  const [dob, setDob] = useState(new Date());
   const [dobError, setDobError] = useState("");
+  const [showDobPicker, setShowDobPicker] = useState(false);
 
   const [address, setAddress] = useState("");
   const [addressError, setAddressError] = useState("");
 
-  const [proofOfAddress, setProofOfAddress] = useState("");
+  const [proofOfAddress, setProofOfAddress] = useState(null);
   const [proofOfAddressError, setProofOfAddressError] = useState("");
 
   const [formError, setFormError] = useState("");
@@ -55,12 +66,10 @@ function BusinessOwnerDetail({ history }) {
         setDirectorName(value);
         setDirectorNameError("");
         break;
-
       case "idType":
         setIdType(value);
         setIdTypeError("");
         break;
-
       case "idNumber":
         setIdNumber(value);
         setIdNumberError("");
@@ -77,45 +86,45 @@ function BusinessOwnerDetail({ history }) {
         setAddress(value);
         setAddressError("");
         break;
-
       case "proofOfAddress":
         setProofOfAddress(value);
         setProofOfAddressError("");
         break;
-
       default:
         break;
     }
   };
 
   const ID_TYPE_CHOICES = [
-    // ["NIN", "NIN"],
     ["Intl Passport", "Intl Passport"],
     ["Driving License", "Driving License"],
     ["Govt Issued ID", "Govt Issued ID"],
   ];
 
-  const sellerData = new FormData();
-  sellerData.append("director_name", directorName); 
-  sellerData.append("id_type", idType);
-  sellerData.append("id_number", idNumber);
-  sellerData.append("id_card_image", idCardImage);
-  sellerData.append("dob", dob);
-  sellerData.append("address", address);
-  sellerData.append("proof_of_address", proofOfAddress);
+  const handleImagePick = async (fieldName) => {
+    let result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      allowsEditing: true,
+      aspect: [4, 3],
+      quality: 1,
+    });
+
+    if (!result.canceled) {
+      handleFieldChange(fieldName, result.uri);
+    }
+  };
 
   useEffect(() => {
     if (success) {
       const timer = setTimeout(() => {
-        history.push("/seller/bank");
-        window.location.reload();
+        navigation.navigate("Seller Bank");
       }, 3000);
       return () => clearTimeout(timer);
     }
-  }, [dispatch, success, history]);
+  }, [dispatch, success, navigation]);
 
   const handleBusinessOwnerDetail = (e) => {
-    e.preventDefault(e);
+    e.preventDefault();
 
     if (!directorName) {
       setDirectorNameError("Please enter the director name.");
@@ -130,7 +139,7 @@ function BusinessOwnerDetail({ history }) {
     }
 
     if (!idNumber) {
-      setIdNumberError("Please enter the ID  number.");
+      setIdNumberError("Please enter the ID number.");
     } else {
       setIdNumberError("");
     }
@@ -171,163 +180,204 @@ function BusinessOwnerDetail({ history }) {
       setFormError("Please fix the errors in the form.");
       return;
     } else {
+      const sellerData = new FormData();
+      sellerData.append("director_name", directorName);
+      sellerData.append("id_type", idType);
+      sellerData.append("id_number", idNumber);
+      sellerData.append("id_card_image", {
+        uri: idCardImage,
+        type: "image/jpeg",
+        name: "idCardImage.jpg",
+      });
+      sellerData.append("dob", dob.toISOString());
+      sellerData.append("address", address);
+      sellerData.append("proof_of_address", {
+        uri: proofOfAddress,
+        type: "image/jpeg",
+        name: "proofOfAddress.jpg",
+      });
+
       dispatch(businessOwnerDetail(sellerData));
     }
   };
 
   return (
-    <Container>
-      <Row className="justify-content-center py-2">
-        <Col xs={12} md={6}>
-          <h2 className="text-center py-2">Business Owner(s) Details</h2>
-          {loading && <Loader />}
+    <ScrollView contentContainerStyle={styles.container}>
+      <Text style={styles.heading}>Business Owner(s) Details</Text>
+      {loading && <Loader />}
 
-          {success && (
-            <Message variant="success" fixed>Form submitted successfully.</Message>
-          )}
-          {error && <Message variant="danger" fixed>{error}</Message>}
+      {success && (
+        <Message variant="success">Form submitted successfully.</Message>
+      )}
+      {error && <Message variant="danger">{error}</Message>}
 
-          <Form>
-            <Form.Group>
-              <Form.Label>Director Name</Form.Label>
-              <Form.Control
-                type="text"
-                value={directorName}
-                onChange={(e) =>
-                  handleFieldChange("directorName", e.target.value)
-                }
-                placeholder="Enter the director name"
-                className="rounded py-2 mb-2"
-                required
-                maxLength={100}
-              />
-              <Form.Text className="text-danger">{directorNameError}</Form.Text>
-            </Form.Group>
+      <View style={styles.formGroup}>
+        <Text style={styles.label}>Director Name</Text>
+        <TextInput
+          style={styles.input}
+          value={directorName}
+          onChangeText={(value) => handleFieldChange("directorName", value)}
+          placeholder="Enter the director name"
+        />
+        {directorNameError ? (
+          <Text style={styles.error}>{directorNameError}</Text>
+        ) : null}
+      </View>
 
-            <Form.Group>
-              <Form.Label>ID Type</Form.Label>
-              <Form.Control
-                as="select"
-                value={idType}
-                onChange={(e) => handleFieldChange("idType", e.target.value)}
-                className="rounded py-2 mb-2"
-                required
-              >
-                <option value="">ID Type</option>
-                {ID_TYPE_CHOICES.map((type) => (
-                  <option key={type[0]} value={type[0]}>
-                    {type[1]}
-                  </option>
-                ))}
-              </Form.Control>
-              <Form.Text className="text-danger">{idTypeError}</Form.Text>
-            </Form.Group>
+      <View style={styles.formGroup}>
+        <Text style={styles.label}>ID Type</Text>
+        <Picker
+          selectedValue={idType}
+          onValueChange={(value) => handleFieldChange("idType", value)}
+          style={styles.picker}
+        >
+          <Picker.Item label="ID Type" value="" />
+          {ID_TYPE_CHOICES.map((type) => (
+            <Picker.Item key={type[0]} label={type[1]} value={type[0]} />
+          ))}
+        </Picker>
+        {idTypeError ? <Text style={styles.error}>{idTypeError}</Text> : null}
+      </View>
 
-            <Form.Group>
-              <Form.Label>ID Number</Form.Label>
-              <Form.Control
-                type="text"
-                value={idNumber}
-                onChange={(e) => handleFieldChange("idNumber", e.target.value)}
-                placeholder="Enter ID Number"
-                className="rounded py-2 mb-2"
-                required
-                maxLength={100}
-              />
-              <Form.Text className="text-danger">{idNumberError}</Form.Text>
-            </Form.Group>
+      <View style={styles.formGroup}>
+        <Text style={styles.label}>ID Number</Text>
+        <TextInput
+          style={styles.input}
+          value={idNumber}
+          onChangeText={(value) => handleFieldChange("idNumber", value)}
+          placeholder="Enter ID Number"
+        />
+        {idNumberError ? (
+          <Text style={styles.error}>{idNumberError}</Text>
+        ) : null}
+      </View>
 
-            <Form.Group>
-              <Form.Label>ID Card Photo </Form.Label>
-              <Form.Control
-                type="file"
-                onChange={(e) =>
-                  handleFieldChange("idCardImage", e.target.files[0])
-                }
-                placeholder="Upload the ID Card Photo"
-                className="rounded py-2 mb-2"
-                required
-                maxLength={100}
-              />
-              <Form.Text className="text-danger">{idCardImageError}</Form.Text>
-            </Form.Group>
+      <View style={styles.formGroup}>
+        <Text style={styles.label}>ID Card Photo</Text>
+        <TouchableOpacity onPress={() => handleImagePick("idCardImage")}>
+          <Text style={styles.imagePicker}>Upload ID Card Photo</Text>
+        </TouchableOpacity>
+        {idCardImage && (
+          <Image source={{ uri: idCardImage }} style={styles.imagePreview} />
+        )}
+        {idCardImageError ? (
+          <Text style={styles.error}>{idCardImageError}</Text>
+        ) : null}
+      </View>
 
-            <Form.Group>
-              <Form.Label>Date Of Birth</Form.Label>
-              {/* <Form.Control
-                type="text"
-                value={dob}
-                onChange={(e) => handleFieldChange("dob", e.target.value)}
-                placeholder="Enter date of birth"
-                className="rounded py-2 mb-2"
-                maxLength={50}
-                required
-              /> */}
-              <div>
-                <DatePicker
-                  selected={dob ? new Date(dob) : null}
-                  onChange={(date) => setDob(date)}
-                  dateFormat="dd/MM/yyyy"
-                  className="rounded py-2 mb-2 form-control"
-                  placeholderText="Select date of birth"
-                  showYearDropdown
-                  scrollableYearDropdown
-                  yearDropdownItemNumber={100}
-                  scrollableMonthYearDropdown
-                />
-              </div>
-              <Form.Text className="text-danger">{dobError}</Form.Text>
-            </Form.Group>
+      <View style={styles.formGroup}>
+        <Text style={styles.label}>Date Of Birth</Text>
+        <TouchableOpacity onPress={() => setShowDobPicker(true)}>
+          <Text style={styles.datePicker}>
+            {dob ? dob.toDateString() : "Select Date of Birth"}
+          </Text>
+        </TouchableOpacity>
+        {showDobPicker && (
+          <DateTimePicker
+            value={dob}
+            mode="date"
+            display="default"
+            onChange={(event, selectedDate) => {
+              const currentDate = selectedDate || dob;
+              setShowDobPicker(Platform.OS === "ios");
+              handleFieldChange("dob", currentDate);
+            }}
+          />
+        )}
+        {dobError ? <Text style={styles.error}>{dobError}</Text> : null}
+      </View>
 
-            <Form.Group>
-              <Form.Label>Home Address</Form.Label>
-              <Form.Control
-                type="text"
-                value={address}
-                onChange={(e) => handleFieldChange("address", e.target.value)}
-                placeholder="Enter home address"
-                className="rounded py-2 mb-2"
-                maxLength={225}
-                required
-              />
-              <Form.Text className="text-danger">{addressError}</Form.Text>
-            </Form.Group>
+      <View style={styles.formGroup}>
+        <Text style={styles.label}>Home Address</Text>
+        <TextInput
+          style={styles.input}
+          value={address}
+          onChangeText={(value) => handleFieldChange("address", value)}
+          placeholder="Enter your home address"
+        />
+        {addressError ? <Text style={styles.error}>{addressError}</Text> : null}
+      </View>
 
-            <Form.Group>
-              <Form.Label>Proof Of Address</Form.Label>
-              <Form.Control
-                type="file"
-                onChange={(e) =>
-                  handleFieldChange("proofOfAddress", e.target.files[0])
-                }
-                placeholder="Upload proof of address"
-                className="rounded py-2 mb-2"
-                maxLength={100}
-                required
-              />
-              <Form.Text className="text-danger">
-                {proofOfAddressError}
-              </Form.Text>
-            </Form.Group>
+      <View style={styles.formGroup}>
+        <Text style={styles.label}>Proof of Address</Text>
+        <TouchableOpacity onPress={() => handleImagePick("proofOfAddress")}>
+          <Text style={styles.imagePicker}>Upload Proof of Address</Text>
+        </TouchableOpacity>
+        {proofOfAddress && (
+          <Image source={{ uri: proofOfAddress }} style={styles.imagePreview} />
+        )}
+        {proofOfAddressError ? (
+          <Text style={styles.error}>{proofOfAddressError}</Text>
+        ) : null}
+      </View>
 
-            {formError && <Message variant="danger" fixed>{formError}</Message>}
-            
-          </Form>
-          <Button
-            variant="primary"
-            onClick={handleBusinessOwnerDetail}
-            className="rounded py-2 mb-2 text-center w-100"
-            disabled={loading || success}
-          >
-            <div className="d-flex justify-content-center">
-              <span className="py-1">Continue</span>
-              {loading && <LoaderButton />}
-            </div>
-          </Button>
-        </Col>
-      </Row>
-    </Container>
+      {formError ? <Text style={styles.formError}>{formError}</Text> : null}
+
+      <Button
+        onPress={handleBusinessOwnerDetail}
+        title="Submit"
+        loading={loading}
+      />
+    </ScrollView>
   );
-}
+};
+
+const styles = StyleSheet.create({
+  container: {
+    flexGrow: 1,
+    padding: 20,
+    backgroundColor: "#fff",
+  },
+  heading: {
+    fontSize: 24,
+    fontWeight: "bold",
+    marginBottom: 20,
+    textAlign: "center",
+  },
+  formGroup: {
+    marginBottom: 15,
+  },
+  label: {
+    fontSize: 16,
+    fontWeight: "bold",
+    marginBottom: 5,
+  },
+  input: {
+    borderWidth: 1,
+    borderColor: "#ccc",
+    padding: 10,
+    borderRadius: 5,
+  },
+  picker: {
+    borderWidth: 1,
+    borderColor: "#ccc",
+    borderRadius: 5,
+    marginBottom: 5,
+  },
+  imagePicker: {
+    color: "blue",
+    textDecorationLine: "underline",
+  },
+  datePicker: {
+    color: "blue",
+    textDecorationLine: "underline",
+    marginBottom: 10,
+  },
+  imagePreview: {
+    width: 100,
+    height: 100,
+    marginTop: 10,
+  },
+  error: {
+    color: "red",
+    fontSize: 12,
+  },
+  formError: {
+    color: "red",
+    fontSize: 14,
+    textAlign: "center",
+    marginBottom: 10,
+  },
+});
 
 export default BusinessOwnerDetail;

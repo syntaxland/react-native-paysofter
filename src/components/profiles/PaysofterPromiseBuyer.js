@@ -1,29 +1,46 @@
 // PaysofterPromiseBuyer.js
 import React, { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { Link } from "react-router-dom";
-import { Table, Button, Row, Col, Modal, Container } from "react-bootstrap";
+import {
+  ScrollView,
+  View,
+  Text,
+  TouchableOpacity,
+  RefreshControl,
+  StyleSheet,
+  Modal,
+  Button,
+} from "react-native";
+import { DataTable, Card } from "react-native-paper";
+import { FontAwesomeIcon } from "@fortawesome/react-native-fontawesome";
+import {
+  faMoneyCheckAlt,
+  faCheckCircle,
+  faTimesCircle,
+} from "@fortawesome/free-solid-svg-icons";
+import { useNavigation } from "@react-navigation/native";
 import {
   getBuyerPromises,
   clearBuyerMessageCounter,
 } from "../../redux/actions/PromiseActions";
-import Message from "../Message"; 
-import Loader from "../Loader";
-import Timer from "../Timer";
-import Pagination from "../Pagination";
 import BuyerConfirmPromise from "../promise/BuyerConfirmPromise";
 import SettleDisputedPromise from "../promise/SettleDisputedPromise";
-import { formatAmount } from "../FormatAmount";
+import { formatAmount } from "../../FormatAmount";
+import Message from "../../Message";
+import Loader from "../../Loader";
+import Timer from "../../Timer";
+import { Pagination } from "../../Pagination";
 
 function PaysofterPromiseBuyer() {
   const dispatch = useDispatch();
+  const navigation = useNavigation();
 
   const userLogin = useSelector((state) => state.userLogin);
   const { userInfo } = userLogin;
 
   useEffect(() => {
     if (!userInfo) {
-      window.location.href = "/login";
+      navigation.navigate("Login");
     }
   }, [userInfo]);
 
@@ -58,11 +75,17 @@ function PaysofterPromiseBuyer() {
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
 
-  const paginate = (pageNumber) => setCurrentPage(pageNumber);
+  // const paginate = (pageNumber) => setCurrentPage(pageNumber);
 
   const indexOfLastItem = currentPage * itemsPerPage;
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;
   const currentItems = promises?.slice(indexOfFirstItem, indexOfLastItem);
+
+  const totalPages = Math.ceil(promises.length / itemsPerPage);
+
+  const handlePagination = (pageNumber) => {
+    setCurrentPage(pageNumber);
+  };
 
   const formatAccountId = (accountId) => {
     const accountIdStr = String(accountId);
@@ -83,511 +106,665 @@ function PaysofterPromiseBuyer() {
     dispatch(clearBuyerMessageCounter(promiseMessageData));
   };
 
+  const handleSendMessage = (promise) => {
+    const queryParams = {
+      id: promise?.promise_id,
+      // id: promise?.promise_id,
+    };
+
+    navigation.navigate("Buyer Promise Message", {
+      id: promise.id,
+      ...queryParams,
+    });
+  };
+
   useEffect(() => {
     dispatch(getBuyerPromises());
   }, [dispatch]);
 
   return (
-    <Container>
-      <Row>
-        <Col>
-          <h1 className="text-center py-3">
-            <i className="fas fa-money-bill-wave"></i> Promises (Buyer)
-          </h1>
-          {loading ? (
-            <Loader />
-          ) : error ? (
-            <Message variant="danger">{error}</Message>
-          ) : (
-            <>
-              {currentItems.length === 0 ? (
-                <div className="text-center py-3">Promises appear here.</div>
-              ) : (
-                <Table
-                  striped
-                  bordered
-                  hover
-                  responsive
-                  className="table-sm py-2 rounded"
-                >
-                  <thead>
-                    <tr>
-                      <th>SN</th>
-                      <th>Promise ID</th>
-                      <th>Amount</th>
-                      <th>Seller Account ID</th>
-                      {/* <th>Seller Email</th> */}
-                      <th>Buyer Account ID</th>
-                      {/* <th>Buyer Email</th> */}
-                      <th>Seller Fulfilled Promise</th>
-                      <th>Buyer Promise Fulfilled</th>
-                      <th>Status</th>
-                      <th>Success</th>
-                      <th>Active</th>
-                      <th>Expected Settlement Duration</th>
-                      <th>Settle Conflict Activated</th>
-                      <th>Conflict Settlement Charges</th>
-                      <th>Promise Delivered</th>
-                      <th>Promise Cancelled</th>
-                      <th>Payment Method</th>
-                      <th>Payment Provider</th>
-                      <th>Promise Made At</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {currentItems.map((promise, index) => (
-                      <tr key={promise.id} className="rounded">
-                        <td>{index + 1}</td>
-                        <td>
-                          {promise.buyer_promise_fulfilled ? (
-                            <>
-                              <Button variant="outline-link" size="sm" disabled>
-                                {promise.promise_id}
-                              </Button>
-                            </>
-                          ) : (
-                            <>
-                              <Button
-                                variant="outline-link"
-                                size="sm"
-                                // onClick={() =>
+    <ScrollView
+      refreshControl={
+        <RefreshControl
+          refreshing={loading}
+          onRefresh={() => dispatch(getBuyerPromises())}
+        />
+      }
+      contentContainerStyle={styles.scrollView}
+    >
+      <View style={styles.container}>
+        <View style={styles.cardContainer}>
+          <Card style={styles.card}>
+            <Card.Content>
+              <Text style={styles.title}>
+                <FontAwesomeIcon icon={faMoneyCheckAlt} /> Promises (Buyer)
+              </Text>
+            </Card.Content>
+          </Card>
+        </View>
+        {loading ? (
+          <Loader />
+        ) : error ? (
+          <Message variant="danger">{error}</Message>
+        ) : (
+          <>
+            <ScrollView horizontal={true}>
+              <View style={styles.cardContainer}>
+                <Card style={styles.card}>
+                  <Card.Content>
+                    {currentItems.length === 0 ? (
+                      <View style={styles.noData}>
+                        <Text style={styles.noDataContainer}>
+                          Promises appear here.
+                        </Text>
+                      </View>
+                    ) : (
+                      <DataTable>
+                        <DataTable.Header>
+                          <DataTable.Title style={styles.snHeaderCell}>
+                            SN
+                          </DataTable.Title>
+                          <DataTable.Title style={styles.headerCell}>
+                            Promise ID
+                          </DataTable.Title>
+                          <DataTable.Title style={styles.headerCell}>
+                            Amount
+                          </DataTable.Title>
+                          <DataTable.Title style={styles.headerCell}>
+                            Seller Account ID
+                          </DataTable.Title>
+                          <DataTable.Title style={styles.headerCell}>
+                            Buyer Account ID
+                          </DataTable.Title>
+                          <DataTable.Title style={styles.headerCell}>
+                            Seller Fulfilled
+                          </DataTable.Title>
+                          <DataTable.Title style={styles.headerCell}>
+                            Buyer Fulfilled
+                          </DataTable.Title>
+                          <DataTable.Title style={styles.headerCell}>
+                            Status
+                          </DataTable.Title>
+                          <DataTable.Title style={styles.headerCell}>
+                            Success
+                          </DataTable.Title>
+                          <DataTable.Title style={styles.headerCell}>
+                            Active
+                          </DataTable.Title>
+                          <DataTable.Title style={styles.durationHeaderCell}>
+                            Settlement Duration
+                          </DataTable.Title>
+                          <DataTable.Title style={styles.headerCell}>
+                            Conflict Activated
+                          </DataTable.Title>
+                          <DataTable.Title style={styles.headerCell}>
+                            Conflict Charges
+                          </DataTable.Title>
+                          <DataTable.Title style={styles.headerCell}>
+                            Delivered
+                          </DataTable.Title>
+                          <DataTable.Title style={styles.headerCell}>
+                            Cancelled
+                          </DataTable.Title>
+                          <DataTable.Title style={styles.headerCell}>
+                            Payment Method
+                          </DataTable.Title>
+                          <DataTable.Title style={styles.headerCell}>
+                            Payment Provider
+                          </DataTable.Title>
+                          <DataTable.Title style={styles.dateHeaderCell}>
+                            Made At
+                          </DataTable.Title>
+                          <DataTable.Title style={styles.headerCell}>
+                            Promise Action
+                          </DataTable.Title>
+                          <DataTable.Title style={styles.headerCell}>
+                            Message Action
+                          </DataTable.Title>
+                        </DataTable.Header>
+                        {currentItems.map((promise, index) => (
+                          <DataTable.Row
+                            key={promise.id}
+                            style={styles.headerCard}
+                          >
+                            <DataTable.Cell style={styles.snCell}>
+                              {indexOfFirstItem + index + 1}
+                            </DataTable.Cell>
+                            <DataTable.Cell style={styles.cell}>
+                              <TouchableOpacity
+                                disabled={promise.buyer_promise_fulfilled}
+                                // onPress={() =>
+                                //   !promise.buyer_promise_fulfilled &&
                                 //   handleConfirmPromiseOpen({
                                 //     promise_id: promise.promise_id,
                                 //     amount: promise.amount,
                                 //   })
                                 // }
                               >
-                                {promise.promise_id}
-                              </Button>
-                            </>
-                          )}
-                        </td>
-
-                        <td>
-                          {promise.buyer_promise_fulfilled ? (
-                            <span style={{ fontSize: "16px", color: "green" }}>
-                              {promise.currency}{" "}
-                              {
-                                formatAmount(promise.amount)
-
-                                // ?.toLocaleString(undefined, {
-                                //   minimumFractionDigits: 2,
-                                //   maximumFractionDigits: 2,
-                                // })
-                              }
-                            </span>
-                          ) : (
-                            <>
-                              {promise.is_cancelled ? (
-                                <>
-                                  <span
-                                    style={{ fontSize: "16px" }}
-                                    className="text-danger"
-                                  >
-                                    {promise.currency}{" "}
-                                    {
-                                      formatAmount(promise.amount)
-
-                                      // ?.toLocaleString(undefined, {
-                                      //   minimumFractionDigits: 2,
-                                      //   maximumFractionDigits: 2,
-                                      // })
-                                    }
-                                  </span>
-                                </>
-                              ) : (
-                                <span
-                                  style={{ fontSize: "16px" }}
-                                  className="text-warning"
-                                >
-                                  {promise.currency}{" "}
-                                  {
-                                    formatAmount(promise.amount)
-
-                                    // ?.toLocaleString(undefined, {
-                                    //   minimumFractionDigits: 2,
-                                    //   maximumFractionDigits: 2,
-                                    // })
-                                  }
-                                </span>
-                              )}
-                            </>
-                          )}
-                        </td>
-                        <td>{formatAccountId(promise.seller_account_id)}</td>
-                        {/* <td>{promise.seller_email}</td> */}
-                        <td>{formatAccountId(promise.buyer_account_id)}</td>
-                        {/* <td>{promise.buyer_email}</td> */}
-
-                        <td>
-                          <>
-                            {promise.seller_fulfilled_promise ? (
-                              <>
-                                <i
-                                  className="fas fa-check-circle"
-                                  style={{ fontSize: "16px", color: "green" }}
-                                ></i>{" "}
-                                Yes
-                              </>
-                            ) : (
-                              <>
-                                <i
-                                  className="fas fa-times-circle"
-                                  style={{ fontSize: "16px", color: "red" }}
-                                ></i>{" "}
-                                No
-                              </>
-                            )}
-                          </>
-                        </td>
-
-                        <td>
-                          <>
-                            {promise.buyer_promise_fulfilled ? (
-                              <>
-                                <i
-                                  className="fas fa-check-circle"
-                                  style={{ fontSize: "16px", color: "green" }}
-                                ></i>{" "}
-                                Yes
-                              </>
-                            ) : (
-                              <>
-                                <i
-                                  className="fas fa-times-circle"
-                                  style={{ fontSize: "16px", color: "red" }}
-                                ></i>{" "}
-                                No
-                              </>
-                            )}
-                          </>
-                        </td>
-
-                        <td>{promise.status}</td>
-                        <td>
-                          {promise.is_success ? (
-                            <>
-                              <i
-                                className="fas fa-check-circle"
-                                style={{ fontSize: "16px", color: "green" }}
-                              ></i>{" "}
-                              Yes
-                            </>
-                          ) : (
-                            <>
-                              <i
-                                className="fas fa-times-circle"
-                                style={{ fontSize: "16px", color: "red" }}
-                              ></i>{" "}
-                              No
-                            </>
-                          )}
-                        </td>
-                        <td>
-                          <>
-                            {promise.is_active ? (
-                              <>
-                                <i
-                                  className="fas fa-check-circle"
-                                  style={{ fontSize: "16px", color: "green" }}
-                                ></i>{" "}
-                                Yes
-                              </>
-                            ) : (
-                              <>
-                                <i
-                                  className="fas fa-times-circle"
-                                  style={{ fontSize: "16px", color: "red" }}
-                                ></i>{" "}
-                                No
-                              </>
-                            )}
-                          </>
-                        </td>
-                        <td className="text-center">
-                          {promise.duration}
-                          {promise.is_active ? (
-                            <>
-                              <Button
-                                variant="outline-primary"
-                                size="sm"
-                                className="py-2 mt-2"
-                                disabled
+                                <Text style={styles.promiseIdContainer}>
+                                  {promise.promise_id}
+                                </Text>
+                              </TouchableOpacity>
+                            </DataTable.Cell>
+                            <DataTable.Cell style={styles.cell}>
+                              <Text
+                                style={{
+                                  color: promise.buyer_promise_fulfilled
+                                    ? "green"
+                                    : promise.is_cancelled
+                                    ? "red"
+                                    : "orange",
+                                }}
                               >
-                                Timer:{" "}
-                                <Timer
-                                  expirationDate={promise?.expiration_date}
-                                />
-                              </Button>
-                            </>
-                          ) : (
-                            <>
-                              {promise.buyer_promise_fulfilled ? (
-                                <>
-                                  <Button
-                                    variant="outline-success"
-                                    size="sm"
-                                    className="py-2 mt-2"
-                                    disabled
-                                  >
-                                    Promise Settled
-                                  </Button>
-                                </>
-                              ) : (
-                                <></>
-                              )}
-                            </>
-                          )}
-                          {new Date(promise.expiration_date) < new Date() &&
-                          !promise.buyer_promise_fulfilled ? (
-                            <>
-                              <Button
-                                variant="outline-danger"
-                                size="sm"
-                                className="py-2 mt-2"
-                                onClick={() =>
-                                  handleSettleDisputeOpen({
-                                    promise_id: promise.promise_id,
-                                  })
+                                {promise.currency}{" "}
+                                {formatAmount(promise.amount)}
+                              </Text>
+                            </DataTable.Cell>
+                            <DataTable.Cell style={styles.cell}>
+                              {formatAccountId(promise.seller_account_id)}
+                            </DataTable.Cell>
+                            <DataTable.Cell style={styles.cell}>
+                              {formatAccountId(promise.buyer_account_id)}
+                            </DataTable.Cell>
+                            <DataTable.Cell style={styles.cell}>
+                              <FontAwesomeIcon
+                                icon={
+                                  promise.seller_fulfilled_promise
+                                    ? faCheckCircle
+                                    : faTimesCircle
                                 }
-                              >
-                                Settle Dispute
-                              </Button>
-                            </>
-                          ) : (
-                            <>
-                              {promise.is_settle_conflict_activated ? (
-                                <>
-                                  <Button
-                                    variant="danger"
-                                    size="sm"
-                                    className="py-2 mt-2"
-                                    disabled
-                                  >
-                                    Settle Conflict Activated
-                                  </Button>
-                                </>
-                              ) : (
-                                <></>
-                              )}
-                            </>
-                          )}
-                        </td>
-                        <td>
-                          {promise.is_settle_conflict_activated ? (
-                            <>
-                              <i
-                                className="fas fa-check-circle"
-                                style={{ fontSize: "16px", color: "green" }}
-                              ></i>{" "}
-                              Yes
-                            </>
-                          ) : (
-                            <>
-                              <i
-                                className="fas fa-times-circle"
-                                style={{ fontSize: "16px", color: "red" }}
-                              ></i>{" "}
-                              No
-                            </>
-                          )}
-                        </td>
-                        <td>
-                          {promise.currency} {promise.settle_conflict_charges}
-                        </td>
-                        <td>
-                          {promise.is_delivered ? (
-                            <>
-                              <i
-                                className="fas fa-check-circle"
-                                style={{ fontSize: "16px", color: "green" }}
-                              ></i>{" "}
-                              Yes
-                            </>
-                          ) : (
-                            <>
-                              <i
-                                className="fas fa-times-circle"
-                                style={{ fontSize: "16px", color: "red" }}
-                              ></i>{" "}
-                              No
-                            </>
-                          )}
-                        </td>
-                        <td>
-                          {promise.is_cancelled ? (
-                            <>
-                              <i
-                                className="fas fa-check-circle"
-                                style={{ fontSize: "16px", color: "green" }}
-                              ></i>{" "}
-                              Yes
-                            </>
-                          ) : (
-                            <>
-                              <i
-                                className="fas fa-times-circle"
-                                style={{ fontSize: "16px", color: "red" }}
-                              ></i>{" "}
-                              No
-                            </>
-                          )}
-                        </td>
-                        <td>{promise.payment_method}</td>
-                        <td>{promise.payment_provider}</td>
-                        <td>
-                          {new Date(promise.timestamp).toLocaleString("en-US", {
-                            weekday: "long",
-                            year: "numeric",
-                            month: "long",
-                            day: "numeric",
-                            hour: "numeric",
-                            minute: "numeric",
-                            second: "numeric",
-                          })}
-                        </td>
+                                color={
+                                  promise.seller_fulfilled_promise
+                                    ? "green"
+                                    : "red"
+                                }
+                              />
+                              <Text>
+                                {" "}
+                                {promise.seller_fulfilled_promise
+                                  ? "Yes"
+                                  : "No"}
+                              </Text>
+                            </DataTable.Cell>
+                            <DataTable.Cell style={styles.cell}>
+                              <FontAwesomeIcon
+                                icon={
+                                  promise.buyer_promise_fulfilled
+                                    ? faCheckCircle
+                                    : faTimesCircle
+                                }
+                                color={
+                                  promise.buyer_promise_fulfilled
+                                    ? "green"
+                                    : "red"
+                                }
+                              />
+                              <Text>
+                                {" "}
+                                {promise.buyer_promise_fulfilled ? "Yes" : "No"}
+                              </Text>
+                            </DataTable.Cell>
+                            <DataTable.Cell style={styles.cell}>
+                              {promise.status}
+                            </DataTable.Cell>
+                            <DataTable.Cell style={styles.cell}>
+                              <FontAwesomeIcon
+                                icon={
+                                  promise.is_success
+                                    ? faCheckCircle
+                                    : faTimesCircle
+                                }
+                                color={promise.is_success ? "green" : "red"}
+                              />
+                              <Text> {promise.is_success ? "Yes" : "No"}</Text>
+                            </DataTable.Cell>
+                            <DataTable.Cell style={styles.cell}>
+                              <FontAwesomeIcon
+                                icon={
+                                  promise.is_active
+                                    ? faCheckCircle
+                                    : faTimesCircle
+                                }
+                                color={promise.is_active ? "green" : "red"}
+                              />
+                              <Text> {promise.is_active ? "Yes" : "No"}</Text>
+                            </DataTable.Cell>
+                            <DataTable.Cell style={styles.durationCell}>
+                              <ScrollView>
+                                <Text style={{ color: "blue", padding: 5 }}>
+                                  {promise.duration}
+                                </Text>
+                                <Text style={{ padding: 2 }}>
+                                  {promise.is_active ? (
+                                    <TouchableOpacity disabled>
+                                      <Text style={styles.squaredSuccessBtn}>
+                                        Timer:{" "}
+                                        <Timer
+                                          expirationDate={
+                                            promise?.expiration_date
+                                          }
+                                        />
+                                      </Text>
+                                    </TouchableOpacity>
+                                  ) : promise.buyer_promise_fulfilled ? (
+                                    <TouchableOpacity disabled>
+                                      <Text
+                                        style={{ color: "green", padding: 5 }}
+                                      >
+                                        Promise Settled
+                                      </Text>
+                                    </TouchableOpacity>
+                                  ) : null}
+                                </Text>
+                                <Text style={{ padding: 2 }}>
+                                  {new Date(promise.expiration_date) <
+                                    new Date() &&
+                                    !promise.buyer_promise_fulfilled && (
+                                      <TouchableOpacity
+                                        onPress={() =>
+                                          handleSettleDisputeOpen({
+                                            promise_id: promise.promise_id,
+                                          })
+                                        }
+                                      >
+                                        <Text style={styles.roundedDangerBtn}>
+                                          Settle Dispute
+                                        </Text>
+                                      </TouchableOpacity>
+                                    )}
+                                </Text>
+                                {promise.is_settle_conflict_activated && (
+                                  <TouchableOpacity disabled>
+                                    <Text style={{ color: "red", padding: 5 }}>
+                                      Settle Conflict Activated
+                                    </Text>
+                                  </TouchableOpacity>
+                                )}
+                              </ScrollView>
+                            </DataTable.Cell>
+                            <DataTable.Cell style={styles.cell}>
+                              <FontAwesomeIcon
+                                icon={
+                                  promise.is_settle_conflict_activated
+                                    ? faCheckCircle
+                                    : faTimesCircle
+                                }
+                                color={
+                                  promise.is_settle_conflict_activated
+                                    ? "green"
+                                    : "red"
+                                }
+                              />
+                              <Text>
+                                {" "}
+                                {promise.is_settle_conflict_activated
+                                  ? "Yes"
+                                  : "No"}
+                              </Text>
+                            </DataTable.Cell>
+                            <DataTable.Cell style={styles.cell}>
+                              {promise.currency}{" "}
+                              {promise.settle_conflict_charges}
+                            </DataTable.Cell>
+                            <DataTable.Cell style={styles.cell}>
+                              <FontAwesomeIcon
+                                icon={
+                                  promise.is_delivered
+                                    ? faCheckCircle
+                                    : faTimesCircle
+                                }
+                                color={promise.is_delivered ? "green" : "red"}
+                              />
+                              <Text>
+                                {" "}
+                                {promise.is_delivered ? "Yes" : "No"}
+                              </Text>
+                            </DataTable.Cell>
+                            <DataTable.Cell style={styles.cell}>
+                              <FontAwesomeIcon
+                                icon={
+                                  promise.is_cancelled
+                                    ? faCheckCircle
+                                    : faTimesCircle
+                                }
+                                color={promise.is_cancelled ? "green" : "red"}
+                              />
+                              <Text>
+                                {" "}
+                                {promise.is_cancelled ? "Yes" : "No"}
+                              </Text>
+                            </DataTable.Cell>
+                            <DataTable.Cell style={styles.cell}>
+                              {promise.payment_method}
+                            </DataTable.Cell>
+                            <DataTable.Cell style={styles.cell}>
+                              {promise.payment_provider}
+                            </DataTable.Cell>
+                            <DataTable.Cell style={styles.dateCell}>
+                              <ScrollView horizontal>
+                                <Text>
+                                  {new Date(promise.timestamp).toLocaleString(
+                                    "en-US",
+                                    {
+                                      weekday: "long",
+                                      year: "numeric",
+                                      month: "long",
+                                      day: "numeric",
+                                      hour: "numeric",
+                                      minute: "numeric",
+                                      second: "numeric",
+                                    }
+                                  )}
+                                </Text>
+                              </ScrollView>
+                            </DataTable.Cell>
 
-                        <td>
-                          {promise.is_cancelled ? (
-                            <>
-                              <Button variant="danger" size="sm" disabled>
-                                Promise Cancelled
-                              </Button>
-                            </>
-                          ) : (
-                            <>
-                              {promise.buyer_promise_fulfilled ? (
-                                <>
-                                  <Button
-                                    variant="outline-success"
-                                    size="sm"
-                                    disabled
-                                  >
-                                    Promise Confirmed
-                                  </Button>
-                                </>
+                            <DataTable.Cell style={styles.cell}>
+                              {promise.is_cancelled ? (
+                                <TouchableOpacity disabled>
+                                  <Text style={{ color: "red" }}>
+                                    Promise Cancelled
+                                  </Text>
+                                </TouchableOpacity>
+                              ) : promise.buyer_promise_fulfilled ? (
+                                <TouchableOpacity disabled>
+                                  <Text style={styles.roundedSuccessBtn}>
+                                    Promise Confirmed{" "}
+                                    <FontAwesomeIcon
+                                      icon={faCheckCircle}
+                                      color="green"
+                                    />
+                                  </Text>
+                                </TouchableOpacity>
                               ) : (
-                                <Button
-                                  variant="outline-primary"
-                                  size="sm"
-                                  onClick={() =>
+                                <TouchableOpacity
+                                  onPress={() =>
                                     handleConfirmPromiseOpen({
                                       promise_id: promise.promise_id,
                                       amount: promise.amount,
                                     })
                                   }
                                 >
-                                  Confirm Promise
-                                </Button>
+                                  <Text style={styles.roundedPrimaryBtn}>
+                                    Confirm Promise
+                                  </Text>
+                                </TouchableOpacity>
                               )}
-                            </>
-                          )}
-                        </td>
+                            </DataTable.Cell>
 
-                        <td>
-                          <Button
-                            variant="outline-primary"
-                            size="sm"
-                            onClick={() =>
-                              clearMessageCounter(promise.promise_id)
-                            }
-                          >
-                            <Link
-                              to={`/buyer/promise/message/${promise.promise_id}`}
-                              style={{ textDecoration: "none" }}
-                            >
-                              Message Seller{" "}
-                              {promise?.buyer_msg_count > 0 && (
-                                <span className="msg-counter">
-                                  {promise?.buyer_msg_count}
-                                </span>
-                              )}
-                            </Link>
-                          </Button>
-                        </td>
-
-                        {/* <td>
-                          <>
-                            {promise.is_cancelled ? (
-                              <>
-                                <Button variant="outline-primary" size="sm">
-                                  <Link
-                                    to={`/promise/message/${promise.promise_id}`}
-                                    style={{ textDecoration: "none" }}
-                                  >
-                                    Message Seller
-                                  </Link>
-                                </Button>
-                              </>
-                            ) : (
-                              <Button variant="outline-primary" size="sm">
-                                <Link
-                                  to={`/promise/message/${promise.promise_id}`}
-                                  style={{ textDecoration: "none" }}
-                                >
+                            <DataTable.Cell style={styles.cell}>
+                              <TouchableOpacity
+                                onPress={() => {
+                                  handleSendMessage(promise);
+                                  clearMessageCounter(promise.promise_id);
+                                }}
+                              >
+                                <Text style={styles.roundedPrimaryBtn}>
                                   Message Seller
-                                </Link>
-                              </Button>
-                            )}
-                          </>
-                        </td> */}
+                                  {promise?.buyer_msg_count > 0 && (
+                                    <Text style={{ color: "red" }}>
+                                      {" "}
+                                      ({promise?.buyer_msg_count})
+                                    </Text>
+                                  )}
+                                </Text>
+                              </TouchableOpacity>
+                            </DataTable.Cell>
+                          </DataTable.Row>
+                        ))}
+                      </DataTable>
+                    )}
+                  </Card.Content>
+                </Card>
+              </View>
+            </ScrollView>
 
-                        <Modal
-                          show={showConfirmPromise}
-                          onHide={handleConfirmPromiseClose}
-                        >
-                          <Modal.Header closeButton>
-                            <Modal.Title className="text-center w-100 py-2">
-                              Confirm Promise
-                            </Modal.Title>
-                          </Modal.Header>
-                          <Modal.Body>
-                            {showConfirmPromise && (
-                              <BuyerConfirmPromise
-                                promiseId={selectedPromise?.promise_id}
-                                amount={selectedPromise?.amount}
-                                onClose={handleConfirmPromiseClose}
-                              />
-                            )}
-                          </Modal.Body>
-                        </Modal>
+            <View style={styles.cardContainer}>
+              <Card style={styles.card}>
+                <Card.Content>
+                  <Pagination
+                    totalPages={totalPages}
+                    currentPage={currentPage}
+                    paginate={handlePagination}
+                  />
+                </Card.Content>
+              </Card>
+            </View>
+          </>
+        )}
+      </View>
 
-                        <Modal
-                          show={showSettleDispute}
-                          onHide={handleSettleDisputeClose}
-                        >
-                          <Modal.Header closeButton>
-                            <Modal.Title className="text-center w-100 py-2">
-                              Settle Disputed Promise
-                            </Modal.Title>
-                          </Modal.Header>
-                          <Modal.Body>
-                            {showSettleDispute && (
-                              <SettleDisputedPromise
-                                promiseId={selectedPromise?.promise_id}
-                                amount={selectedPromise?.amount}
-                                onClose={handleConfirmPromiseClose}
-                              />
-                            )}
-                          </Modal.Body>
-                        </Modal>
-                      </tr>
-                    ))}
-                  </tbody>
-                </Table>
-              )}
-              <Pagination
-                itemsPerPage={itemsPerPage}
-                totalItems={promises.length}
-                currentPage={currentPage}
-                paginate={paginate}
+      <Modal
+        visible={showConfirmPromise}
+        animationType="slide"
+        transparent={true}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <Text style={styles.modalHeading}>Confirm Promise</Text>
+            {showConfirmPromise && (
+              <BuyerConfirmPromise
+                promiseId={selectedPromise?.promise_id}
+                amount={selectedPromise?.amount}
+                onClose={handleConfirmPromiseClose}
               />
-            </>
-          )}
-        </Col>
-      </Row>
-    </Container>
+            )}
+
+            <View style={styles.closeBtn}>
+              <Button title="Close" onPress={handleConfirmPromiseClose} />
+            </View>
+          </View>
+        </View>
+      </Modal>
+
+      <Modal
+        visible={showSettleDispute}
+        animationType="slide"
+        transparent={true}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <Text style={styles.modalHeading}>Settle Disputed Promise</Text>
+            {showSettleDispute && (
+              <SettleDisputedPromise
+                promiseId={selectedPromise?.promise_id}
+                amount={selectedPromise?.amount}
+                onClose={handleSettleDisputeClose}
+              />
+            )}
+
+            <View style={styles.closeBtn}>
+              <Button title="Close" onPress={handleSettleDisputeClose} />
+            </View>
+          </View>
+        </View>
+      </Modal>
+    </ScrollView>
   );
 }
+
+const styles = StyleSheet.create({
+  safeArea: {
+    flex: 1,
+  },
+  scrollView: {
+    flexGrow: 1,
+  },
+  container: {
+    flex: 1,
+    padding: 16,
+  },
+  title: {
+    fontSize: 24,
+    fontWeight: "bold",
+    marginVertical: 10,
+    textAlign: "center",
+  },
+  noDataContainer: {
+    textAlign: "center",
+    justifyContent: "center",
+    alignItems: "center",
+    marginVertical: 10,
+  },
+  noData: {
+    textAlign: "center",
+    marginVertical: 20,
+  },
+  modalOverlay: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "rgba(0, 0, 0, 0.5)",
+  },
+  modalContent: {
+    backgroundColor: "#fff",
+    padding: 5,
+    borderRadius: 10,
+    width: "90%",
+    alignItems: "center",
+  },
+  modalContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  modalHeading: {
+    fontSize: 20,
+    fontWeight: "bold",
+    marginBottom: 20,
+    textAlign: "center",
+    padding: 5,
+  },
+  modalText: {
+    marginBottom: 20,
+    textAlign: "center",
+  },
+  pagination: {
+    flexDirection: "row",
+    justifyContent: "center",
+    marginTop: 10,
+  },
+  headerCell: {
+    width: 200,
+    marginLeft: 20,
+    borderRightWidth: 1,
+    borderColor: "black",
+  },
+  cell: {
+    width: 200,
+    marginLeft: 20,
+  },
+  snHeaderCell: {
+    width: 20,
+    borderRightWidth: 1,
+    borderColor: "black",
+  },
+  snCell: {
+    width: 20,
+  },
+  dateHeaderCell: {
+    width: 250,
+    borderRightWidth: 1,
+    borderColor: "black",
+    marginLeft: 20,
+  },
+  dateCell: {
+    width: 250,
+    marginLeft: 20,
+  },
+  durationHeaderCell: {
+    width: 200,
+    borderRightWidth: 1,
+    borderColor: "black",
+    marginLeft: 20,
+  },
+  durationCell: {
+    width: 200,
+
+    marginLeft: 20,
+    justifyContent: "center",
+    alignItems: "center",
+    textAlign: "center",
+  },
+  header: {
+    fontSize: 24,
+    fontWeight: "bold",
+    textAlign: "center",
+    padding: 20,
+  },
+  headerCard: {
+    marginBottom: 16,
+    borderRadius: 8,
+  },
+  cardContainer: {
+    padding: 10,
+  },
+  closeBtn: {
+    padding: 10,
+    color: "red",
+    justifyContent: "center",
+    alignItems: "center",
+    textAlign: "center",
+  },
+  closeBtnText: {
+    color: "red",
+  },
+  cardContainer: {
+    padding: 10,
+  },
+  roundedPrimaryBtn: {
+    backgroundColor: "#007bff",
+    color: "#fff",
+    padding: 10,
+    borderRadius: 25,
+    justifyContent: "center",
+    alignItems: "center",
+    textAlign: "center",
+  },
+  roundedDangerBtn: {
+    backgroundColor: "#dc3545",
+    color: "#fff",
+    padding: 10,
+    borderRadius: 25,
+    justifyContent: "center",
+    alignItems: "center",
+    textAlign: "center",
+  },
+  roundedSuccessBtn: {
+    backgroundColor: "#28a745",
+    color: "#fff",
+    padding: 10,
+    borderRadius: 25,
+    justifyContent: "center",
+    alignItems: "center",
+    textAlign: "center",
+  },
+  squaredSuccessBtn: {
+    backgroundColor: "#28a745",
+    color: "#fff",
+    padding: 5,
+    borderRadius: 5,
+    justifyContent: "center",
+    alignItems: "center",
+    textAlign: "center",
+  },
+  squaredDangerBtn: {
+    backgroundColor: "#dc3545",
+    color: "#fff",
+    padding: 5,
+    borderRadius: 5,
+    justifyContent: "center",
+    alignItems: "center",
+    textAlign: "center",
+  },
+  promiseIdContainer: {
+    borderWidth: 1,
+    borderColor: "#ccc",
+    borderRadius: 5,
+    padding: 5,
+    textAlign: "center",
+    justifyContent: "center",
+  },
+});
 
 export default PaysofterPromiseBuyer;

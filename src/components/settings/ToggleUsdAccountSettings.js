@@ -1,13 +1,32 @@
 // ToggleUsdAccountSettings.js
 import React, { useState, useEffect } from "react";
-import { View, Text, Button, TextInput, StyleSheet } from "react-native";
-import { useSelector, useDispatch } from "react-redux";
-import { toggleUsdAccountFund } from "../../redux/actions/AccountFundActions";
-import Message from "../Message";
-import Loader from "../Loader";
+import {
+  View,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  StyleSheet,
+} from "react-native";
+import { useDispatch, useSelector } from "react-redux";
+import { FontAwesomeIcon } from "@fortawesome/react-native-fontawesome";
+import {
+  faLock,
+  faLockOpen,
+  faTriangleExclamation,
+} from "@fortawesome/free-solid-svg-icons";
+import { useNavigation } from "@react-navigation/native";
+import { getUserAccountFundBalance } from "../../redux/actions/AccountFundActions";
+import {
+  toggleUsdAccountFund,
+  resetToggleUsdAccountFundState,
+} from "../../redux/actions/AccountFundActions";
+import Message from "../../Message";
+import Loader from "../../Loader";
 
 const ToggleUsdAccountSettings = () => {
   const dispatch = useDispatch();
+  const navigation = useNavigation();
+
   const userLogin = useSelector((state) => state.userLogin);
   const { userInfo } = userLogin;
 
@@ -20,263 +39,184 @@ const ToggleUsdAccountSettings = () => {
     (state) => state.userAccountBalanceState
   );
   const { accountFundBalance } = userAccountBalanceState;
-  console.log("accountFundBalance:", accountFundBalance);
 
   const [password, setPassword] = useState("");
   const [passwordError, setPasswordError] = useState("");
 
   useEffect(() => {
     if (success) {
-      const timer = setTimeout(() => {
-        // window.location.reload();
-        // history.push("/");
+      setTimeout(() => {
+        dispatch(resetToggleUsdAccountFundState());
+        navigation.navigate("Home");
       }, 3000);
-      return () => clearTimeout(timer);
     }
   }, [success]);
-
-  const toggleData = {
-    password: password,
-  };
 
   const handleFundAccountToggle = () => {
     if (!password.trim()) {
       setPasswordError("Password is required");
       return;
     }
+    const toggleData = {
+      password: password,
+    };
     dispatch(toggleUsdAccountFund(toggleData));
   };
+
+  useEffect(() => {
+    dispatch(getUserAccountFundBalance());
+  }, [dispatch]);
 
   return (
     <View style={styles.container}>
       {loading && <Loader />}
       {success && (
         <Message variant="success">
-          USD Account Fund status toggled successfully.
+          Account Fund status toggled successfully.
         </Message>
       )}
       {error && <Message variant="danger">{error}</Message>}
       <View style={styles.statusContainer}>
-        <Text>
+        <Text style={styles.status}>
           Status:{" "}
-          {accountFundBalance?.is_diabled ? (
-            <Text style={styles.disabled}>Disabled</Text>
-          ) : (
-            <Button title="Toggle Status" onPress={handleFundAccountToggle} />
-          )}
+          <Text>
+            {accountFundBalance?.is_diabled ? (
+              <TouchableOpacity>
+                <Text>
+                  {" "}
+                  <FontAwesomeIcon icon={faLock} size={16} color="red" />{" "}
+                  Disabled
+                </Text>
+              </TouchableOpacity>
+            ) : (
+              <>
+                <TouchableOpacity>
+                  {accountFundBalance?.is_active ? (
+                    <>
+                      <Text>
+                        {" "}
+                        <FontAwesomeIcon
+                          icon={faLockOpen}
+                          size={16}
+                          color="green"
+                        />{" "}
+                        Active
+                      </Text>
+                    </>
+                  ) : (
+                    <>
+                      <Text>
+                        {" "}
+                        <FontAwesomeIcon
+                          icon={faLock}
+                          size={16}
+                          color="#ffc107"
+                        />{" "}
+                        Locked
+                      </Text>
+                    </>
+                  )}
+                </TouchableOpacity>
+              </>
+            )}
+          </Text>
         </Text>
       </View>
-      <Text style={styles.warning}>
-        <Text style={styles.warningIcon}>⚠️</Text> Warning! This action will
-        block or enable all transaction withdrawals from this account. Enter
-        password for your account email <Text style={styles.email}>{userInfo.email}</Text>:
+      <Text style={styles.warningContainer}>
+        <FontAwesomeIcon
+          icon={faTriangleExclamation} 
+          size={16}
+          color="#ffc107"
+          style={styles.icon}
+        />{" "}
+        <Text style={styles.warningText}>
+          Warning! This action will block or enable all transaction withdrawals
+          from this account. Enter password for your account email{" "}
+          <Text style={styles.emailText}>{userInfo.email}</Text>:
+        </Text>
       </Text>
       <TextInput
         value={password}
-        onChangeText={setPassword}
+        onChangeText={(text) => setPassword(text)}
         placeholder="Enter your password"
         style={styles.input}
-        secureTextEntry
+        secureTextEntry={true}
       />
-      {passwordError ? <Text style={styles.error}>{passwordError}</Text> : null}
-      <Button
-        title="Toggle USD Account Fund Status"
-        onPress={handleFundAccountToggle}
-        disabled={loading || success}
-      />
+      {passwordError ? (
+        <Text style={styles.errorText}>{passwordError}</Text>
+      ) : null}
+
+      <View style={styles.submitBtn}>
+        <TouchableOpacity onPress={handleFundAccountToggle} disabled={loading}>
+          <Text style={styles.roundedSuccessBtn}>
+            Toggle Account Fund Status 
+          </Text>
+        </TouchableOpacity>
+      </View>
     </View>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
-    flex: 1,
     justifyContent: "center",
     alignItems: "center",
-    padding: 20,
+    padding: 5,
   },
   statusContainer: {
     marginBottom: 10,
   },
-  disabled: {
-    color: "red",
-  },
-  warning: {
+  status: {
     marginBottom: 10,
   },
-  warningIcon: {
-    fontSize: 18,
+  disabledText: {
+    color: "red",
   },
-  email: {
+  enabledText: {
+    color: "green",
+  },
+  warningContainer: {
+    padding: 10,
+    justifyContent: "center",
+    alignItems: "center",
+    textAlign: "center",
+  },
+  warningText: {
+    marginBottom: 10,
+    textAlign: "center",
+    padding: 10,
+  },
+  emailText: {
     fontWeight: "bold",
   },
   input: {
+    width: "100%",
+    height: 40,
     borderWidth: 1,
     borderColor: "gray",
     borderRadius: 5,
-    padding: 10,
     marginBottom: 10,
-    width: "100%",
+    paddingHorizontal: 10,
   },
-  error: {
+  errorText: {
     color: "red",
     marginBottom: 10,
+  },
+  roundedSuccessBtn: {
+    backgroundColor: "#28a745",
+    color: "#fff",
+    padding: 10,
+    borderRadius: 5,
+    justifyContent: "center",
+    alignItems: "center",
+    textAlign: "center",
+  },
+  submitBtn: {
+    padding: 10,
+  },
+  icon: {
+    marginRight: 20,
   },
 });
 
 export default ToggleUsdAccountSettings;
-
-// import React, { useState, useEffect } from "react";
-// import { useDispatch, useSelector } from "react-redux";
-// import { toggleUsdAccountFund } from "../../redux/actions/AccountFundActions";
-// import { Form, Button, Container, Row, Col } from "react-bootstrap";
-// import { useHistory } from "react-router-dom";
-// import Message from "../Message";
-// import Loader from "../Loader";
-
-// function ToggleUsdAccountSettings() {
-//   const dispatch = useDispatch();
-//   const history = useHistory();
-//   const userLogin = useSelector((state) => state.userLogin); 
-//   const { userInfo } = userLogin;
-
-//   const toggleUsdAccountFundState = useSelector(
-//     (state) => state.toggleUsdAccountFundState
-//   );
-//   const { success, error, loading } = toggleUsdAccountFundState;
-
-//   const userAccountBalanceState = useSelector(
-//     (state) => state.userAccountBalanceState
-//   );
-//   const { accountFundBalance } = userAccountBalanceState;
-//   console.log("accountFundBalance:", accountFundBalance);
-
-//   const [password, setPassword] = useState("");
-//   const [passwordError, setPasswordError] = useState("");
-
-//   useEffect(() => {
-//     if (success) {
-//       const timer = setTimeout(() => {
-//         window.location.reload();
-//         // history.push("/");
-//       }, 3000);
-//       return () => clearTimeout(timer);
-//     }
-//   }, [success, history]);
-
-//   const toggleData = {
-//     password: password,
-//   };
-
-//   const handleFundAccountToggle = () => {
-//     if (!password.trim()) {
-//       setPasswordError("Password is required");
-//       return;
-//     }
-//     dispatch(toggleUsdAccountFund(toggleData));
-//   };
-
-//   return (
-//     <Container>
-//       <Row className="justify-content-center py-2">
-//         <Col>
-//           {/* <h2 className="mb-4">Toggle Account Fund</h2> */}
-//           {loading && <Loader />}
-//           {success && (
-//             <Message variant="success">
-//               USD Account Fund status toggled successfully.
-//             </Message>
-//           )}
-//           {error && <Message variant="danger">{error}</Message>}
-//           <div className="text-center py-2">
-//             <strong>Staus:</strong>{" "}
-//             {accountFundBalance?.is_diabled ? (
-//               <>
-//                 <span className="py-2">
-//                   <Button
-//                     variant="outline-transparent"
-//                     className="rounded"
-//                     size="sm"
-//                     title="Account Fund is currently disabled. Please contact support."
-//                   >
-//                     <i
-//                       className="fas fa-lock"
-//                       style={{ fontSize: "16px", color: "red" }}
-//                     ></i>{" "}
-//                     Disabled
-//                   </Button>
-//                 </span>
-//               </>
-//             ) : (
-//               <>
-//                 <Button
-//                   variant="outline-transparent"
-//                   className="rounded"
-//                   size="sm"
-//                   title="Set Account Fund active or locked."
-//                 >
-//                   {accountFundBalance?.is_active ? (
-//                     <>
-//                       <i
-//                         className="fas fa-lock-open"
-//                         style={{ fontSize: "16px", color: "green" }}
-//                       ></i>{" "}
-//                       Active
-//                     </>
-//                   ) : (
-//                     <>
-//                       <i
-//                         className="fas fa-lock text-warning"
-//                         style={{
-//                           fontSize: "16px",
-//                           // color: "yellow",
-//                         }}
-//                       ></i>{" "}
-//                       Locked
-//                     </>
-//                   )}
-//                 </Button>
-//               </>
-//             )}
-//           </div>
-//           <p className="rounded mt-2 py-1 text-center">
-//             <i
-//               className="fa fa-warning text-warning"
-//               style={{ fontSize: "18px", 
-//               // color: "yellow" 
-//             }}
-//             ></i>{" "}
-//             Warning! This action will block or enable all transaction
-//             withdrawals from this account. Enter password for your account email{" "}
-//             <strong>{userInfo.email}</strong>:{" "}
-//           </p>
-
-//           <Form>
-//             <Form.Group>
-//               <Form.Control
-//                 type="password"
-//                 value={password}
-//                 onChange={(e) => setPassword(e.target.value)}
-//                 placeholder="Enter your password"
-//                 className="rounded mt-2"
-//                 required
-//                 maxLength={100}
-//               />
-//               <Form.Text className="text-danger">{passwordError}</Form.Text> 
-//             </Form.Group>
-//             <Button
-//               variant="primary"
-//               onClick={handleFundAccountToggle}
-//               className="rounded mt-2 text-center w-100"
-//               disabled={loading || success}
-//               >
-//               Toggle USD Account Fund Status
-//             </Button>
-//           </Form>
-//         </Col>
-//       </Row>
-//     </Container>
-//   );
-// }
-
-// export default ToggleUsdAccountSettings;

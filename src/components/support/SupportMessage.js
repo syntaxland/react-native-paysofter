@@ -1,24 +1,22 @@
 // SupportMessage.js
 import React, { useEffect, useState } from "react";
+import { View, Text, ScrollView, SafeAreaView, StyleSheet } from "react-native";
 import { useDispatch, useSelector } from "react-redux";
-import { useHistory } from "react-router-dom";
-import { Table, Button } from "react-bootstrap";
-import {
-  listSupportTicket,
-  listSupportMessage,
-} from "../../actions/supportActions";
-import Message from "../Message";
-import Loader from "../Loader";  
-import Pagination from "../Pagination";
+import { Button, DataTable } from "react-native-paper";
+import { useNavigation } from "@react-navigation/native";
+import { listSupportTicket, listSupportMessage } from "../../redux/actions/supportActions";
+import Message from "../../Message";
+import Loader from "../../Loader";
+import Pagination from "../../Pagination";
 
-function SupportMessage() {
+const SupportMessage = () => {
+  const navigation = useNavigation();
   const dispatch = useDispatch();
-  const history = useHistory();
+
   const listSupportTicketState = useSelector(
     (state) => state.listSupportTicketState
   );
   const { loading, success, tickets, error } = listSupportTicketState;
-  console.log("tickets:", tickets);
 
   const listSupportMessageState = useSelector(
     (state) => state.listSupportMessageState
@@ -28,7 +26,6 @@ function SupportMessage() {
     ticketMessages,
     error: listSupportMessageError,
   } = listSupportMessageState;
-  console.log("ticketMessages:", ticketMessages);
 
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 5;
@@ -37,7 +34,6 @@ function SupportMessage() {
 
   const indexOfLastItem = currentPage * itemsPerPage;
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;
-  //   const currentItems = tickets.slice(indexOfFirstItem, indexOfLastItem);
   const currentItems = ticketMessages
     ? ticketMessages.slice(indexOfFirstItem, indexOfLastItem)
     : [];
@@ -48,102 +44,131 @@ function SupportMessage() {
   }, [dispatch]);
 
   const handleCreateTicket = () => {
-    history.push("/create-support-message");
+    navigation.navigate("Create Support Message");
   };
 
   return (
-    <div>
-      <h1 className="text-center py-3">
-        <i className="fas fa-ticket"></i> Support Ticket
-      </h1>
-      {loading || listSupportMessageloading ? (
-        <Loader />
-      ) : error ? (
-        <Message variant="danger">{error}</Message>
-      ) : (
-        <>
-          {currentItems.length === 0 ? (
-            <div className="text-center py-3">Support Ticket appear here.</div>
+    <SafeAreaView style={styles.safeArea}>
+      <ScrollView contentContainerStyle={styles.scrollView}>
+        <View style={styles.container}>
+          <Text style={styles.title}>
+            <Text style={styles.icon}>🎫</Text> Support Ticket
+          </Text>
+          {loading || listSupportMessageloading ? (
+            <Loader />
+          ) : error || listSupportMessageError ? (
+            <Message variant="danger">{error || listSupportMessageError}</Message>
           ) : (
-            <Table striped bordered hover responsive className="table-sm">
-              <thead>
-                <tr>
-                  <th>SN</th>
-                  <th>Ticket ID</th>
-                  <th>User</th>
-                  <th>Subject</th>
-                  <th>Category</th>
-                  <th>Message</th>
-                  <th>Status</th>
-                  <th>Resolved</th>
-                  <th>Created At</th>
-                </tr>
-              </thead>
-              <tbody>
-                {currentItems.map((ticket, index) => (
-                  <tr key={ticket.id}>
-                    <td>{index + 1}</td>
-                    <td>{ticket.ticket_id}</td>
-                    <td>{ticket.email}</td>
-                    <td>{ticket.subject}</td>
-                    <td>{ticket.category}</td>
-                    <td>{ticket.message}</td>
-                    <td>
-                      {!ticket.is_closed ? (
-                        <span style={{ color: "red" }}>Closed</span>
-                      ) : (
-                        <span style={{ color: "green" }}>Active</span>
-                      )}
-                    </td>
-                    <td>
-                    {!ticket.is_resolved ? (
-                      <i
-                        className="fas fa-check-circle"
-                        style={{ fontSize: "16px", color: "green" }}
-                      ></i>
-                    ) : (
-                      <i
-                        className="fas fa-times-circle"
-                        style={{ fontSize: "16px", color: "red" }}
-                      ></i>
-                    )}
-                  </td>
-                    
-                    <td>
-                      {new Date(ticket.created_at).toLocaleString("en-US", {
-                        weekday: "long",
-                        year: "numeric",
-                        month: "long",
-                        day: "numeric",
-                        hour: "numeric",
-                        minute: "numeric",
-                        second: "numeric",
-                      })}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </Table>
+            <>
+              {currentItems.length === 0 ? (
+                <Text style={styles.noTicketsText}>
+                  Support Ticket appear here.
+                </Text>
+              ) : (
+                <ScrollView horizontal={true}>
+                  <DataTable>
+                    <DataTable.Header>
+                      <DataTable.Title>SN</DataTable.Title>
+                      <DataTable.Title>Ticket ID</DataTable.Title>
+                      <DataTable.Title>User</DataTable.Title>
+                      <DataTable.Title>Subject</DataTable.Title>
+                      <DataTable.Title>Category</DataTable.Title>
+                      <DataTable.Title>Message</DataTable.Title>
+                      <DataTable.Title>Status</DataTable.Title>
+                      <DataTable.Title>Resolved</DataTable.Title>
+                      <DataTable.Title>Created At</DataTable.Title>
+                    </DataTable.Header>
+                    {currentItems.map((ticket, index) => (
+                      <DataTable.Row key={ticket.id}>
+                        <DataTable.Cell>{index + 1}</DataTable.Cell>
+                        <DataTable.Cell>{ticket.ticket_id}</DataTable.Cell>
+                        <DataTable.Cell>{ticket.email}</DataTable.Cell>
+                        <DataTable.Cell>{ticket.subject}</DataTable.Cell>
+                        <DataTable.Cell>{ticket.category}</DataTable.Cell>
+                        <DataTable.Cell>{ticket.message}</DataTable.Cell>
+                        <DataTable.Cell>
+                          {ticket.is_closed ? (
+                            <Text style={{ color: "red" }}>Closed</Text>
+                          ) : (
+                            <Text style={{ color: "green" }}>Active</Text>
+                          )}
+                        </DataTable.Cell>
+                        <DataTable.Cell>
+                          {ticket.is_resolved ? (
+                            <Text style={{ color: "green" }}>Resolved</Text>
+                          ) : (
+                            <Text style={{ color: "red" }}>Not Resolved</Text>
+                          )}
+                        </DataTable.Cell>
+                        <DataTable.Cell>
+                          {new Date(ticket.created_at).toLocaleString("en-US", {
+                            weekday: "long",
+                            year: "numeric",
+                            month: "long",
+                            day: "numeric",
+                            hour: "numeric",
+                            minute: "numeric",
+                            second: "numeric",
+                          })}
+                        </DataTable.Cell>
+                      </DataTable.Row>
+                    ))}
+                  </DataTable>
+                </ScrollView>
+              )}
+              <View style={styles.pagination}>
+                <Pagination
+                  currentPage={currentPage}
+                  totalPages={Math.ceil(ticketMessages.length / itemsPerPage)}
+                  paginate={paginate}
+                />
+              </View>
+            </>
           )}
-          <Pagination
-            itemsPerPage={itemsPerPage}
-            totalItems={ticketMessages.length}
-            currentPage={currentPage}
-            paginate={paginate}
-          />
-        </>
-      )}
-      <div className="d-flex justify-content-center mt-5 py-3">
-            <Button
-              variant="success"
-              onClick={handleCreateTicket}
-              className="rounded"
-            >
-             Create A New Support Ticket 
+          <View style={styles.createTicketButton}>
+            <Button mode="contained" onPress={handleCreateTicket}>
+              Create A New Support Ticket
             </Button>
-          </div>
-    </div>
+          </View>
+        </View>
+      </ScrollView>
+    </SafeAreaView>
   );
-}
+};
+
+const styles = StyleSheet.create({
+  safeArea: {
+    flex: 1,
+  },
+  scrollView: {
+    flexGrow: 1,
+  },
+  container: {
+    flex: 1,
+    padding: 10,
+  },
+  title: {
+    fontSize: 24,
+    fontWeight: "bold",
+    textAlign: "center",
+    marginBottom: 10,
+  },
+  icon: {
+    fontSize: 20,
+  },
+  noTicketsText: {
+    textAlign: "center",
+    paddingTop: 10,
+  },
+  pagination: {
+    flexDirection: "row",
+    justifyContent: "center",
+    marginTop: 20,
+  },
+  createTicketButton: {
+    alignItems: "center",
+    marginTop: 20,
+  },
+});
 
 export default SupportMessage;

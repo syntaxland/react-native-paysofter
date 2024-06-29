@@ -3,10 +3,10 @@ import {
   SELECT_CURRENCY_REQUEST,
   SELECT_CURRENCY_SUCCESS,
   SELECT_CURRENCY_FAIL,
+  RESET_SELECT_CURRENCY_STATE,
   GET_SELECTED_CURRENCY_REQUEST,
   GET_SELECTED_CURRENCY_SUCCESS,
   GET_SELECTED_CURRENCY_FAIL,
-
 } from "../constants/settingsConstants";
 
 const initialState = {
@@ -14,7 +14,6 @@ const initialState = {
   success: false,
   error: null,
   currencies: [],
-  
 };
 
 export const selecteCurrencyReducer = (state = initialState, action) => {
@@ -25,6 +24,8 @@ export const selecteCurrencyReducer = (state = initialState, action) => {
       return { loading: false, success: true };
     case SELECT_CURRENCY_FAIL:
       return { loading: false, error: action.payload };
+    case RESET_SELECT_CURRENCY_STATE:
+      return {};
     default:
       return state;
   }

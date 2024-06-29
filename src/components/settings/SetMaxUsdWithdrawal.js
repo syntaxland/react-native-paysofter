@@ -1,16 +1,19 @@
 // SetMaxUsdWithdrawal.js
 import React, { useState, useEffect } from "react";
+import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
 import { useDispatch, useSelector } from "react-redux";
-import { Form, Button, Row, Col } from "react-bootstrap";
+import { useNavigation } from "@react-navigation/native";
+import { Picker } from "@react-native-picker/picker";
 import {
   setMaxUsdWithdrawal,
   getUserUsdAccountFundBalance,
 } from "../../redux/actions/AccountFundActions";
-import Loader from "../Loader";
-import Message from "../Message";
+import Loader from "../../Loader";
+import Message from "../../Message";
 
-function SetMaxUsdWithdrawal({ history }) {
+const SetMaxUsdWithdrawal = () => {
   const dispatch = useDispatch();
+  const navigation = useNavigation();
 
   const userLogin = useSelector((state) => state.userLogin);
   const { userInfo } = userLogin;
@@ -25,9 +28,7 @@ function SetMaxUsdWithdrawal({ history }) {
 
   const [amount, setAmount] = useState(usdFundBalance?.max_withdrawal);
 
-  const submitHandler = (e) => {
-    e.preventDefault();
-
+  const submitHandler = () => {
     const amountData = {
       amount: amount,
     };
@@ -37,70 +38,95 @@ function SetMaxUsdWithdrawal({ history }) {
 
   useEffect(() => {
     if (!userInfo) {
-      history.push("/login");
+      navigation.navigate("Login");
     }
-  }, [dispatch, userInfo, history]);
+  }, [dispatch, userInfo, navigation]);
 
   useEffect(() => {
     if (success) {
-      const timer = setTimeout(() => {
-        // history.push("/dashboard");
-        window.location.reload();
+      setTimeout(() => {
+        navigation.navigate("Dashboard");
       }, 3000);
-      return () => clearTimeout(timer);
     }
-  }, [success, history]);
+  }, [success, navigation]);
 
   useEffect(() => {
     dispatch(getUserUsdAccountFundBalance());
   }, [dispatch]);
 
   return (
-    <div>
-      <Row className="justify-content-center">
-        <Col xs={12} md={6}>
-          {/* <h2 className="text-center">Set Maximum Withdrawal Amount</h2> */}
-          {loading && <Loader />}
-          {error && <Message variant="danger">{error}</Message>}
-          {success && (
-            <Message variant="success">
-              Maximum withdrawal amount limit of {amount} set successfully.
-            </Message>
-          )}
-          <Form onSubmit={submitHandler}>
-            <Form.Group controlId="amount">
-              <Form.Label>Amount</Form.Label>
-              <Form.Control
-                as="select"
-                value={amount}
-                onChange={(e) => setAmount(e.target.value)}
-              >
-                <option value="10">Less than 10 USD</option>
-                <option value="100">Less than 100 USD</option>
-                <option value="500">Less than 500 USD</option>
-                <option value="1000">Less than 1,000 USD</option>
-                <option value="2000">Less than 2,000 USD</option>
-                <option value="3000">Less than 3,000 USD</option>
-                <option value="5000">Less than 5,000 USD</option>
-                <option value="10000">More than 10,000 USD</option>
-              </Form.Control>
-            </Form.Group>
+    <View style={styles.container}>
+      <View style={styles.contentContainer}>
+        {loading && <Loader />}
+        {error && <Message variant="danger">{error}</Message>}
+        {success && (
+          <Message variant="success">
+            Maximum withdrawal amount limit of {amount} set successfully.
+          </Message>
+        )}
+        <View style={styles.formGroup}>
+          <Text style={styles.label}>Amount</Text>
+          <Picker
+            selectedValue={amount}
+            onValueChange={(itemValue) => setAmount(itemValue)}
+            style={styles.picker}
+          >
+            <Picker.Item label="Less than 10 USD" value="10" />
+            <Picker.Item label="Less than 100 USD" value="100" />
+            <Picker.Item label="Less than 500 USD" value="500" />
+            <Picker.Item label="Less than 1,000 USD" value="1000" />
+            <Picker.Item label="Less than 2,000 USD" value="2000" />
+            <Picker.Item label="Less than 3,000 USD" value="3000" />
+            <Picker.Item label="Less than 5,000 USD" value="5000" />
+            <Picker.Item label="More than 10,000 USD" value="10000" />
+          </Picker>
+        </View>
 
-            <div className="py-2">
-              <Button
-                className="w-100 rounded"
-                type="submit"
-                variant="primary"
-                disabled={loading || success}
-              >
-                Submit
-              </Button>
-            </div>
-          </Form>
-        </Col>
-      </Row>
-    </div>
+        <View style={styles.submitBtn}>
+          <TouchableOpacity
+            onPress={submitHandler}
+            disabled={loading || success}
+          >
+            <Text style={styles.roundedPrimaryBtn}>Submit</Text>
+          </TouchableOpacity>
+        </View>
+      </View>
+    </View>
   );
-}
+};
+
+const styles = StyleSheet.create({
+  container: {
+    // flex: 1,
+    // justifyContent: "center",
+    // alignItems: "center",
+    padding: 10,
+  },
+  contentContainer: {
+    width: "100%",
+    maxWidth: 400,
+  },
+  formGroup: {
+    marginBottom: 15,
+  },
+  label: {
+    marginBottom: 5,
+    fontSize: 16,
+  },
+  picker: {
+    height: 50,
+    width: "100%",
+  },
+  submitBtn: {
+    marginTop: 20,
+  },
+  roundedPrimaryBtn: {
+    backgroundColor: "#007bff",
+    color: "#fff",
+    padding: 10,
+    borderRadius: 5,
+    textAlign: "center",
+  },
+});
 
 export default SetMaxUsdWithdrawal;

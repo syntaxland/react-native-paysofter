@@ -1,18 +1,26 @@
 // SettleDisputedPromise.js
 import React, { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { Form, Button, Container, Row, Col } from "react-bootstrap";
-import { settleDisputedPromise } from "../../redux/actions/PromiseActions";
-import { useHistory } from "react-router-dom";
-import Message from "../Message";
-import Loader from "../Loader";
+import {
+  View,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  StyleSheet,
+} from "react-native";
+import { FontAwesomeIcon } from "@fortawesome/react-native-fontawesome";
+import { faExclamationTriangle } from "@fortawesome/free-solid-svg-icons";
+import { useNavigation } from "@react-navigation/native";
+import {
+  settleDisputedPromise,
+  resetSettleDisputedPromiseState,
+} from "../../redux/actions/PromiseActions";
+import Message from "../../Message";
+import Loader from "../../Loader";
 
-function SettleDisputedPromise({ promiseId }) {
+const SettleDisputedPromise = ({ promiseId }) => {
   const dispatch = useDispatch();
-  const history = useHistory();
-
-  // const userLogin = useSelector((state) => state.userLogin);
-  // const { userInfo } = userLogin;
+  const navigation = useNavigation();
 
   const settleDisputedPromiseState = useSelector(
     (state) => state.settleDisputedPromiseState
@@ -23,75 +31,102 @@ function SettleDisputedPromise({ promiseId }) {
   useEffect(() => {
     if (success) {
       const timer = setTimeout(() => {
-        window.location.reload();
-        // history.push("/dashboard");
+        dispatch(resetSettleDisputedPromiseState());
+        navigation.navigate("Home");
       }, 3000);
       return () => clearTimeout(timer);
     }
-    // eslint-disable-next-line
-  }, [dispatch, success, history]);
+  }, [success]);
 
   const promiseData = {
     promise_id: promiseId,
     keyword: keyword,
   };
-  console.log("promiseId:", promiseId);
 
   const handleSettleDisputedPromise = () => {
     dispatch(settleDisputedPromise(promiseData));
   };
 
   return (
-    <Container>
-      <Row className="justify-content-center py-2">
-        <Col>
-          {loading && <Loader />}
-          {success && (
-            <Message variant="success">
-              Conflict resolution activated successfully.
-            </Message>
-          )}
-          {error && <Message variant="danger">{error}</Message>}
+    <View style={styles.container}>
+      {loading && <Loader />}
+      {success && (
+        <Message variant="success">
+          Conflict resolution activated successfully.
+        </Message>
+      )}
+      {error && <Message variant="danger">{error}</Message>}
 
-          <p className="rounded mt-2 py-1 text-center">
-            <i
-              className="fa fa-warning text-warning"
-              style={{ fontSize: "18px",
-              //  color: "yellow" 
-            }}
-            ></i>{" "}
-            Warning! This action will open a support ticket for this Promise ID
-            to resolve whatever conflict arising from this promise order
-            fulfilment. Note that 2% of the promise amount will be charged for
-            the service. Type <i>confirm</i> to activate.
-          </p>
+      <Text style={styles.warningText}>
+        <Text style={styles.warningIcon}>
+          <FontAwesomeIcon
+            icon={faExclamationTriangle}
+            size={16}
+            color="#ffc107"
+          />
+        </Text>{" "}
+        Warning! This action will open a support ticket for this Promise ID to
+        resolve whatever conflict arising from this promise order fulfilment.
+        Note that 2% of the promise amount will be charged for the service. Type{" "}
+        <Text style={styles.italicText}>confirm</Text> to activate.
+      </Text>
 
-          <Form>
-            <Form.Group>
-              <Form.Control
-                type="text"
-                value={keyword}
-                onChange={(e) => setKeyword(e.target.value)}
-                placeholder="confirm"
-                className="rounded mt-2"
-                required
-                maxLength={10}
-              />
-            </Form.Group>
-          </Form>
+      <TextInput
+        value={keyword}
+        onChangeText={(text) => setKeyword(text)}
+        placeholder="confirm"
+        style={styles.input}
+        required
+        maxLength={8}
+      />
 
-          <Button
-            variant="primary"
-            onClick={handleSettleDisputedPromise}
-            className="rounded mt-2 text-center w-100"
-            disabled={keyword.toLowerCase() !== "confirm"}
-          >
-            Activate Resolve Conflict
-          </Button>
-        </Col> 
-      </Row>
-    </Container>
+      <TouchableOpacity
+        onPress={handleSettleDisputedPromise}
+        disabled={keyword.toLowerCase() !== "confirm"}
+        style={styles.submitButton}
+      >
+        <Text style={styles.submitButtonText}>Activate Resolve Conflict</Text>
+      </TouchableOpacity>
+    </View>
   );
-}
+};
+
+const styles = StyleSheet.create({
+  container: {
+    justifyContent: "center",
+    alignItems: "center",
+    padding: 5,
+  },
+  warningText: {
+    marginBottom: 20,
+    textAlign: "center",
+  },
+  warningIcon: {
+    color: "#ffc107",
+  },
+  italicText: {
+    fontStyle: "italic",
+  },
+  input: {
+    width: "100%",
+    height: 40,
+    borderWidth: 1,
+    borderColor: "gray",
+    borderRadius: 5,
+    marginBottom: 20,
+    paddingHorizontal: 10,
+  },
+  submitButton: {
+    backgroundColor: "#dc3545",
+    padding: 10,
+    borderRadius: 25,
+    width: "100%",
+    alignItems: "center",
+  },
+  submitButtonText: {
+    color: "#fff",
+    fontWeight: "bold",
+  },
+});
 
 export default SettleDisputedPromise;

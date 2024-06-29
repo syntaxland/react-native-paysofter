@@ -1,23 +1,42 @@
 // CreateBusinessStatus.js
 import React, { useState, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { Form, Button, Container, Row, Col } from "react-bootstrap";
+import {
+  View,
+  Text,
+  TextInput,
+  Button,
+  StyleSheet,
+  ScrollView,
+  TouchableOpacity,
+  Image,
+  RefreshControl,
+} from "react-native";
+import { Picker } from "@react-native-picker/picker";
+import * as ImagePicker from "expo-image-picker";
 import { createBusinessStatus } from "../../redux/actions/sellerActions";
-import Message from "../Message";
-import Loader from "../Loader";
-import LoaderButton from "../LoaderButton";
+import Message from "../../Message";
+import Loader from "../../Loader";
+import { BUSINESS_TYPE_CHOICES } from "../../constants";
 
-function CreateBusinessStatus({ history }) {
+function CreateBusinessStatus({ navigation }) {
   const dispatch = useDispatch();
+
+  const [businessTypeChoices, setBusinessTypeChoices] = useState([]);
+  const [refreshing, setRefreshing] = useState(false);
+
+  useEffect(() => {
+    setBusinessTypeChoices(BUSINESS_TYPE_CHOICES);
+  }, []);
 
   const userLogin = useSelector((state) => state.userLogin);
   const { userInfo } = userLogin;
 
   useEffect(() => {
     if (!userInfo) {
-      history.push("/login");
+      navigation.navigate("Login");
     }
-  }, [userInfo, history]);
+  }, [userInfo, navigation]);
 
   const createBusinessStatusState = useSelector(
     (state) => state.createBusinessStatusState
@@ -33,7 +52,7 @@ function CreateBusinessStatus({ history }) {
   const [businessRegNum, setBusinessRegNum] = useState("");
   const [businessRegNumError, setBusinessRegNumError] = useState("");
 
-  const [businessRegCert, setBusinessRegCert] = useState("");
+  const [businessRegCert, setBusinessRegCert] = useState(null);
   const [businessRegCertError, setBusinessRegCertError] = useState("");
 
   const [formError, setFormError] = useState("");
@@ -64,29 +83,61 @@ function CreateBusinessStatus({ history }) {
     }
   };
 
-  const BUSINESS_TYPE_CHOICES = [
-    ["Registered", "Registered"],
-    ["Unregistered", "Unregistered"],
-  ];
+  const pickImage = async (useLibrary) => {
+    let result;
+    const options = {
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      allowsEditing: true,
+      quality: 1,
+    };
+
+    if (useLibrary) {
+      result = await ImagePicker.launchImageLibraryAsync(options);
+    } else {
+      await ImagePicker.requestCameraPermissionsAsync();
+      result = await ImagePicker.launchCameraAsync(options);
+    }
+
+    if (!result.canceled) {
+      const uri = result.assets[0].uri;
+      const file = {
+        uri: uri,
+        name: uri.split("/").pop(),
+        type: `image/${uri.split(".").pop()}`,
+      };
+      setBusinessRegCert(file);
+      setBusinessRegCertError("");
+    }
+  };
 
   const sellerData = new FormData();
   sellerData.append("business_name", businessName);
   sellerData.append("business_status", businessStatus);
   sellerData.append("business_reg_num", businessRegNum);
-  sellerData.append("business_reg_cert", businessRegCert); 
+  if (businessRegCert) sellerData.append("business_reg_cert", businessRegCert);
 
   useEffect(() => {
     if (success) {
       const timer = setTimeout(() => {
-        history.push("/seller/details");
-        window.location.reload();
+        navigation.navigate("Business Details");
+        onRefresh();
       }, 3000);
       return () => clearTimeout(timer);
     }
-  }, [dispatch, success, history]);
+  }, [dispatch, success, navigation]);
+
+  const onRefresh = () => {
+    setRefreshing(true);
+    setBusinessName("");
+    setBusinessStatus("");
+    setBusinessRegNum("");
+    setBusinessRegCert(null);
+    setFormError("");
+    setTimeout(() => setRefreshing(false), 2000);
+  };
 
   const handleCreateBusinessStatus = (e) => {
-    e.preventDefault(e);
+    e.preventDefault();
 
     if (!businessName) {
       setBusinessNameError("Please enter the business name.");
@@ -100,26 +151,7 @@ function CreateBusinessStatus({ history }) {
       setBusinessStatusError("");
     }
 
-    // if (!businessRegNum) {
-    //   setBusinessRegNumError("Please enter the business registration number.");
-    // } else {
-    //   setBusinessRegNumError("");
-    // }
-
-    // if (!businessRegCert) {
-    //   setBusinessRegCertError(
-    //     "Please upload the business registration certificate."
-    //   );
-    // } else {
-    //   setBusinessRegCertError("");
-    // }
-
-    if (
-      !businessName ||
-      !businessStatus
-      // !businessRegNum ||
-      // !businessRegCert
-    ) {
+    if (!businessName || !businessStatus) {
       setFormError("Please fix the errors in the form.");
       return;
     } else {
@@ -128,107 +160,171 @@ function CreateBusinessStatus({ history }) {
   };
 
   return (
-    <Container>
-      <Row className="justify-content-center py-2">
-        <Col xs={12} md={6}>
-          <h2 className="text-center py-2">Business Status</h2>
-          {loading && <Loader />}
-
-          {success && (
-            <Message variant="success" fixed>Form submitted successfully.</Message>
+    <ScrollView
+      refreshControl={
+        <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+      }
+    >
+      <View style={styles.container}>
+        <Text style={styles.heading}>Business Status</Text>
+        {loading && <Loader />}
+        {success && (
+          <Message variant="success">Form submitted successfully.</Message>
+        )}
+        {error && <Message variant="danger">{error}</Message>}
+        <View style={styles.formGroup}>
+          <Text style={styles.label}>Business Name</Text>
+          <TextInput
+            style={styles.input}
+            value={businessName}
+            onChangeText={(text) => handleFieldChange("businessName", text)}
+            placeholder="Enter the Business Name"
+            maxLength={100}
+          />
+          {businessNameError && (
+            <Text style={styles.errorText}>{businessNameError}</Text>
           )}
-          {error && <Message variant="danger" fixed>{error}</Message>}
-
-          <Form>
-            <Form.Group>
-              <Form.Label>Business Name</Form.Label>
-              <Form.Control
-                type="text"
-                value={businessName}
-                onChange={(e) =>
-                  handleFieldChange("businessName", e.target.value)
-                }
-                placeholder="Enter the Business Name"
-                className="rounded py-2 mb-2"
-                required
-                maxLength={100}
-              />
-              <Form.Text className="text-danger">{businessNameError}</Form.Text>
-            </Form.Group>
-
-            <Form.Group>
-              <Form.Label>Business Status</Form.Label>
-              <Form.Control
-                as="select"
-                value={businessStatus}
-                onChange={(e) =>
-                  handleFieldChange("businessStatus", e.target.value)
-                }
-                className="rounded py-2 mb-2"
-                required
-              >
-                <option value="">Select Business Status</option>
-                {BUSINESS_TYPE_CHOICES.map((type) => (
-                  <option key={type[0]} value={type[0]}>
-                    {type[1]}
-                  </option>
-                ))}
-              </Form.Control>
-              <Form.Text className="text-danger">
-                {businessStatusError}
-              </Form.Text>
-            </Form.Group>
-
-            <Form.Group>
-              <Form.Label>Business Registration Number</Form.Label>
-              <Form.Control
-                type="text"
-                value={businessRegNum}
-                onChange={(e) =>
-                  handleFieldChange("businessRegNum", e.target.value)
-                }
-                placeholder="Enter Business Registration Number"
-                className="rounded py-2 mb-2"
-                maxLength={100}
-              />
-              <Form.Text className="text-danger">
-                {businessRegNumError}
-              </Form.Text>
-            </Form.Group>
-
-            <Form.Group>
-              <Form.Label>Business Registration Certificate</Form.Label>
-              <Form.Control
-                type="file"
-                onChange={(e) =>
-                  handleFieldChange("businessRegCert", e.target.files[0])
-                }
-                placeholder="Upload the ID Card Photo"
-                className="rounded py-2 mb-2"
-                maxLength={100}
-              />
-              <Form.Text className="text-danger">
-                {businessRegCertError}
-              </Form.Text>
-            </Form.Group>
-
-            {formError && <Message variant="danger" fixed>{formError}</Message>}
-          </Form>
-          <Button
-            variant="primary"
-            onClick={handleCreateBusinessStatus}
-            className="rounded py-2 mb-2 text-center w-100"
-            disabled={loading || success}
+        </View>
+        <View style={styles.formGroup}>
+          <Text style={styles.label}>Business Status</Text>
+          <Picker
+            selectedValue={businessStatus}
+            style={styles.picker}
+            onValueChange={(itemValue) =>
+              handleFieldChange("businessStatus", itemValue)
+            }
           >
-            <div className="d-flex justify-content-center">
-              <span className="py-1">Continue</span>
-              {loading && <LoaderButton />}
-            </div>
-          </Button>
-        </Col>
-      </Row>
-    </Container>
+            <Picker.Item label="Select Business Status" value="" />
+            {businessTypeChoices.map((type) => (
+              <Picker.Item key={type[0]} label={type[1]} value={type[0]} />
+            ))}
+          </Picker>
+          {businessStatusError && (
+            <Text style={styles.errorText}>{businessStatusError}</Text>
+          )}
+        </View>
+        <View style={styles.formGroup}>
+          <Text style={styles.label}>Business Registration Number</Text>
+          <TextInput
+            style={styles.input}
+            value={businessRegNum}
+            onChangeText={(text) => handleFieldChange("businessRegNum", text)}
+            placeholder="Enter Business Registration Number"
+            maxLength={100}
+          />
+          {businessRegNumError && (
+            <Text style={styles.errorText}>{businessRegNumError}</Text>
+          )}
+        </View>
+        <View style={styles.formGroup}>
+          <Text style={styles.label}>Business Registration Certificate</Text>
+          <TouchableOpacity
+            style={styles.imagePicker}
+            onPress={() => pickImage(true)}
+          >
+            <Text style={styles.uploadText}>
+              {businessRegCert ? "Change Certificate" : "Select Certificate"}
+            </Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={styles.imagePicker}
+            onPress={() => pickImage(false)}
+          >
+            <Text style={styles.uploadText}>Capture Certificate</Text>
+          </TouchableOpacity>
+          {businessRegCert && (
+            <>
+              <Image
+                source={{ uri: businessRegCert.uri }}
+                style={styles.imagePreview}
+              />
+              <TouchableOpacity
+                style={styles.removeButton}
+                onPress={() => setBusinessRegCert(null)}
+              >
+                <Text style={styles.removeButtonText}>Remove Certificate</Text>
+              </TouchableOpacity>
+            </>
+          )}
+          {businessRegCertError && (
+            <Text style={styles.errorText}>{businessRegCertError}</Text>
+          )}
+        </View>
+        {formError && <Text style={styles.errorText}>{formError}</Text>}
+        <View style={styles.formGroup}>
+          <Button
+            title="Continue"
+            onPress={handleCreateBusinessStatus}
+            disabled={loading || success}
+          />
+        </View>
+      </View>
+    </ScrollView>
   );
 }
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    padding: 16,
+    backgroundColor: "#fff",
+  },
+  heading: {
+    fontSize: 24,
+    fontWeight: "bold",
+    marginBottom: 16,
+    justifyContent: "center",
+    alignItems: "center",
+    textAlign: "center",
+  },
+  formGroup: {
+    marginBottom: 20,
+  },
+  label: {
+    marginBottom: 8,
+    fontSize: 16,
+    fontWeight: "bold",
+  },
+  input: {
+    borderWidth: 1,
+    borderColor: "#ccc",
+    borderRadius: 5,
+    padding: 10,
+    fontSize: 16,
+  },
+  picker: {
+    borderWidth: 1,
+    borderColor: "#ccc",
+    borderRadius: 5,
+  },
+  imagePicker: {
+    marginBottom: 10,
+    backgroundColor: "#007bff",
+    padding: 10,
+    borderRadius: 5,
+  },
+  uploadText: {
+    color: "#fff",
+    textAlign: "center",
+  },
+  imagePreview: {
+    width: 100,
+    height: 100,
+    marginBottom: 10,
+  },
+  removeButton: {
+    backgroundColor: "#dc3545",
+    padding: 10,
+    borderRadius: 5,
+  },
+  removeButtonText: {
+    color: "#fff",
+    textAlign: "center",
+  },
+  errorText: {
+    color: "red",
+    marginTop: 5,
+  },
+});
 
 export default CreateBusinessStatus;

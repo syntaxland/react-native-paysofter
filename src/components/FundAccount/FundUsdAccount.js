@@ -1,91 +1,148 @@
 // FundUsdAccount.js
 import React, { useState, useEffect } from "react";
+import {
+  View,
+  Text,
+  TextInput,
+  Button,
+  StyleSheet,
+  ScrollView,
+} from "react-native";
 import { useSelector } from "react-redux";
-import { Container, Row, Col, Form, Button } from "react-bootstrap";
-import Message from "../Message";
-import Loader from "../Loader";
-import FundAccountButton from "./FundAccountButton";
+import { Picker } from "@react-native-picker/picker";
+import { Card } from "react-native-paper";
+import Loader from "../../Loader";
+import Message from "../../Message";
+import PaymentScreen from "./PaymentScreen";
 
-const FundUsdAccount = ({ history }) => {
-  const fundAccountState = useSelector((state) => state.fundAccountState);
-  const { loading, success, error } = fundAccountState;
-  const [messsage, setMesssage] = useState("");
+const CURRENCY_CHOICES = [{ label: "USD", value: "USD" }];
+
+const FundUsdAccount = ({ onClose }) => {
+  const fundUsdAccountState = useSelector((state) => state.fundUsdAccountState);
+  const { loading, error } = fundUsdAccountState;
+
+  const [message, setMessage] = useState("");
   const [currency, setCurrency] = useState("USD");
-  const [amount, setAmount] = useState(0); 
+  const [amount, setAmount] = useState(0);
   const [showFundAccountButton, setShowFundAccountButton] = useState(false);
 
-  const submitHandler = (e) => {
-    e.preventDefault();
-
+  const submitHandler = () => {
     if (amount >= 1) {
       setShowFundAccountButton(true);
+      // onClose();
     } else {
-      setMesssage("Minimum amount is 1 USD.");
+      setMessage("Minimum amount is 1 USD.");
     }
   };
 
-  useEffect(() => {
-    if (success) {
-      const timer = setTimeout(() => {
-        history.push("/dashboard");
-      }, 5000);
-      return () => clearTimeout(timer);
-    }
-  }, [success, history]);
-
   return (
-    <Container>
-      {showFundAccountButton && (
-        <FundAccountButton
-          amount={amount}
-          currency={currency}
-          showFundAccountButton={showFundAccountButton}
-          setShowFundAccountButton={setShowFundAccountButton}
-        />
-      )}
-      <Row className="justify-content-center">
-        <Col xs={12} md={6}>
-          <h2 className="py-3 text-center">Fund USD Account</h2>
-          {success && (
-            <Message variant="success">Request sent successfully.</Message>
-          )}
+    <ScrollView contentContainerStyle={styles.container}>
+      <Card style={styles.card}>
+        <Card.Content>
+          <View style={styles.formContainer}>
+            <Text style={styles.header}>Fund USD Account</Text>
 
-          {messsage && <Message variant="danger">{messsage}</Message>}
-          {error && <Message variant="danger">{error}</Message>}
-          {loading && <Loader />}
-          <Form onSubmit={submitHandler}>
-            <Form.Group controlId="currency">
-              <Form.Label>Currency</Form.Label>
-              <Form.Control
-                as="select"
-                value={currency}
-                onChange={(e) => setCurrency(e.target.value)}
-              >
-                {/* <option value="NGN">NGN</option> */}
-                <option value="USD">USD</option>
-              </Form.Control>
-            </Form.Group>
+            {message && <Message variant="danger">{message}</Message>}
+            {error && <Message variant="danger">{error}</Message>}
+            {loading && <Loader />}
 
-            <Form.Group controlId="amount">
-              <Form.Label>Amount</Form.Label>
-              <Form.Control
-                type="number"
+            <View style={styles.formGroup}>
+              <Text style={styles.label}>Currency</Text>
+              <View style={styles.pickerContainer}>
+                <Picker
+                  selectedValue={currency}
+                  onValueChange={(itemValue) => setCurrency(itemValue)}
+                  style={styles.picker}
+                >
+                  {CURRENCY_CHOICES.map((choice) => (
+                    <Picker.Item
+                      key={choice.value}
+                      label={choice.label}
+                      value={choice.value}
+                    />
+                  ))}
+                </Picker>
+              </View>
+            </View>
+
+            <View style={styles.formGroup}>
+              <Text style={styles.label}>Amount</Text>
+              <TextInput
+                style={styles.input}
+                keyboardType="numeric"
                 placeholder="Enter amount"
-                value={amount}
-                onChange={(e) => setAmount(e.target.value)}
-                required
+                value={amount.toString()}
+                onChangeText={(text) => setAmount(Number(text))}
               />
-            </Form.Group>
-            <div className="py-3 text-center">
-              <Button className="w-100 rounded" type="submit" variant="primary">
-                Submit
-              </Button>
-            </div>
-          </Form>
-        </Col>
-      </Row>
-    </Container>
+            </View>
+
+            <View style={styles.buttonContainer}>
+              <Button title="Submit" onPress={submitHandler} color="#007bff" />
+            </View>
+          </View>
+
+          {showFundAccountButton && (
+            <PaymentScreen amount={amount} currency={currency} />
+          )}
+        </Card.Content>
+      </Card>
+    </ScrollView>
   );
 };
+
+const styles = StyleSheet.create({
+  container: {
+    padding: 2,
+  },
+  formContainer: {
+    backgroundColor: "#fff",
+    padding: 2,
+    borderRadius: 8,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.8,
+    shadowRadius: 2,
+    elevation: 1,
+  },
+  header: {
+    fontSize: 24,
+    fontWeight: "bold",
+    textAlign: "center",
+    marginBottom: 20,
+  },
+  formGroup: {
+    marginBottom: 20,
+  },
+  label: {
+    fontSize: 16,
+    fontWeight: "bold",
+    marginBottom: 10,
+  },
+  pickerContainer: {
+    borderWidth: 1,
+    borderColor: "#ccc",
+    borderRadius: 5,
+    textAlign: "center",
+    justifyContent: "center",
+  },
+  picker: {
+    height: 50,
+    width: "100%",
+    borderColor: "#ccc",
+    borderWidth: 1,
+    borderRadius: 5,
+  },
+  input: {
+    height: 40,
+    borderColor: "#ccc",
+    borderWidth: 1,
+    borderRadius: 5,
+    padding: 10,
+  },
+  buttonContainer: {
+    marginTop: 20,
+    alignItems: "center",
+  },
+});
 
 export default FundUsdAccount;

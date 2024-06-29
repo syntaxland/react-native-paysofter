@@ -1,23 +1,62 @@
 // CreateSellerAccount.js
 import React, { useState, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { Form, Button, Container, Row, Col } from "react-bootstrap";
+import {
+  View,
+  Text,
+  TextInput,
+  Button,
+  ScrollView,
+  Image,
+  StyleSheet,
+  TouchableOpacity,
+} from "react-native";
+import { useNavigation } from "@react-navigation/native";
 import { createSellerAccount } from "../../redux/actions/sellerActions";
-import Message from "../Message";
-import Loader from "../Loader";
-import LoaderButton from "../LoaderButton";
+import * as ImagePicker from "expo-image-picker";
+import DateTimePicker from "@react-native-community/datetimepicker";
+import moment from "moment";
+import PhoneInput from "react-native-phone-input";
+import RNPickerSelect from "react-native-picker-select";
+import Message from "../../Message";
+import Loader from "../../Loader";
+import {
+  ID_TYPE_CHOICES,
+  COUNTRY_CHOICES,
+  BUSINESS_TYPE_CHOICES,
+  STAFF_SIZE_CHOICES,
+  BUSINESS_INDUSTRY_CHOICES,
+  BUSINESS_CATEGORY_CHOICES,
+} from "../../constants";
 
-function CreateSellerAccount({ history }) {
+const CreateSellerAccount = () => {
   const dispatch = useDispatch();
+  const navigation = useNavigation();
 
-  const userLogin = useSelector((state) => state.userLogin); 
+  const [idTypeChoices, setIdTypeChoices] = useState([]);
+  const [countryChoices, setCountryChoices] = useState([]);
+  const [businessTypeChoices, setBusinessTypeChoices] = useState([]);
+  const [staffSizeChoices, setStaffSizeChoices] = useState([]);
+  const [industryChoices, setIndustryChoices] = useState([]);
+  const [businessCategoryChoices, setBusinessCategoryChoices] = useState([]);
+
+  useEffect(() => {
+    setIdTypeChoices(ID_TYPE_CHOICES);
+    setCountryChoices(COUNTRY_CHOICES);
+    setBusinessTypeChoices(BUSINESS_TYPE_CHOICES);
+    setStaffSizeChoices(STAFF_SIZE_CHOICES);
+    setIndustryChoices(BUSINESS_INDUSTRY_CHOICES);
+    setBusinessCategoryChoices(BUSINESS_CATEGORY_CHOICES);
+  }, []);
+
+  const userLogin = useSelector((state) => state.userLogin);
   const { userInfo } = userLogin;
 
   useEffect(() => {
     if (!userInfo) {
-      history.push("/login");
+      navigation.navigate("Login");
     }
-  }, [userInfo, history]);
+  }, [userInfo, navigation]);
 
   const createSellerAccountState = useSelector(
     (state) => state.createSellerAccountState
@@ -25,32 +64,62 @@ function CreateSellerAccount({ history }) {
   const { success, error, loading } = createSellerAccountState;
 
   const [businessName, setBusinessName] = useState("");
-  const [tradingName, setTradingName] = useState("");
-  // const [businessRegNum, setBusinessRegNum] = useState("");
+  const [businessRegNum, setBusinessRegNum] = useState("");
   const [businessAddress, setBusinessAddress] = useState("");
-  // const [businessType, setBusinessType] = useState("");
+  const [businessType, setBusinessType] = useState("");
   const [staffSize, setStaffSize] = useState("");
   const [businessIndustry, setBusinessIndustry] = useState("");
   const [businessCategory, setBusinessCategory] = useState("");
   const [businessDescription, setBusinessDescription] = useState("");
 
   const [businessPhone, setBusinessPhone] = useState("");
-  const [businessEmail, setBusinessEmail] = useState("");
-  const [supportEmail, setSupportEmail] = useState("");
+  const [businessPhoneError, setBusinessPhoneError] = useState("");
 
   const [businessWebsite, setBusinessWebsite] = useState("");
   const [country, setCountry] = useState("");
 
   const [businessNameError, setBusinessNameError] = useState("");
-  const [tradingNameError, setTradingNameError] = useState("");
-  // const [businessRegNumError, setBusinessRegNumError] = useState("");
   const [businessAddressError, setBusinessAddressError] = useState("");
-  // const [businessTypeError, setBusinessTypeError] = useState("");
+  const [businessTypeError, setBusinessTypeError] = useState("");
   const [staffSizeError, setStaffSizeError] = useState("");
   const [businessIndustryError, setBusinessIndustryError] = useState("");
   const [businessCategoryError, setBusinessCategoryError] = useState("");
   const [countryError, setCountryError] = useState("");
+
+  const [idType, setIdType] = useState("");
+  const [idTypeError, setIdTypeError] = useState("");
+
+  const [idNumber, setIdNumber] = useState("");
+  const [idNumberError, setIdNumberError] = useState("");
+
+  const [idCardImage, setIdCardImage] = useState("");
+  const [idCardImageError, setIdCardImageError] = useState("");
+
+  const [dob, setDob] = useState(new Date());
+  // const [dobError, setDobError] = useState("");
+  const [open, setOpen] = useState(false);
+  const [mode, setMode] = useState("date");
+  const [show, setShow] = useState(false);
+
+  const [address, setAddress] = useState("");
+  const [addressError, setAddressError] = useState("");
+
   const [formError, setFormError] = useState("");
+
+  const onChangeDob = (event, selectedDate) => {
+    const currentDate = selectedDate || dob;
+    setShow(false);
+    setDob(currentDate);
+  };
+
+  const showMode = (currentMode) => {
+    setShow(true);
+    setMode(currentMode);
+  };
+
+  const showDatepicker = () => {
+    showMode("date");
+  };
 
   const handleFieldChange = (fieldName, value) => {
     switch (fieldName) {
@@ -58,23 +127,17 @@ function CreateSellerAccount({ history }) {
         setBusinessName(value);
         setBusinessNameError("");
         break;
-      case "tradingName":
-        setTradingName(value);
-        setTradingNameError("");
+      case "businessRegNum":
+        setBusinessRegNum(value);
         break;
-
-      // case "businessRegNum":
-      //   setBusinessRegNum(value);
-      //   setBusinessRegNumError("");
-      //   break;
       case "businessAddress":
         setBusinessAddress(value);
         setBusinessAddressError("");
         break;
-      // case "businessType":
-      //   setBusinessType(value);
-      //   setBusinessTypeError("");
-      //   break;
+      case "businessType":
+        setBusinessType(value);
+        setBusinessTypeError("");
+        break;
       case "staffSize":
         setStaffSize(value);
         setStaffSizeError("");
@@ -87,112 +150,76 @@ function CreateSellerAccount({ history }) {
         setBusinessCategory(value);
         setBusinessCategoryError("");
         break;
+      case "businessDescription":
+        setBusinessDescription(value);
+        break;
+      case "businessPhone":
+        setBusinessPhone(value);
+        setBusinessPhoneError("");
+        break;
+      case "businessWebsite":
+        setBusinessWebsite(value);
+        break;
       case "country":
         setCountry(value);
         setCountryError("");
         break;
-
+      case "idType":
+        setIdType(value);
+        setIdTypeError("");
+        break;
+      case "idNumber":
+        setIdNumber(value);
+        setIdNumberError("");
+        break;
+      case "idCardImage":
+        setIdCardImage(value);
+        setIdCardImageError("");
+        break;
+      case "dob":
+        setDob(value);
+        // setDobError("");
+        break;
+      case "address":
+        setAddress(value);
+        setAddressError("");
+        break;
       default:
         break;
     }
   };
 
-  // const BUSINESS_TYPE_CHOICES = [
-  //   ["Registered", "Registered"],
-  //   ["Unregistered", "Unregistered"],
-  // ];
+  const sellerData = new FormData();
+  sellerData.append("business_name", businessName);
+  sellerData.append("business_reg_num", businessRegNum);
+  sellerData.append("business_address", businessAddress);
+  sellerData.append("business_status", businessType);
+  sellerData.append("staff_size", staffSize);
+  sellerData.append("business_industry", businessIndustry);
+  sellerData.append("business_category", businessCategory);
+  sellerData.append("business_description", businessDescription);
+  sellerData.append("business_website", businessWebsite);
+  sellerData.append("business_phone", businessPhone);
+  sellerData.append("country", country);
+  sellerData.append("id_type", idType);
+  sellerData.append("id_number", idNumber);
+  sellerData.append("id_card_image", idCardImage);
+  sellerData.append("dob", dob);
+  sellerData.append("home_address", address);
 
-  const STAFF_SIZE_CHOICES = [
-    ["Small", "Small (1-50 employees)"],
-    ["Medium", "Medium (51-250 employees)"],
-    ["Large", "Large (251+ employees)"],
-  ];
-
-  const BUSINESS_INDUSTRY_CHOICES = [
-    ["Information Technology", "Information Technology"],
-    ["Healthcare", "Healthcare"],
-    ["Finance", "Finance"],
-    ["Education", "Education"],
-    ["Retail", "Retail"],
-    ["Manufacturing", "Manufacturing"],
-    ["Services", "Services"],
-    ["Entertainment", "Entertainment"],
-    ["Food & Beverage", "Food & Beverage"],
-    ["Travel & Tourism", "Travel & Tourism"],
-    ["Real Estate", "Real Estate"],
-    ["Construction", "Construction"],
-    ["Automotive", "Automotive"],
-    ["Agriculture", "Agriculture"],
-    ["Energy", "Energy"],
-    ["Environmental", "Environmental"],
-    ["Government", "Government"],
-    ["Nonprofit", "Nonprofit"],
-    ["Others", "Others"],
-  ];
-
-  const BUSINESS_CATEGORY_CHOICES = [
-    ["Startup", "Startup"],
-    ["Small Business", "Small Business"],
-    ["Medium Business", "Medium Business"],
-    ["Large Business", "Large Business"],
-    ["Corporation", "Corporation"],
-    ["Sole Proprietorship", "Sole Proprietorship"],
-    ["Partnership", "Partnership"],
-    ["Franchise", "Franchise"],
-    ["Family Owned", "Family Owned"],
-    ["Online Business", "Online Business"],
-    ["Brick and Mortar", "Brick and Mortar"],
-    ["Service Provider", "Service Provider"],
-    ["Retailer", "Retailer"],
-    ["Wholesaler", "Wholesaler"],
-    ["Manufacturer", "Manufacturer"],
-    ["Restaurant", "Restaurant"],
-    ["Hospitality", "Hospitality"],
-    ["Healthcare", "Healthcare"],
-    ["Education", "Education"],
-    ["Tech", "Tech"],
-    ["Creative", "Creative"],
-    ["Entertainment", "Entertainment"],
-    ["Travel", "Travel"],
-    ["Construction", "Construction"],
-    ["Automotive", "Automotive"],
-    ["Agriculture", "Agriculture"],
-    ["Energy", "Energy"],
-    ["Environmental", "Environmental"],
-    ["Government", "Government"],
-    ["Nonprofit", "Nonprofit"],
-    ["Others", "Others"],
-  ];
-
-  const sellerData = {
-    business_name: businessName,
-    trading_name: tradingName,
-    // business_reg_num: businessRegNum,
-    business_address: businessAddress,
-    // business_type: businessType,
-    staff_size: staffSize,
-    business_industry: businessIndustry,
-    business_category: businessCategory,
-    business_description: businessDescription,
-    business_phone: businessPhone,
-    business_email: businessEmail,
-    support_email: supportEmail,
-    business_website: businessWebsite,
-    country: country,
-  };
+  console.log("sellerData:", sellerData);
 
   useEffect(() => {
     if (success) {
       const timer = setTimeout(() => {
-        history.push("/create-business-status");
-        window.location.reload();
+        navigation.navigate("Business Status");
       }, 3000);
       return () => clearTimeout(timer);
     }
-  }, [dispatch, success, history]);
+  }, [dispatch, success, navigation]);
 
   const handleCreateSellerAccount = (e) => {
-    e.preventDefault(e);
+    e.preventDefault();
 
     if (!businessName) {
       setBusinessNameError("Please enter the business name.");
@@ -200,29 +227,17 @@ function CreateSellerAccount({ history }) {
       setBusinessNameError("");
     }
 
-    if (!tradingName) {
-      setTradingNameError("Please enter the trading name.");
-    } else {
-      setTradingNameError("");
-    }
-
-    // if (!businessRegNum) {
-    //   setBusinessRegNumError("Please enter the business registration number.");
-    // } else {
-    //   setBusinessRegNumError("");
-    // }
-
     if (!businessAddress) {
       setBusinessAddressError("Please enter the business address.");
     } else {
       setBusinessAddressError("");
     }
 
-    // if (!businessType) {
-    //   setBusinessTypeError("Please select the business type.");
-    // } else {
-    //   setBusinessTypeError("");
-    // }
+    if (!businessType) {
+      setBusinessTypeError("Please select the business type.");
+    } else {
+      setBusinessTypeError("");
+    }
 
     if (!staffSize) {
       setStaffSizeError("Please select the staff size.");
@@ -242,303 +257,507 @@ function CreateSellerAccount({ history }) {
       setBusinessCategoryError("");
     }
 
+    if (!businessPhone) {
+      setBusinessPhoneError("Please enter your phone number.");
+    } else if (businessPhone.length < 9) {
+      setBusinessPhoneError("Phone number must be at least 9 digits.");
+    } else {
+      setBusinessPhoneError("");
+    }
+
     if (!country) {
       setCountryError("Please enter the country.");
     } else {
       setCountryError("");
     }
 
+    if (!idType) {
+      setIdTypeError("Please select the ID type.");
+    } else {
+      setIdTypeError("");
+    }
+
+    if (!idNumber) {
+      setIdNumberError("Please enter the ID number.");
+    } else {
+      setIdNumberError("");
+    }
+
+    if (!idCardImage) {
+      setIdCardImageError("Please upload the ID card Photo.");
+    } else {
+      setIdCardImageError("");
+    }
+
+    // if (!dob) {
+    //   setDobError("Please enter your date of birth.");
+    // } else {
+    //   setDobError("");
+    // }
+
+    if (!address) {
+      setAddressError("Please enter your home address.");
+    } else {
+      setAddressError("");
+    }
+
     if (
+      !idType ||
+      !idNumber ||
+      !idCardImage ||
+      // !dob ||
+      !address ||
       !businessName ||
-      !tradingName ||
-      // !businessRegNum ||
       !businessAddress ||
-      // !businessType ||
+      !businessType ||
       !staffSize ||
       !businessIndustry ||
       !businessCategory ||
+      // !businessPhone ||
       !country
     ) {
       setFormError("Please fix the errors in the form.");
       return;
     } else {
+      setFormError("");
       dispatch(createSellerAccount(sellerData));
+      // navigation.navigate("Seller Photo");
     }
   };
 
+  const pickImage = async (field, useLibrary) => {
+    let result;
+    const options = {
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      allowsEditing: true,
+      quality: 1,
+    };
+
+    if (useLibrary) {
+      result = await ImagePicker.launchImageLibraryAsync(options);
+    } else {
+      await ImagePicker.requestCameraPermissionsAsync();
+      result = await ImagePicker.launchCameraAsync(options);
+    }
+
+    if (!result.cancelled) {
+      const uri = result.assets[0].uri;
+      const file = {
+        uri: uri,
+        name: uri.split("/").pop(),
+        type: `image/${uri.split(".").pop()}`,
+      };
+
+      setIdCardImage(file);
+      setIdCardImageError("");
+    }
+  };
+
+  const removeImage = () => {
+    setIdCardImage(null);
+  };
+
   return (
-    <Container>
-      <Row className="justify-content-center py-2">
-        <Col xs={12} md={6}>
-          <h2 className="text-center py-2">Create Seller Account</h2>
+    <ScrollView style={styles.container}>
+      <View style={styles.form}>
+        <Text style={styles.title}>Create Seller Account</Text>
+
+        {loading && <Loader />}
+        {success && (
+          <Message variant="success">
+            Seller Created Successfully. Redirecting to Photo Upload Page...
+          </Message>
+        )}
+        {formError && <Message variant="danger">{formError}</Message>}
+        {error && <Message variant="danger">{error}</Message>}
+
+        <View style={styles.formGroup}>
+          <Text>Business Name</Text>
+          <TextInput
+            style={styles.input}
+            value={businessName}
+            onChangeText={(value) => handleFieldChange("businessName", value)}
+          />
+          {businessNameError && (
+            <Text style={styles.error}>{businessNameError}</Text>
+          )}
+        </View>
+
+        <View style={styles.formGroup}>
+          <Text>Business Reg Number</Text>
+          <TextInput
+            style={styles.input}
+            value={businessRegNum}
+            onChangeText={(value) => handleFieldChange("businessRegNum", value)}
+          />
+        </View>
+
+        <View style={styles.formGroup}>
+          <Text>Business Address</Text>
+          <TextInput
+            style={styles.input}
+            value={businessAddress}
+            onChangeText={(value) =>
+              handleFieldChange("businessAddress", value)
+            }
+          />
+          {businessAddressError && (
+            <Text style={styles.error}>{businessAddressError}</Text>
+          )}
+        </View>
+
+        <View style={styles.formGroup}>
+          <Text>Business Type</Text>
+          <View style={styles.formContainer}>
+            <RNPickerSelect
+              onValueChange={(value) =>
+                handleFieldChange("businessType", value)
+              }
+              items={businessTypeChoices?.map(([value, label]) => ({
+                label,
+                value,
+              }))}
+              style={pickerSelectStyles}
+            />
+          </View>
+          {businessTypeError && (
+            <Text style={styles.error}>{businessTypeError}</Text>
+          )}
+        </View>
+
+        <View style={styles.formGroup}>
+          <Text>Staff Size</Text>
+          <View style={styles.formContainer}>
+            <RNPickerSelect
+              onValueChange={(value) => handleFieldChange("staffSize", value)}
+              items={staffSizeChoices?.map(([value, label]) => ({
+                label,
+                value,
+              }))}
+              style={pickerSelectStyles}
+            />
+          </View>
+          {staffSizeError && <Text style={styles.error}>{staffSizeError}</Text>}
+        </View>
+
+        <View style={styles.formGroup}>
+          <Text>Business Industry</Text>
+          <View style={styles.formContainer}>
+            <RNPickerSelect
+              onValueChange={(value) =>
+                handleFieldChange("businessIndustry", value)
+              }
+              items={industryChoices?.map(([value, label]) => ({
+                label,
+                value,
+              }))}
+              style={pickerSelectStyles}
+            />
+          </View>
+          {businessIndustryError && (
+            <Text style={styles.error}>{businessIndustryError}</Text>
+          )}
+        </View>
+
+        <View style={styles.formGroup}>
+          <Text>Business Category</Text>
+          <View style={styles.formContainer}>
+            <RNPickerSelect
+              onValueChange={(value) =>
+                handleFieldChange("businessCategory", value)
+              }
+              items={businessCategoryChoices?.map(([value, label]) => ({
+                label,
+                value,
+              }))}
+              style={pickerSelectStyles}
+            />
+          </View>
+          {businessCategoryError && (
+            <Text style={styles.error}>{businessCategoryError}</Text>
+          )}
+        </View>
+
+        <View style={styles.formGroup}>
+          <Text>Business Description</Text>
+          <TextInput
+            style={styles.input}
+            value={businessDescription}
+            onChangeText={(value) =>
+              handleFieldChange("businessDescription", value)
+            }
+          />
+        </View>
+
+        <View style={styles.formGroup}>
+          <Text>Business Phone</Text>
+          <PhoneInput
+            style={styles.input}
+            initialCountry="us"
+            value={businessPhone}
+            onChangePhoneNumber={(value) =>
+              handleFieldChange("businessPhone", value)
+            }
+          />
+          {businessPhoneError && (
+            <Text style={styles.error}>{businessPhoneError}</Text>
+          )}
+        </View>
+
+        <View style={styles.formGroup}>
+          <Text>Business Website</Text>
+          <TextInput
+            style={styles.input}
+            value={businessWebsite}
+            onChangeText={(value) =>
+              handleFieldChange("businessWebsite", value)
+            }
+          />
+        </View>
+
+        <View style={styles.formGroup}>
+          <Text>Country</Text>
+          <View style={styles.formContainer}>
+            <RNPickerSelect
+              onValueChange={(value) => handleFieldChange("country", value)}
+              items={countryChoices?.map(([value, label]) => ({
+                label,
+                value,
+              }))}
+              style={pickerSelectStyles}
+            />
+          </View>
+          {countryError && <Text style={styles.error}>{countryError}</Text>}
+        </View>
+
+        <View style={styles.formGroup}>
+          <Text>ID Type</Text>
+          <View style={styles.formContainer}>
+            <RNPickerSelect
+              onValueChange={(value) => handleFieldChange("idType", value)}
+              items={idTypeChoices?.map(([value, label]) => ({
+                label,
+                value,
+              }))}
+              style={pickerSelectStyles}
+            />
+          </View>
+          {idTypeError && <Text style={styles.error}>{idTypeError}</Text>}
+        </View>
+
+        <View style={styles.formGroup}>
+          <Text>ID Number</Text>
+          <TextInput
+            style={styles.input}
+            value={idNumber}
+            onChangeText={(value) => handleFieldChange("idNumber", value)}
+          />
+          {idNumberError && <Text style={styles.error}>{idNumberError}</Text>}
+        </View>
+
+        <View style={styles.formGroup}>
+          <Text>ID Card Photo</Text>
+          <View style={styles.imgContainer}>
+            <TouchableOpacity
+              style={styles.imagePicker}
+              onPress={() => pickImage("idCardImage", true)}
+            >
+              <Text style={styles.uploadText}>
+                {idCardImage ? "Change Photo" : "Select Photo"}
+              </Text>
+            </TouchableOpacity>
+            {/* <TouchableOpacity style={styles.imagePicker} onPress={() => pickImage("idCardImage", false)}>
+              <Text style={styles.uploadText}>Capture Photo</Text>
+            </TouchableOpacity> */}
+            {idCardImage ? (
+              <>
+                <Image
+                  source={{ uri: idCardImage.uri }}
+                  style={styles.imagePreview}
+                />
+                <TouchableOpacity
+                  style={styles.removeButton}
+                  onPress={removeImage}
+                >
+                  <Text style={styles.removeButtonText}>Remove Photo</Text>
+                </TouchableOpacity>
+              </>
+            ) : null}
+          </View>
+          {idCardImageError && (
+            <Text style={styles.error}>{idCardImageError}</Text>
+          )}
+        </View>
+
+        <View style={styles.formGroup}>
+          <Text>Date of Birth</Text>
+          <View style={styles.dobContainer}>
+            <Button onPress={showDatepicker} title="Select Date" />
+            {show && (
+              <DateTimePicker
+                value={dob}
+                mode={mode}
+                display="default"
+                onChange={onChangeDob}
+              />
+            )}
+            <Text style={styles.dateText}>
+              {moment(dob).format("YYYY-MM-DD")}
+            </Text>
+          </View>
+          {/* {dobError && <Text style={styles.error}>{dobError}</Text>} */}
+        </View>
+
+        <View style={styles.formGroup}>
+          <Text>Home Address</Text>
+          <TextInput
+            style={styles.input}
+            value={address}
+            onChangeText={(value) => handleFieldChange("address", value)}
+          />
+          {addressError && <Text style={styles.error}>{addressError}</Text>}
+        </View>
+
+        <View style={styles.formGroup}>
           {loading && <Loader />}
-
+          {formError && <Message variant="danger">{formError}</Message>}
+          {error && <Message variant="danger">{error}</Message>}
           {success && (
-            <Message variant="success" fixed>
-              Form submitted successfully.
+            <Message variant="success">
+              Seller Created Successfully. Redirecting to Photo Upload Page...
             </Message>
           )}
-          {error && (
-            <Message variant="danger" fixed>
-              {error}
-            </Message>
-          )}
+        </View>
 
-          {formError && (
-            <Message variant="danger" fixed>
-              {formError}
-            </Message>
-          )}
-
-          <Form>
-            <Form.Group>
-              <Form.Label>Business Name</Form.Label>
-              <Form.Control
-                type="text"
-                value={businessName}
-                onChange={(e) =>
-                  handleFieldChange("businessName", e.target.value)
-                }
-                placeholder="Enter business name"
-                className="rounded py-2 mb-2"
-                required
-                maxLength={100}
-              />
-              <Form.Text className="text-danger">{businessNameError}</Form.Text>
-            </Form.Group>
-
-            <Form.Group>
-              <Form.Label>Trading Name</Form.Label>
-              <Form.Control
-                type="text"
-                value={tradingName}
-                onChange={(e) =>
-                  handleFieldChange("tradingName", e.target.value)
-                }
-                placeholder="Enter trading name"
-                className="rounded py-2 mb-2"
-                maxLength={100}
-                required
-              />
-              <Form.Text className="text-danger">{tradingNameError}</Form.Text>
-            </Form.Group>
-
-            {/* <Form.Group>
-              <Form.Label>Business Status</Form.Label>
-              <Form.Control
-                as="select"
-                value={businessType}
-                onChange={(e) =>
-                  handleFieldChange("businessType", e.target.value)
-                }
-                className="rounded py-2 mb-2"
-                required
-              >
-                <option value="">Select Business Status</option>
-                {BUSINESS_TYPE_CHOICES.map((type) => (
-                  <option key={type[0]} value={type[0]}>
-                    {type[1]}
-                  </option>
-                ))}
-              </Form.Control>
-              <Form.Text className="text-danger">{businessTypeError}</Form.Text>
-            </Form.Group> */}
-
-            {/* <Form.Group>
-              <Form.Label>Business Registration Number</Form.Label>
-              <Form.Control
-                type="text"
-                value={businessRegNum}
-                onChange={(e) =>
-                  handleFieldChange("businessRegNum", e.target.value)
-                }
-                placeholder="Enter business registration number"
-                className="rounded py-2 mb-2"
-                maxLength={50}
-                required
-              />
-              <Form.Text className="text-danger">
-                {businessRegNumError}
-              </Form.Text>
-            </Form.Group> */}
-
-            <Form.Group>
-              <Form.Label>Business Industry</Form.Label>
-              <Form.Control
-                as="select"
-                value={businessIndustry}
-                onChange={(e) =>
-                  handleFieldChange("businessIndustry", e.target.value)
-                }
-                className="rounded py-2 mb-2"
-                required
-              >
-                <option value="">Select Business Industry</option>
-                {BUSINESS_INDUSTRY_CHOICES.map((industry) => (
-                  <option key={industry[0]} value={industry[0]}>
-                    {industry[1]}
-                  </option>
-                ))}
-              </Form.Control>
-              <Form.Text className="text-danger">
-                {businessIndustryError}
-              </Form.Text>
-            </Form.Group>
-
-            <Form.Group>
-              <Form.Label>Business Category</Form.Label>
-              <Form.Control
-                as="select"
-                value={businessCategory}
-                onChange={(e) =>
-                  handleFieldChange("businessCategory", e.target.value)
-                }
-                className="rounded py-2 mb-2"
-                required
-              >
-                <option value="">Select Business Category</option>
-                {BUSINESS_CATEGORY_CHOICES.map((category) => (
-                  <option key={category[0]} value={category[0]}>
-                    {category[1]}
-                  </option>
-                ))}
-              </Form.Control>
-              <Form.Text className="text-danger">
-                {businessCategoryError}
-              </Form.Text>
-            </Form.Group>
-
-            <Form.Group>
-              <Form.Label>Staff Size</Form.Label>
-              <Form.Control
-                as="select"
-                value={staffSize}
-                onChange={(e) => handleFieldChange("staffSize", e.target.value)}
-                className="rounded py-2 mb-2"
-                required
-              >
-                <option value="">Select Staff Size</option>
-                {STAFF_SIZE_CHOICES.map((size) => (
-                  <option key={size[0]} value={size[0]}>
-                    {size[1]}
-                  </option>
-                ))}
-              </Form.Control>
-              <Form.Text className="text-danger">{staffSizeError}</Form.Text>
-            </Form.Group>
-
-            <Form.Group>
-              <Form.Label>Business Description</Form.Label>
-              <Form.Control
-                type="text"
-                value={businessDescription}
-                onChange={(e) => setBusinessDescription(e.target.value)}
-                placeholder="Enter business description"
-                className="rounded py-2 mb-2"
-                maxLength={100}
-                required
-              />
-            </Form.Group>
-
-            <Form.Group>
-              <Form.Label>Business Phone</Form.Label>
-              <Form.Control
-                type="text"
-                value={businessPhone}
-                onChange={(e) => setBusinessPhone(e.target.value)}
-                placeholder="Enter business phone"
-                className="rounded py-2 mb-2"
-                maxLength={100}
-                required
-              />
-            </Form.Group>
-
-            <Form.Group>
-              <Form.Label>Business Email</Form.Label>
-              <Form.Control
-                type="text"
-                value={businessEmail}
-                onChange={(e) => setBusinessEmail(e.target.value)}
-                placeholder="Enter business email"
-                className="rounded py-2 mb-2"
-                maxLength={100}
-                required
-              />
-            </Form.Group>
-
-            <Form.Group>
-              <Form.Label>Support Email</Form.Label>
-              <Form.Control
-                type="text"
-                value={supportEmail}
-                onChange={(e) => setSupportEmail(e.target.value)}
-                placeholder="Enter business support email"
-                className="rounded py-2 mb-2"
-                maxLength={100}
-                required
-              />
-            </Form.Group>
-
-            <Form.Group>
-              <Form.Label>Business Website</Form.Label>
-              <Form.Control
-                type="text"
-                value={businessWebsite}
-                onChange={(e) => setBusinessWebsite(e.target.value)}
-                placeholder="Enter business description"
-                className="rounded py-2 mb-2"
-                maxLength={100}
-                required
-              />
-            </Form.Group>
-
-            <Form.Group>
-              <Form.Label>Business Address</Form.Label>
-              <Form.Control
-                type="text"
-                value={businessAddress}
-                onChange={(e) =>
-                  handleFieldChange("businessAddress", e.target.value)
-                }
-                placeholder="Enter business address"
-                className="rounded py-2 mb-2"
-                maxLength={225}
-                required
-              />
-              <Form.Text className="text-danger">
-                {businessAddressError}
-              </Form.Text>
-            </Form.Group>
-
-            <Form.Group>
-              <Form.Label>Country</Form.Label>
-              <Form.Control
-                type="text"
-                value={country}
-                onChange={(e) => handleFieldChange("country", e.target.value)}
-                placeholder="Enter country"
-                className="rounded py-2 mb-2"
-                maxLength={100}
-                required
-              />
-              <Form.Text className="text-danger">{countryError}</Form.Text>
-            </Form.Group>
-          </Form>
-          <Button
-            variant="primary"
-            onClick={handleCreateSellerAccount}
-            className="rounded py-2 mb-2 text-center w-100"
-            disabled={loading || success}
-          >
-            <div className="d-flex justify-content-center">
-              <span className="py-1">Continue</span>
-              {loading && <LoaderButton />}
-            </div>
-          </Button>
-        </Col>
-      </Row>
-    </Container>
+        <View style={styles.submitBtn}>
+          <TouchableOpacity onPress={handleCreateSellerAccount}>
+            <Text style={styles.roundedPrimaryBtn}>Create Seller</Text>
+          </TouchableOpacity>
+        </View>
+      </View>
+    </ScrollView>
   );
-}
+};
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    padding: 16,
+  },
+  form: {
+    marginBottom: 40,
+  },
+  title: {
+    fontSize: 24,
+    fontWeight: "bold",
+    textAlign: "center",
+    marginBottom: 24,
+  },
+  formGroup: {
+    marginBottom: 16,
+  },
+  input: {
+    height: 40,
+    borderColor: "#ccc",
+    borderWidth: 1,
+    paddingHorizontal: 8,
+    marginTop: 8,
+  },
+  uploadText: {
+    color: "#007BFF",
+    textDecorationLine: "underline",
+  },
+  formContainer: {
+    width: "100%",
+    height: 40,
+    borderWidth: 1,
+    borderColor: "#ccc",
+    borderRadius: 5,
+    justifyContent: "center",
+    alignItems: "center",
+    textAlign: "center",
+  },
+  dobContainer: {
+    width: "100%",
+    minHeight: 40,
+    borderWidth: 1,
+    borderColor: "#ccc",
+    borderRadius: 5,
+    padding: 10,
+    justifyContent: "center",
+    alignItems: "center",
+    textAlign: "center",
+  },
+  dateText: {
+    width: "100%",
+    minHeight: 40,
+    // borderWidth: 1,
+    borderColor: "#ccc",
+    borderRadius: 5,
+    padding: 10,
+    justifyContent: "center",
+    alignItems: "center",
+    textAlign: "center",
+  },
+  imgContainer: {
+    width: "100%",
+    minHeight: 40,
+    borderWidth: 1,
+    borderColor: "#ccc",
+    borderRadius: 5,
+    padding: 10,
+    justifyContent: "center",
+    alignItems: "center",
+    textAlign: "center",
+  },
+  imagePreview: {
+    width: 100,
+    height: 100,
+    marginTop: 10,
+  },
+  removeButton: {
+    marginTop: 10,
+    padding: 10,
+    backgroundColor: "#ff0000",
+    borderRadius: 5,
+    alignItems: "center",
+  },
+  removeButtonText: {
+    color: "#fff",
+  },
+  roundedPrimaryBtn: {
+    backgroundColor: "#007bff",
+    color: "#fff",
+    padding: 10,
+    borderRadius: 25,
+    justifyContent: "center",
+    alignItems: "center",
+    textAlign: "center",
+  },
+  submitBtn: {
+    padding: 10,
+  },
+  error: {
+    color: "red",
+    marginTop: 8,
+  },
+});
+
+const pickerSelectStyles = StyleSheet.create({
+  // inputIOS: {
+  //   height: 40,
+  //   borderColor: "#ccc",
+  //   borderWidth: 1,
+  //   paddingHorizontal: 8,
+  //   marginTop: 8,
+  // },
+  // inputAndroid: {
+  //   height: 40,
+  //   borderColor: "#ccc",
+  //   borderWidth: 1,
+  //   paddingHorizontal: 8,
+  //   marginTop: 8,
+  // },
+});
 
 export default CreateSellerAccount;

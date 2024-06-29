@@ -1,262 +1,323 @@
 // Transactions.js
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback } from "react";
+import {
+  View,
+  Text,
+  ScrollView,
+  SafeAreaView,
+  StyleSheet,
+  RefreshControl,
+} from "react-native";
 import { useDispatch, useSelector } from "react-redux";
-import { Table } from "react-bootstrap";
+import { FontAwesomeIcon } from "@fortawesome/react-native-fontawesome";
+import {
+  faMoneyCheckAlt,
+  faCheckCircle,
+  faTimesCircle,
+} from "@fortawesome/free-solid-svg-icons";
+import { useNavigation } from "@react-navigation/native";
 import { getUserTransactions } from "../../redux/actions/transactionActions";
-import Message from "../Message";
-import Loader from "../Loader";
-import Pagination from "../Pagination";
-import {formatAmount} from "../FormatAmount";
+import { DataTable, Card } from "react-native-paper";
+import { Pagination } from "../../Pagination";
+import Message from "../../Message";
+import Loader from "../../Loader";
 
-function Transactions() {
+const Transactions = () => {
   const dispatch = useDispatch();
+  const navigation = useNavigation();
+
+  const userLogin = useSelector((state) => state.userLogin);
+  const { userInfo } = userLogin;
+
+  useEffect(() => {
+    if (!userInfo) {
+      navigation.navigate("Login");
+    }
+  }, [userInfo, navigation]);
 
   const userTransactions = useSelector((state) => state.userTransactions);
   const { loading, transactions, error } = userTransactions;
-  console.log("Transactions:", transactions);
 
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 5;
-
-  const paginate = (pageNumber) => setCurrentPage(pageNumber);
 
   const indexOfLastItem = currentPage * itemsPerPage;
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;
   const currentItems = transactions.slice(indexOfFirstItem, indexOfLastItem);
 
+  const totalPages = Math.ceil(transactions.length / itemsPerPage);
+
+  const [refreshing, setRefreshing] = useState(false);
+  const onRefresh = useCallback(() => {
+    setRefreshing(true);
+    dispatch(getUserTransactions());
+    setTimeout(() => setRefreshing(false), 2000);
+  }, [dispatch]);
+
   useEffect(() => {
     dispatch(getUserTransactions());
   }, [dispatch]);
 
+  const handlePagination = (pageNumber) => {
+    setCurrentPage(pageNumber);
+  };
+
   return (
-    <div>
-      <h1 className="text-center py-3">
-        <i className="fas fa-money-check-alt"></i> Transactions
-      </h1>
-      {loading ? (
-        <Loader />
-      ) : error ? (
-        <Message variant="danger">{error}</Message>
-      ) : (
-        <> 
-          {currentItems.length === 0 ? (
-            <div className="text-center py-3">Transactions appear here.</div>
+    <SafeAreaView style={styles.safeArea}>
+      <ScrollView
+        contentContainerStyle={styles.scrollView}
+        refreshControl={
+          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+        }
+      >
+        <View style={styles.container}>
+          <View style={styles.cardContainer}>
+            <Card style={styles.card}>
+              <Card.Content>
+                <Text style={styles.header}>
+                  <FontAwesomeIcon icon={faMoneyCheckAlt} /> Transactions
+                </Text>
+              </Card.Content>
+            </Card>
+          </View>
+          {loading ? (
+            <Loader />
+          ) : error ? (
+            <Message variant="danger">{error}</Message>
           ) : (
-            <Table striped bordered hover responsive className="table-sm">
-              <thead>
-                <tr>
-                  <th>SN</th>
-                  <th>Payment ID</th>
-                  <th>Seller</th>
-                  <th>Payer</th> 
-                  <th>Amount</th>
-                  <th>Payment Method</th>
-                  <th>Currency</th>
-                  <th>Successful</th>
-                  <th>Payment Provider</th>
-                  <th>Transaction ID</th>
-                  <th>Created At</th>
-                </tr>
-              </thead>
-              <tbody>
-                {currentItems.map((transaction, index) => (
-                  <tr key={transaction.id}>
-                    <td>{index + 1}</td>
-                    <td>{transaction.payment_id}</td>
-                    <td>
-                      <td>{transaction.seller_email}</td>
-                    </td>
-                    <td>{transaction.buyer_email}</td>
-                    <td>{formatAmount(transaction.amount)}</td>
-                    <td>{transaction.payment_method}</td>
-                    <td>{transaction.currency}</td>
-                    <td>
-                      {transaction.is_success ? (
-                        <i
-                          className="fas fa-check-circle"
-                          style={{ fontSize: "16px", color: "green" }}
-                        ></i>
-                      ) : (
-                        <i
-                          className="fas fa-times-circle"
-                          style={{ fontSize: "16px", color: "red" }} 
-                        ></i>
-                      )}
-                    </td>
-                    <td>{transaction.payment_provider}</td>
-                    <td>{transaction.transaction_id}</td>
-                    <td>
-                      {new Date(transaction.timestamp).toLocaleString("en-US", {
-                        weekday: "long",
-                        year: "numeric",
-                        month: "long",
-                        day: "numeric",
-                        hour: "numeric",
-                        minute: "numeric",
-                        second: "numeric",
-                      })}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </Table>
+            <>
+              {currentItems.length === 0 ? (
+                <Text style={styles.noData}>Transactions appear here.</Text>
+              ) : (
+                <ScrollView horizontal={true}>
+                  <View style={styles.cardContainer}>
+                    <Card style={styles.card}>
+                      <Card.Content>
+                        <DataTable>
+                          <DataTable.Header>
+                            <DataTable.Title style={styles.snHeaderCell}>
+                              SN
+                            </DataTable.Title>
+                            <DataTable.Title style={styles.headerCell}>
+                              Payment ID
+                            </DataTable.Title>
+                            <DataTable.Title style={styles.userHeaderCell}>
+                              Seller
+                            </DataTable.Title>
+                            <DataTable.Title style={styles.userHeaderCell}>
+                              Payer
+                            </DataTable.Title>
+                            <DataTable.Title style={styles.headerCell}>
+                              Amount
+                            </DataTable.Title>
+                            <DataTable.Title style={styles.headerCell}>
+                              Payment Method
+                            </DataTable.Title>
+                            <DataTable.Title style={styles.headerCell}>
+                              Currency
+                            </DataTable.Title>
+                            <DataTable.Title style={styles.headerCell}>
+                              Successful
+                            </DataTable.Title>
+                            <DataTable.Title style={styles.headerCell}>
+                              Payment Provider
+                            </DataTable.Title>
+                            <DataTable.Title style={styles.headerCell}>
+                              Transaction ID
+                            </DataTable.Title>
+                            <DataTable.Title style={styles.dateHeaderCell}>
+                              Created At
+                            </DataTable.Title>
+                          </DataTable.Header>
+
+                          {currentItems.map((transaction, index) => (
+                            <DataTable.Row key={transaction.id}>
+                              <DataTable.Cell style={styles.snCell}>
+                                {indexOfFirstItem + index + 1}
+                              </DataTable.Cell>
+                              <DataTable.Cell style={styles.cell}>
+                                <ScrollView horizontal>
+                                  <Text>{transaction.payment_id}</Text>
+                                </ScrollView>
+                              </DataTable.Cell>
+                              <DataTable.Cell style={styles.userCell}>
+                                <ScrollView horizontal>
+                                  <Text>{transaction.seller_email}</Text>
+                                </ScrollView>
+                              </DataTable.Cell>
+                              <DataTable.Cell style={styles.userCell}>
+                                <ScrollView horizontal>
+                                  <Text>{transaction.buyer_email}</Text>
+                                </ScrollView>
+                              </DataTable.Cell>
+                              <DataTable.Cell style={styles.cell}>
+                                <ScrollView horizontal>
+                                  <Text>{transaction.amount}</Text>
+                                </ScrollView>
+                              </DataTable.Cell>
+                              <DataTable.Cell style={styles.cell}>
+                                <ScrollView horizontal>
+                                  <Text>{transaction.payment_method}</Text>
+                                </ScrollView>
+                              </DataTable.Cell>
+                              <DataTable.Cell style={styles.cell}>
+                                <ScrollView horizontal>
+                                  <Text>{transaction.currency}</Text>
+                                </ScrollView>
+                              </DataTable.Cell>
+                              <DataTable.Cell style={styles.cell}>
+                                <ScrollView horizontal>
+                                  {transaction.is_success ? (
+                                    <Text style={{ color: "green" }}>
+                                      <FontAwesomeIcon
+                                        color="green"
+                                        icon={faCheckCircle}
+                                      />{" "}
+                                      Yes
+                                    </Text>
+                                  ) : (
+                                    <Text style={{ color: "red" }}>
+                                      <FontAwesomeIcon
+                                        color="red"
+                                        icon={faTimesCircle}
+                                      />{" "}
+                                      No
+                                    </Text>
+                                  )}
+                                </ScrollView>
+                              </DataTable.Cell>
+                              <DataTable.Cell style={styles.cell}>
+                                <ScrollView horizontal>
+                                  <Text>{transaction.payment_provider}</Text>
+                                </ScrollView>
+                              </DataTable.Cell>
+                              <DataTable.Cell style={styles.cell}>
+                                <ScrollView horizontal>
+                                  <Text>{transaction.transaction_id}</Text>
+                                </ScrollView>
+                              </DataTable.Cell>
+                              <DataTable.Cell style={styles.dateCell}>
+                                <ScrollView horizontal>
+                                  <Text>
+                                    {new Date(
+                                      transaction.timestamp
+                                    ).toLocaleString("en-US", {
+                                      weekday: "long",
+                                      year: "numeric",
+                                      month: "long",
+                                      day: "numeric",
+                                      hour: "numeric",
+                                      minute: "numeric",
+                                      second: "numeric",
+                                    })}
+                                  </Text>
+                                </ScrollView>
+                              </DataTable.Cell>
+                            </DataTable.Row>
+                          ))}
+                        </DataTable>
+                      </Card.Content>
+                    </Card>
+                  </View>
+                </ScrollView>
+              )}
+
+              <View style={styles.pagination}>
+                <Card style={styles.card}>
+                  <Card.Content>
+                    <Pagination
+                      currentPage={currentPage}
+                      totalPages={totalPages}
+                      paginate={handlePagination}
+                    />
+                  </Card.Content>
+                </Card>
+              </View>
+            </>
           )}
-          <Pagination
-            itemsPerPage={itemsPerPage}
-            totalItems={transactions.length}
-            currentPage={currentPage}
-            paginate={paginate}
-          />
-        </>
-      )}
-    </div>
+        </View>
+      </ScrollView>
+    </SafeAreaView>
   );
-}
+};
+
+const styles = StyleSheet.create({
+  safeArea: {
+    flex: 1,
+  },
+  scrollView: {
+    flexGrow: 1,
+  },
+  container: {
+    flex: 1,
+    padding: 16,
+  },
+  title: {
+    fontSize: 24,
+    fontWeight: "bold",
+    marginVertical: 10,
+    textAlign: "center",
+  },
+  noData: {
+    textAlign: "center",
+    marginVertical: 20,
+  },
+  pagination: {
+    flexDirection: "row",
+    justifyContent: "center",
+    marginTop: 10,
+  },
+  headerCell: {
+    width: 150,
+    marginLeft: 20,
+    borderRightWidth: 1,
+    borderColor: "black",
+  },
+  cell: {
+    width: 150,
+    marginLeft: 10,
+  },
+  snHeaderCell: {
+    width: 50,
+    borderRightWidth: 1,
+    borderColor: "black",
+  },
+  snCell: {
+    width: 50,
+  },
+  dateHeaderCell: {
+    width: 250,
+    borderRightWidth: 1,
+    borderColor: "black",
+    marginLeft: 20,
+  },
+  dateCell: {
+    width: 250,
+    marginLeft: 10,
+  },
+  userHeaderCell: {
+    width: 250,
+    borderRightWidth: 1,
+    borderColor: "black",
+    marginLeft: 20,
+  },
+  userCell: {
+    width: 250,
+    marginLeft: 10,
+  },
+  header: {
+    fontSize: 24,
+    fontWeight: "bold",
+    textAlign: "center",
+    padding: 20,
+  },
+  headerCard: {
+    marginBottom: 16,
+    borderRadius: 8,
+  },
+  cardContainer: {
+    padding: 10,
+  },
+});
 
 export default Transactions;
-
-// import React, { useEffect, useState } from "react";
-// import { useDispatch, useSelector } from "react-redux";
-// import { Table } from "react-bootstrap";
-// import { getUserTransactions } from "../../redux/actions/transactionActions";
-// import Message from "../Message";
-// import Loader from "../Loader";
-
-// function Transactions() {
-//   const dispatch = useDispatch();
-
-//   const userTransactions = useSelector((state) => state.userTransactions);
-//   const { loading, transactions, error } = userTransactions;
-//   console.log("Transactions:", transactions);
-
-//   const [currentPage, setCurrentPage] = useState(1);
-//   const itemsPerPage = 10;
-
-//   const paginate = (pageNumber) => setCurrentPage(pageNumber);
-
-//   const indexOfLastItem = currentPage * itemsPerPage;
-//   const indexOfFirstItem = indexOfLastItem - itemsPerPage;
-//   const currentItems = transactions.slice(indexOfFirstItem, indexOfLastItem);
-
-//   const pageNumbers = [];
-//   for (let i = 1; i <= Math.ceil(transactions.length / itemsPerPage); i++) {
-//     pageNumbers.push(i);
-//   }
-
-//   useEffect(() => {
-//     dispatch(getUserTransactions());
-//   }, [dispatch]);
-
-//   return (
-//     <div>
-//       <h1 className="text-center py-3">
-//         <i className="fas fa-luggage-cart"></i> Transactions
-//       </h1>
-//       {loading ? (
-//         <Loader />
-//       ) : error ? (
-//         <Message variant="danger">{error}</Message>
-//       ) : (
-//         <>
-//           {currentItems.length === 0 ? (
-//             <div className="text-center">
-//               Transactions appear here.
-//             </div>
-//           ) : (
-//             <Table striped bordered hover responsive className="table-sm">
-//               <thead>
-//                 <tr>
-//                   <th>SN</th>
-//                   <th>Payment ID</th>
-//                   <th>User</th>
-//                   <th>Payer</th>
-//                   <th>Amount</th>
-//                   <th>Payment Method</th>
-//                   <th>Currency</th>
-//                   <th>Successful</th>
-//                   <th>Payment Provider</th>
-//                   <th>Transaction ID</th>
-//                   <th>Created At</th>
-//                 </tr>
-//               </thead>
-//               <tbody>
-//                 {currentItems.map((transaction, index) => (
-//                   <tr key={transaction._id}>
-//                     <td>{index + 1}</td>
-//                     <td>{transaction.payment_id}</td>
-//                     <td>
-//                       <td>{transaction.seller_email}</td>
-//                     </td>
-//                     <td>{transaction.buyer_email}</td>
-//                     <td>{transaction.amount}</td>
-//                     <td>{transaction.payment_method}</td>
-//                     <td>{transaction.currency}</td>
-//                     <td>
-//                       {transaction.is_success ? (
-//                         <i
-//                           className="fas fa-check-circle"
-//                           style={{ fontSize: "16px", color: "green" }}
-//                         ></i>
-//                       ) : (
-//                         <i
-//                           className="fas fa-times-circle"
-//                           style={{ fontSize: "16px", color: "red" }}
-//                         ></i>
-//                       )}
-//                     </td>
-//                     <td>{transaction.payment_provider}</td>
-//                     <td>{transaction.transaction_id}</td>
-//                     <td>{new Date(transaction.timestamp).toLocaleString()}</td>
-//                   </tr>
-//                 ))}
-//               </tbody>
-//             </Table>
-//           )}
-//           <nav className="mt-4">
-//             <ul className="pagination justify-content-center">
-//               <li
-//                 className={`page-item ${currentPage === 1 ? "disabled" : ""}`}
-//               >
-//                 <button
-//                   className="page-link"
-//                   onClick={() => paginate(currentPage - 1)}
-//                 >
-//                   Previous
-//                 </button>
-//               </li>
-//               {pageNumbers.map((number) => (
-//                 <li
-//                   key={number}
-//                   className={`page-item ${
-//                     currentPage === number ? "active" : ""
-//                   }`}
-//                 >
-//                   <button
-//                     className="page-link"
-//                     onClick={() => paginate(number)}
-//                   >
-//                     {number}
-//                   </button>
-//                 </li>
-//               ))}
-//               <li
-//                 className={`page-item ${
-//                   currentPage === pageNumbers.length ? "disabled" : ""
-//                 }`}
-//               >
-//                 <button
-//                   className="page-link"
-//                   onClick={() => paginate(currentPage + 1)}
-//                 >
-//                   Next
-//                 </button>
-//               </li>
-//             </ul>
-//           </nav>
-//         </>
-//       )}
-//     </div>
-//   );
-// }
-
-// export default Transactions;

@@ -6,7 +6,7 @@ import { Form, Button, Container, Row, Col } from "react-bootstrap";
 import { useHistory } from "react-router-dom";
 import Message from "../Message";
 import Loader from "../Loader";
-import VerifyAccountFundOtp from "./VerifyAccountFundOtp";
+import VerifyAccountFundOtp from "./VerifyAccountFundOtp"; 
 
 function OtpDisableAccountFund() {
   const dispatch = useDispatch();

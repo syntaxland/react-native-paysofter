@@ -1,22 +1,53 @@
 // SellerPromiseMessage.js
-import React, { useState, useEffect } from "react";
-import { useParams } from "react-router-dom";
+import React, { useState, useEffect, useCallback } from "react";
+import {
+  View,
+  Text,
+  ScrollView,
+  TextInput,
+  StyleSheet,
+  RefreshControl,
+  TouchableOpacity,
+} from "react-native";
+import { useNavigation, useRoute } from "@react-navigation/native";
+import { FontAwesomeIcon } from "@fortawesome/react-native-fontawesome";
+import { faUser, faPaperPlane } from "@fortawesome/free-solid-svg-icons";
 import { useDispatch, useSelector } from "react-redux";
-import { useHistory } from "react-router-dom";
-import { Form, Button, Row, Col, Container } from "react-bootstrap";
 import {
   sellerCreatePromiseMessage,
+  resetSellerCreatePromiseMessageState,
   listSellerPromiseMessages,
 } from "../../redux/actions/PromiseActions";
-import Loader from "../Loader";
-import Message from "../Message";
-import LoaderButton from "../LoaderButton";
+import Loader from "../../Loader";
+import Message from "../../Message";
 
-function SellerPromiseMessage() {
+const SellerPromiseMessage = () => {
   const dispatch = useDispatch();
-  const history = useHistory();
-  const { id } = useParams();
+  const navigation = useNavigation();
+  const route = useRoute();
+
+  const { id } = route.params;
+
+  const userLogin = useSelector((state) => state.userLogin);
+  const { userInfo } = userLogin;
+
+  useEffect(() => {
+    if (!userInfo) {
+      navigation.navigate("Login");
+    }
+  }, [userInfo]);
+
   const [message, setMessage] = useState("");
+  const [refreshing, setRefreshing] = useState(false);
+
+  const onRefresh = useCallback(() => {
+    setRefreshing(true);
+    setTimeout(() => {
+      dispatch(listSellerPromiseMessages(id));
+      setMessage("");
+      setRefreshing(false);
+    }, 2000);
+  }, [dispatch, id]);
 
   const sellerCreatePromiseMessageState = useSelector(
     (state) => state.sellerCreatePromiseMessageState
@@ -27,16 +58,12 @@ function SellerPromiseMessage() {
     (state) => state.listSellerPromiseMessagesState
   );
   const { sellerPromiseMessages } = listSellerPromiseMessagesState;
-  console.log("sellerPromiseMessages:", sellerPromiseMessages);
 
   useEffect(() => {
-    const promiseId = id;
-    dispatch(listSellerPromiseMessages(promiseId));
+    dispatch(listSellerPromiseMessages(id));
   }, [dispatch, id]);
 
-  const handleSubmitReply = (e) => {
-    e.preventDefault();
-
+  const handleSubmitReply = () => {
     const promiseMessageData = {
       promise_id: id,
       message: message,
@@ -48,14 +75,13 @@ function SellerPromiseMessage() {
   useEffect(() => {
     if (success) {
       const timer = setTimeout(() => {
-        // history.push("/dashboard");
-        window.location.reload();
+        dispatch(resetSellerCreatePromiseMessageState());
+        onRefresh();
       }, 500);
       return () => clearTimeout(timer);
     }
-  }, [success, history]);
+  }, [success, onRefresh]);
 
-  // Function to format the timestamp
   const formatTimestamp = (timestamp) => {
     const messageDate = new Date(timestamp);
     return messageDate.toLocaleTimeString([], {
@@ -64,191 +90,195 @@ function SellerPromiseMessage() {
     });
   };
 
-  // Function to determine if a message is the first of the day
   const isFirstMessageOfDay = (currentIndex, messages) => {
     if (currentIndex === 0) return true;
 
     const currentDate = new Date(messages[currentIndex].timestamp);
     const prevDate = new Date(messages[currentIndex - 1].timestamp);
 
-    // Get the current date and the previous date
-    const today = new Date();
-    const yesterday = new Date();
-    yesterday.setDate(yesterday.getDate() - 1);
+    if (currentDate.toLocaleDateString() !== prevDate.toLocaleDateString()) {
+      const today = new Date();
+      const yesterday = new Date(today);
+      yesterday.setDate(yesterday.getDate() - 1);
 
-    // Check if the current message was sent today
-    if (
-      currentDate.getDate() === today.getDate() &&
-      currentDate.getMonth() === today.getMonth() &&
-      currentDate.getFullYear() === today.getFullYear()
-    ) {
-      // Return "Today" if the message was sent today
-      if (
-        prevDate.getDate() === today.getDate() &&
-        prevDate.getMonth() === today.getMonth() &&
-        prevDate.getFullYear() === today.getFullYear()
+      if (currentDate.toLocaleDateString() === today.toLocaleDateString()) {
+        return "Today";
+      } else if (
+        currentDate.toLocaleDateString() === yesterday.toLocaleDateString()
       ) {
-        return null; // If the previous message was also sent today, don't display the date again
+        return "Yesterday";
+      } else {
+        return currentDate.toLocaleDateString("en-US", {
+          weekday: "long",
+          year: "numeric",
+          month: "long",
+          day: "numeric",
+        });
       }
-      return "Today";
     }
-
-    // Check if the current message was sent yesterday
-    if (
-      currentDate.getDate() === yesterday.getDate() &&
-      currentDate.getMonth() === yesterday.getMonth() &&
-      currentDate.getFullYear() === yesterday.getFullYear()
-    ) {
-      // Return "Yesterday" if the message was sent yesterday
-      if (
-        prevDate.getDate() === yesterday.getDate() &&
-        prevDate.getMonth() === yesterday.getMonth() &&
-        prevDate.getFullYear() === yesterday.getFullYear()
-      ) {
-        return null; // If the previous message was also sent yesterday, don't display the date again
-      }
-      return "Yesterday";
-    }
-
-    // If the message was not sent today or yesterday, return the full date
-    return currentDate.toLocaleDateString("en-US", {
-      weekday: "long",
-      year: "numeric",
-      month: "long",
-      day: "numeric",
-    });
+    return false;
   };
 
-  //  // Function to determine if a message is the first of the day
-  // const isFirstMessageOfDay = (currentIndex, messages) => {
-  //   if (currentIndex === 0) return true;
-
-  //   const currentDate = new Date(messages[currentIndex].timestamp);
-  //   const prevDate = new Date(messages[currentIndex - 1].timestamp);
-
-  //   // Check if the messages were sent on different dates
-  //   if (currentDate.toLocaleDateString() !== prevDate.toLocaleDateString()) {
-  //     const today = new Date();
-  //     const yesterday = new Date(today);
-  //     yesterday.setDate(yesterday.getDate() - 1);
-
-  //     // Check if the current message was sent today
-  //     if (currentDate.toLocaleDateString() === today.toLocaleDateString()) {
-  //       return "Today";
-  //     }
-  //     // Check if the current message was sent yesterday
-  //     else if (
-  //       currentDate.toLocaleDateString() === yesterday.toLocaleDateString()
-  //     ) {
-  //       return "Yesterday";
-  //     } else {
-  //       // If it's beyond yesterday, return the full date
-  //       return currentDate.toLocaleDateString("en-US", {
-  //         weekday: "long",
-  //         year: "numeric",
-  //         month: "long",
-  //         day: "numeric",
-  //       });
-  //     }
-  //   }
-
-  //   return false; // Return false when the dates are the same
-  // };
-
   return (
-    <Container>
-      <div>
-        <Row className="d-flex justify-content-center">
-          <Col className="border rounded p-4 bg-secondary" xs={10} md={8}>
-            {loading && <Loader />}
-            {error && <Message variant="danger">{error}</Message>}
-            {/* {success && (
-              <Message variant="success">Message sent successfully.</Message>
-            )} */}
+    <ScrollView
+      refreshControl={
+        <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+      }
+    >
+      <View style={styles.container}>
+        <View style={styles.messageContainer}>
+          <Text style={styles.header}>Promise ID: {id}</Text>
 
-            <h2 className="border rounded p-4 py-2 text-center text-white">
-              Promise ID: {id}
-            </h2>
+          {loading && <Loader />}
+          {error && <Message variant="danger">{error}</Message>}
 
-            {sellerPromiseMessages?.map((message, index) => (
-              <div key={message.id}>
-                {isFirstMessageOfDay(index, sellerPromiseMessages) && (
-                  <p className="text-center mb-0 mt-3">
-                    {isFirstMessageOfDay(index, sellerPromiseMessages)}
-                  </p>
-                )}
-                <div
-                  className={`${
-                    message.buyer
-                      ? "d-flex justify-content-left"
-                      : "d-flex justify-content-end"
-                  }`}
-                  style={{ maxWidth: "75%" }}
-                >
-                  <div>
-                    <div
-                      className={`border rounded p-3 my-2 ${
-                        message.buyer
-                          ? "bg-light"
-                          : "bg-success justify-content-end"
-                      }`}
-                    >
-                      <p>
-                        <i className="fas fa-user"></i>{" "}
-                        {message.buyer_username
-                          ? message.buyer_username?.charAt(0).toUpperCase() +
-                            message.buyer_username?.slice(1)
-                          : message.seller_username?.charAt(0).toUpperCase() +
-                            message.seller_username?.slice(1)}
-                      </p>
-                      <p>{message.message}</p>
-                      <p className="d-flex justify-content-end">
-                        {formatTimestamp(message.timestamp)}
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            ))}
-
-            <Form onSubmit={handleSubmitReply}>
-              <Form.Group controlId="message">
-                <Form.Label>Message</Form.Label>
-                <Form.Control
-                  required
-                  as="textarea"
-                  placeholder="Type your message"
-                  rows={2}
-                  value={message}
-                  maxLength={1000}
-                  onChange={(e) => setMessage(e.target.value)}
-                ></Form.Control>
-              </Form.Group>
-
-              <div className="py-2">
-                <Button
-                  className="w-100 rounded"
-                  type="submit"
-                  variant="primary"
-                  disabled={loading}
-                >
-                  <div className="d-flex justify-content-center">
-                    <span className="py-1">
-                      Send <i className="fa fa-paper-plane"></i>
-                    </span>{" "}
-                    {loading && <LoaderButton />}
-                  </div>
-                </Button>
-              </div>
-              {success && (
-                <Message variant="success">Message sent successfully.</Message>
+          {sellerPromiseMessages?.map((message, index) => (
+            <View key={message.id}>
+              {isFirstMessageOfDay(index, sellerPromiseMessages) && (
+                <Text style={styles.dateLabel}>
+                  {new Date(message.timestamp).toLocaleDateString("en-US", {
+                    weekday: "long",
+                    year: "numeric",
+                    month: "long",
+                    day: "numeric",
+                  })}
+                </Text>
               )}
-            </Form>
-          </Col>
-        </Row>
-      </div>
-    </Container>
+              <View
+                style={[
+                  styles.messageItem,
+                  message.buyer ? styles.buyerMessage : styles.sellerMessage,
+                ]}
+              >
+                <View
+                  style={[
+                    styles.messageBubble,
+                    message.buyer ? styles.buyerBubble : styles.sellerBubble,
+                  ]}
+                >
+                  <Text style={styles.username}>
+                    <FontAwesomeIcon icon={faUser} />{" "}
+                    {message.buyer_username
+                      ? message.buyer_username.charAt(0).toUpperCase() +
+                        message.buyer_username.slice(1)
+                      : message.seller_username.charAt(0).toUpperCase() +
+                        message.seller_username.slice(1)}
+                  </Text>
+                  <Text>{message.message}</Text>
+                  <Text style={styles.timestamp}>
+                    {formatTimestamp(message.timestamp)}
+                  </Text>
+                </View>
+              </View>
+            </View>
+          ))}
+
+          {success && (
+            <Message variant="success">Message sent successfully.</Message>
+          )}
+
+          <View style={styles.replyForm}>
+            <TextInput
+              style={[styles.input, styles.textarea]}
+              placeholder="Type your message"
+              value={message}
+              onChangeText={setMessage}
+              multiline
+              numberOfLines={4}
+            />
+          </View>
+
+          <View style={styles.formGroup}>
+            <TouchableOpacity onPress={handleSubmitReply} disabled={loading}>
+              <Text style={styles.roundedPrimaryBtn}>
+                Send <FontAwesomeIcon icon={faPaperPlane} color="#fff" />
+              </Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </View>
+    </ScrollView>
   );
-}
+};
+
+const styles = StyleSheet.create({
+  container: {
+    padding: 20,
+  },
+  header: {
+    fontSize: 20,
+    fontWeight: "bold",
+    marginBottom: 10,
+    textAlign: "center",
+    borderWidth: 1,
+    borderColor: "#ccc",
+    borderRadius: 5,
+    padding: 10,
+  },
+  messageContainer: {
+    borderWidth: 1,
+    borderColor: "#ccc",
+    padding: 10,
+    borderRadius: 5,
+  },
+  messageItem: {
+    marginBottom: 10,
+    maxWidth: "75%",
+  },
+  sellerMessage: {
+    alignSelf: "flex-end",
+  },
+  buyerMessage: {
+    alignSelf: "flex-start",
+  },
+  messageBubble: {
+    borderRadius: 10,
+    padding: 10,
+  },
+  sellerBubble: {
+    backgroundColor: "#f8f9fa",
+  },
+  buyerBubble: {
+    backgroundColor: "#28a745",
+  },
+  username: {
+    fontWeight: "bold",
+  },
+  timestamp: {
+    textAlign: "right",
+    fontSize: 10,
+  },
+  dateLabel: {
+    textAlign: "center",
+    justifyContent: "center",
+    alignItems: "center",
+    fontSize: 12,
+    color: "#888",
+    marginVertical: 5,
+  },
+  replyForm: {
+    marginTop: 20,
+  },
+  input: {
+    borderWidth: 1,
+    borderColor: "#ccc",
+    borderRadius: 5,
+    padding: 10,
+    marginBottom: 10,
+  },
+  textarea: {
+    height: 100,
+    textAlignVertical: "top",
+  },
+  roundedPrimaryBtn: {
+    backgroundColor: "#007bff",
+    color: "#fff",
+    padding: 10,
+    borderRadius: 25,
+    justifyContent: "center",
+    alignItems: "center",
+    textAlign: "center",
+  },
+});
 
 export default SellerPromiseMessage;

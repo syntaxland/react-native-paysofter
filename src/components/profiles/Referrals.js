@@ -1,201 +1,219 @@
-// // Referrals.js
-// import React, { useEffect, useState } from "react";
-// import { Row, Col, Button } from "react-bootstrap";
-// import { useSelector, useDispatch } from "react-redux";
-// import {
-//   generateReferralLink,
-//   getUserReferrals,
-//   generateReferralLinkButton,
-// } from "../../redux/actions/promoActions";
-// import Loader from "../Loader";
-// import Message from "../Message";
-// import NotificationAlert from "../NotificationAlert";
+// Referrals.js
+import React, { useEffect, useState, useCallback } from "react";
+import {
+  View,
+  Text,
+  StyleSheet,
+  ScrollView,
+  TouchableOpacity,
+  Alert,
+  RefreshControl,
+} from "react-native";
+import { useDispatch, useSelector } from "react-redux";
+// import { useNavigation } from "@react-navigation/native";
+import { FontAwesomeIcon } from "@fortawesome/react-native-fontawesome";
+import { faCopy, faShareAlt, faCheck } from "@fortawesome/free-solid-svg-icons";
+import { DataTable, Card } from "react-native-paper";
+import * as Clipboard from "expo-clipboard";
+import {
+  generateReferralLink,
+  getUserReferrals,
+} from "../../redux/actions/promoActions";
+import Loader from "../../Loader";
+import Message from "../../Message";
 
-// function Referrals() {
-//   const dispatch = useDispatch();
-//   const referralState = useSelector((state) => state.referral);
-//   const { referralLink, referralCode, referralError, loading } = referralState;
-//   console.log("referralLink:", referralLink);
+const Referrals = () => {
+  const dispatch = useDispatch();
+  // const navigation = useNavigation();
 
-//   const referralButton = useSelector((state) => state.referralButton);
-//   const { referralErrorButton, loading: loadingButton } = referralButton;
+  const referralState = useSelector((state) => state.referral);
+  const { referralLink, referralCode, referralError, loading } = referralState;
 
-//   const userReferralState = useSelector((state) => state.userReferralState);
-//   const {
-//     loading: userReferralsLoading,
-//     userReferrals,
-//     error: userReferralsError,
-//   } = userReferralState;
-//   console.log("userReferrals:", userReferrals);
+  // const referralButton = useSelector((state) => state.referralButton);
+  // const { referralErrorButton, loading: loadingButton } = referralButton;
 
-//   const [isReferralLinkCopied, setIsReferralLinkCopied] = useState(false);
-//   const [isReferralCodeCopied, setIsReferralCodeCopied] = useState(false);
-//   const [showConfirmationAlert, setShowConfirmationAlert] = useState(false);
+  const userReferralState = useSelector((state) => state.userReferralState);
+  const {
+    loading: userReferralsLoading,
+    userReferrals,
+    error: userReferralsError,
+  } = userReferralState;
 
-//   useEffect(() => {
-//     dispatch(generateReferralLink());
-//     dispatch(getUserReferrals());
-//   }, [dispatch]);
+  const [isReferralLinkCopied, setIsReferralLinkCopied] = useState(false);
+  const [isReferralCodeCopied, setIsReferralCodeCopied] = useState(false);
+  const [refreshing, setRefreshing] = useState(false);
 
-//   const handleGenerateReferral = () => {
-//     setShowConfirmationAlert(true);
-//   };
+  useEffect(() => {
+    dispatch(generateReferralLink());
+    dispatch(getUserReferrals());
+  }, [dispatch]);
 
-//   const handleConfirmGenerate = () => {
-//     dispatch(generateReferralLinkButton());
-//     setShowConfirmationAlert(false);
-//   };
+  const onRefresh = useCallback(() => {
+    setRefreshing(true);
+    dispatch(generateReferralLink());
+    dispatch(getUserReferrals());
+    setTimeout(() => setRefreshing(false), 2000);
+  }, [dispatch]);
 
-//   const copyToClipboard = (textToCopy) => {
-//     navigator.clipboard.writeText(textToCopy).then(() => {
-//       if (textToCopy === referralLink) {
-//         setIsReferralLinkCopied(true);
-//         setTimeout(() => setIsReferralLinkCopied(false), 2000);
-//       } else if (textToCopy === referralCode) {
-//         setIsReferralCodeCopied(true);
-//         setTimeout(() => setIsReferralCodeCopied(false), 2000);
-//       }
-//     });
-//   };
+  const copyToClipboard = async (textToCopy) => {
+    await Clipboard.setStringAsync(textToCopy);
+    if (textToCopy === referralLink) {
+      setIsReferralLinkCopied(true);
+      setTimeout(() => setIsReferralLinkCopied(false), 2000);
+    } else if (textToCopy === referralCode) {
+      setIsReferralCodeCopied(true);
+      setTimeout(() => setIsReferralCodeCopied(false), 2000);
+    }
+  };
 
-//   const shareReferralLink = () => {
-//     if (navigator.share) {
-//       navigator
-//         .share({
-//           title: "Referral Link",
-//           text: "Check out this referral link!",
-//           url: referralLink,
-//         })
-//         .then(() => console.log("Shared successfully"))
-//         .catch((error) => console.error("Share failed:", error));
-//     } else {
-//       console.log("Web Share API not supported");
-//       // Fallback: Provide instructions to manually share the link
-//       alert("Please manually share the referral link: " + referralLink);
-//     }
-//   };
+  const shareReferralLink = () => {
+    if (navigator.share) {
+      navigator
+        .share({
+          title: "Referral Link",
+          text: "Check out this referral link!",
+          url: referralLink,
+        })
+        .then(() => console.log("Shared successfully"))
+        .catch((error) => console.error("Share failed:", error));
+    } else {
+      Alert.alert("Please manually share the referral link:", referralLink);
+    }
+  };
 
-//   return (
-//     <div>
-//       <Row className="d-flex justify-content-center">
-//         <Col>
-//           <div>
-//             <h1 className="text-center py-3">Referrals</h1>
-//             <hr />
+  return (
+    <ScrollView
+      refreshControl={
+        <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+      }
+    >
+      <View style={styles.container}>
+        <View style={styles.header}>
+          <View style={styles.cardContainer}>
+            <Card style={styles.card}>
+              <Card.Content>
+                <Text style={styles.title}>Referrals</Text>
+              </Card.Content>
+            </Card>
+          </View>
+        </View>
 
-//             {showConfirmationAlert && (
-//               <NotificationAlert
-//                 variant="info"
-//                 message="This action will generate a new referral link if not existing and render the former ones invalid. Are you sure you want to proceed?"
-//                 onClose={() => setShowConfirmationAlert(false)}
-//               >
-//                 <Button variant="danger" onClick={handleConfirmGenerate}>
-//                   OK
-//                 </Button>
-//               </NotificationAlert>
-//             )}
+        <View style={styles.cardContainer}>
+          <Card style={styles.card}>
+            <Card.Content>
+              <View style={styles.content}>
+                {userReferralsLoading ? (
+                  <Loader />
+                ) : userReferralsError ? (
+                  <Message variant="danger">{userReferralsError}</Message>
+                ) : (
+                  <>
+                    <Text style={styles.subtitle}>
+                      Referred Users:{" "}
+                      {userReferrals?.length > 0 ? userReferrals.length : 0}
+                    </Text>
+                  </>
+                )}
+              </View>
+              <View style={styles.header}>
+                <Text style={styles.title}>Referral Link</Text>
+              </View>
+              {loading ? (
+                <Loader />
+              ) : referralError ? (
+                <Message variant="danger">{referralError}</Message>
+              ) : (
+                <View style={styles.content}>
+                  <Text style={styles.subtitle}>Your Referral Code:</Text>
+                  <View style={styles.linkContainer}>
+                    <Text style={styles.link}>{referralCode}</Text>
+                    <TouchableOpacity
+                      onPress={() => copyToClipboard(referralCode)}
+                    >
+                      <Text style={styles.label}>
+                        {isReferralCodeCopied ? (
+                          <Text style={styles.label}>
+                            Copied <FontAwesomeIcon icon={faCheck} size={16} />
+                          </Text>
+                        ) : (
+                          <Text style={styles.label}>
+                            Copy <FontAwesomeIcon icon={faCopy} size={16} />
+                          </Text>
+                        )}
+                      </Text>
+                    </TouchableOpacity>
+                  </View>
+                  <Text style={styles.subtitle}>Your Referral Link:</Text>
+                  <View style={styles.linkContainer}>
+                    <Text style={styles.link}>{referralLink}</Text>
+                    <TouchableOpacity
+                      onPress={() => copyToClipboard(referralLink)}
+                    >
+                      <Text style={styles.label}>
+                        {isReferralLinkCopied ? (
+                          <Text style={styles.label}>
+                            Copied <FontAwesomeIcon icon={faCheck} size={16} />
+                          </Text>
+                        ) : (
+                          <Text style={styles.label}>
+                            Copy <FontAwesomeIcon icon={faCopy} size={16} />
+                          </Text>
+                        )}
+                      </Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity onPress={shareReferralLink}>
+                      <Text style={styles.label}>
+                        Share <FontAwesomeIcon icon={faShareAlt} size={16} />
+                      </Text>
+                    </TouchableOpacity>
+                  </View>
+                </View>
+              )}
+            </Card.Content>
+          </Card>
+        </View>
+      </View>
+    </ScrollView>
+  );
+};
 
-//             {userReferralsLoading ? (
-//               <Loader />
-//             ) : userReferralsError ? (
-//               <Message variant="danger">{userReferralsError}</Message>
-//             ) : (
-//               <>
-//                 <h5 className="text-right py-2">
-//                   <i className="fas fa-users"></i> Referred Users:{" "}
-//                   {userReferrals.map((referrals) => (
-//                     <span key={referrals.id}>
-//                       ({referrals.referred_users.length || "0"})
-//                     </span>
-//                   ))}
-//                 </h5>
-//               </>
-//             )}
-//           </div>
-//           <hr />
-//           <h1 className="text-center py-3">Referral Link</h1>
-//           {loading || loadingButton ? (
-//             <Loader />
-//           ) : referralError || referralErrorButton ? (
-//             <Message variant="danger">
-//               {referralError || referralErrorButton}
-//             </Message>
-//           ) : (
-//             <div>
-//               <h5 className="pt-3">Your Referral Code:</h5>
-//               <div>
-//                 {referralCode}{" "}
-//                 <span>
-//                   <Button
-//                     variant="success"
-//                     className="rounded"
-//                     size="sm"
-//                     onClick={() => copyToClipboard(referralCode)}
-//                   >
-//                     {isReferralCodeCopied ? (
-//                       <span>
-//                         <i className="fa fa-check"></i> Copied
-//                       </span>
-//                     ) : (
-//                       <span>
-//                         <i className="fa fa-copy"></i> Copy
-//                       </span>
-//                     )}
-//                   </Button>
-//                 </span>
-//               </div>
+const styles = StyleSheet.create({
+  container: {
+    padding: 20,
+    backgroundColor: "#fff",
+  },
+  header: {
+    marginVertical: 20,
+    alignItems: "center",
+  },
+  title: {
+    fontSize: 24,
+    fontWeight: "bold",
+  },
+  content: {
+    marginTop: 20,
+  },
+  subtitle: {
+    fontSize: 18,
+    marginBottom: 10,
+  },
+  linkContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+  },
+  link: {
+    color: "blue",
+    flex: 1,
+    marginRight: 10,
+  },
+  label: {
+    marginBottom: 8,
+    fontSize: 16,
+  },
+  cardContainer: {
+    padding: 10,
+  },
+});
 
-//               <h5 className="pt-3">Your Referral Link:</h5>
-//               <div>
-//                 <span style={{ color: "blue" }}>{referralLink}</span>{" "}
-//                 <span>
-//                   <Button
-//                     variant="success"
-//                     className="rounded"
-//                     size="sm"
-//                     onClick={() => copyToClipboard(referralLink)}
-//                   >
-//                     {isReferralLinkCopied ? (
-//                       <span>
-//                         <i className="fa fa-check"></i> Copied
-//                       </span>
-//                     ) : (
-//                       <span>
-//                         <i className="fa fa-copy"></i> Copy
-//                       </span>
-//                     )}
-//                   </Button>
-//                 </span>
-//                 <span>
-//                   <Button
-//                     variant="link"
-//                     className="rounded"
-//                     onClick={shareReferralLink}
-//                   >
-//                     Share <i className="fas fa-share-alt"></i>
-//                   </Button>
-//                 </span>
-//               </div>
-//               <hr />
-
-//               <div className="py-3 mt-5 text-center">
-//                 <span>Referral link not found?</span>{" "}
-//                 <Button
-//                   variant="danger"
-//                   className="rounded"
-//                   onClick={handleGenerateReferral}
-//                 >
-//                   Generate
-//                 </Button>
-//               </div>
-//             </div>
-//           )}
-
-//           <hr />
-//         </Col>
-//       </Row>
-//     </div>
-//   );
-// }
-
-// export default Referrals;
+export default Referrals;

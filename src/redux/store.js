@@ -21,6 +21,10 @@ import {
 } from "./reducers/settingsReducers";
 
 import {
+  getPaymentApiKeysReducer,
+} from "./reducers/paymentReducers";
+
+import {
   messagingReducer,
   sendEmailReducer,
   clearMessageCounterReducer,
@@ -126,7 +130,14 @@ import {
   feedbackListReducer,
 } from "./reducers/feedbackReducers";
 
-import { referralReducer } from "./reducers/promoReducer";
+import {
+  referralReducer,
+  referralButtonReducer,
+  getUserReferralsReducer,
+  // createPromoCodeReducer,
+  // promoProductListReducer,
+} from "./reducers/promoReducer";
+
 import { orderListReducer } from "./reducers/orderReducers"; 
 
 const rootReducer = combineReducers({
@@ -137,6 +148,8 @@ const rootReducer = combineReducers({
   emailOtpSend: emailOtpSendReducer,
   emailOtpVerify: emailOtpVerifyReducer,
 
+    getPaymentApiKeysState: getPaymentApiKeysReducer,
+
   userProfile: getUserProfileReducer,
   updateProfile: updateUserProfileReducer,
   userChangePassword: changePasswordReducer,
@@ -144,7 +157,12 @@ const rootReducer = combineReducers({
   updateUserAvatar: updateUserAvatarReducer,
   sendPasswordResetLink: sendPasswordResetLinkReducer,
   resetPassword: resetPasswordReducer,
+
   referral: referralReducer,
+  referralButton: referralButtonReducer,
+  userReferralState: getUserReferralsReducer,
+  // createPromoCodeState: createPromoCodeReducer,
+  // promoProductList: promoProductListReducer,
 
   userTransactions: userTransactionReducer,
   createTransactionState: createTransactionReducer,

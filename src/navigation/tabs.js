@@ -7,17 +7,16 @@ import { useNavigation } from "@react-navigation/native";
 import { getUserProfile } from "../redux/actions/userProfileActions";
 import HomeScreen from "../components/screens/HomeScreen";
 // import PostFreeAd from "../components/marketplace/PostFreeAd";
-// import CurrentAds from "../components/marketplace/CurrentAds";
 import Dashboard from "../components/profiles/Dashboard";
-// import Inbox from "../components/profiles/Inbox";
+import Inbox from "../components/profiles/Inbox";
+import PaysofterPromiseBuyer from "../components/profiles/PaysofterPromiseBuyer";
+// import PaysofterPromiseSeller from "../components/seller/PaysofterPromiseSeller";
 import { Ionicons } from "@expo/vector-icons";
-// import { getUserMessages } from "../redux/actions/messagingActions";
-// import {
-//   GetActiveBuyerFreeAdMessages,
-//   GetActiveBuyerPaidAdMessages,
-//   listBuyerFreeAdMessages,
-//   listBuyerPaidAdMessages,
-// } from "../redux/actions/marketplaceSellerActions";
+import { getUserMessages } from "../redux/actions/messagingActions";
+import {
+  getBuyerPromises,
+  getSellerPromises,
+} from "../redux/actions/PromiseActions";
 
 const Tab = createBottomTabNavigator();
 
@@ -34,69 +33,60 @@ export const HomeTabs = () => {
   useEffect(() => {
     if (userInfo) {
       dispatch(getUserProfile());
-      // dispatch(getUserMessages());
-      // dispatch(GetActiveBuyerFreeAdMessages());
-      // dispatch(GetActiveBuyerPaidAdMessages());
-      // dispatch(listBuyerFreeAdMessages());
-      // dispatch(listBuyerPaidAdMessages());
+      dispatch(getUserMessages());
+      dispatch(getBuyerPromises());
+      dispatch(getSellerPromises());
     }
   }, [dispatch, userInfo]);
 
-  // const getUserMessagesState = useSelector(
-  //   (state) => state.getUserMessagesState
-  // );
-  // const { messages } = getUserMessagesState;
+  const getUserMessagesState = useSelector(
+    (state) => state.getUserMessagesState
+  );
+  const { messages } = getUserMessagesState;
 
-  // const msgCounted = messages?.reduce(
-  //   (total, userMessages) => total + userMessages.msg_count,
-  //   0
-  // );
-  // const listBuyerFreeAdMessagesState = useSelector(
-  //   (state) => state.listBuyerFreeAdMessagesState
-  // );
-  // const { freeAdMessages } = listBuyerFreeAdMessagesState;
+  const msgCounted = messages?.reduce(
+    (total, userMessages) => total + userMessages.msg_count,
+    0
+  );
+  const getSellerPromiseState = useSelector(
+    (state) => state.getSellerPromiseState
+  );
+  const { promises: sellerPromises } = getSellerPromiseState;
 
-  // const listBuyerPaidAdMessagesState = useSelector(
-  //   (state) => state.listBuyerPaidAdMessagesState
-  // );
-  // const { paidAdMessages } = listBuyerPaidAdMessagesState;
+  const getBuyerPromiseState = useSelector(
+    (state) => state.getBuyerPromiseState
+  );
+  const { promises: buyerPromises } = getBuyerPromiseState;
 
-  // const msgFreeAdCounted = freeAdMessages?.reduce(
-  //   (total, userMessages) => total + userMessages.seller_free_ad_msg_count,
-  //   0
-  // );
+  const sellerMsgCounted = sellerPromises?.reduce(
+    (total, userMessages) => total + userMessages.seller_msg_count,
+    0
+  );
 
-  // const msgPaidAdCounted = paidAdMessages?.reduce(
-  //   (total, userMessages) => total + userMessages.seller_paid_ad_msg_count,
-  //   0
-  // );
+  const buyerMsgCounted = buyerPromises?.reduce(
+    (total, userMessages) => total + userMessages.buyer_msg_count,
+    0
+  );
 
-  // const GetActiveBuyerFreeAdMessageState = useSelector(
-  //   (state) => state.GetActiveBuyerFreeAdMessageState
-  // );
-  // const { activeBuyerFreeAdMessages } = GetActiveBuyerFreeAdMessageState;
+  const listSupportTicketState = useSelector(
+    (state) => state.listSupportTicketState
+  );
+  const { tickets: userTickets } = listSupportTicketState;
 
-  // const GetActiveBuyerPaidAdMessageState = useSelector(
-  //   (state) => state.GetActiveBuyerPaidAdMessageState
-  // );
-  // const { activeBuyerPaidAdMessages } = GetActiveBuyerPaidAdMessageState;
+  const supportMsgCounted = userTickets?.reduce(
+    (total, userMessages) => total + userMessages.user_msg_count,
+    0
+  );
 
-  // const msgActiveFreeAdCounted = activeBuyerFreeAdMessages?.reduce(
-  //   (total, userMessages) => total + userMessages.buyer_free_ad_msg_count,
-  //   0
-  // );
+  const allTicketList = useSelector((state) => state.allTicketList);
+  const { tickets: adminTickets } = allTicketList;
 
-  // const msgActivePaidAdCounted = activeBuyerPaidAdMessages?.reduce(
-  //   (total, userMessages) => total + userMessages.buyer_paid_ad_msg_count,
-  //   0
-  // );
+  const adminSupportMsgCounted = adminTickets?.reduce(
+    (total, userMessages) => total + userMessages.admin_user_msg_count,
+    0
+  );
 
-  // const totalMsgCount =
-  //   msgCounted +
-  //   msgPaidAdCounted +
-  //   msgFreeAdCounted +
-  //   msgActiveFreeAdCounted +
-  //   msgActivePaidAdCounted;
+  const totalMsgCount = msgCounted + buyerMsgCounted + sellerMsgCounted;
 
   return (
     <Tab.Navigator
@@ -113,17 +103,16 @@ export const HomeTabs = () => {
 
           if (route.name === "Home") {
             iconName = focused ? "home" : "home-outline";
-          } 
-          else if (route.name === "Dashboard") {
+          } else if (route.name === "Dashboard") {
             iconName = focused ? "speedometer" : "speedometer-outline";
-          } 
-          else if (route.name === "Inbox") {
-          //   iconName = focused ? "mail" : "mail-outline";
-          // } else if (route.name === "Post Free Ad") {
-          //   iconName = focused ? "add" : "add-outline";
-          // } else if (route.name === "Current Ads") {
-          //   iconName = focused ? "megaphone" : "megaphone-outline";
+          } else if (route.name === "Inbox") {
+            iconName = focused ? "mail" : "mail-outline";
+          } else if (route.name === "Buyer Promises") {
+            iconName = focused ? "card" : "card-outline";
           }
+          // else if (route.name === "Seller Promises") {
+          //   iconName = focused ? "cash" : "cash-outline";
+          // }
 
           return (
             <Ionicons name={iconName} size={focused ? 32 : 18} color={color} />
@@ -140,6 +129,7 @@ export const HomeTabs = () => {
       />
 
       {/* <Tab.Screen name="Dashboard" component={Dashboard} /> */}
+
       <Tab.Screen
         name="Dashboard"
         component={Dashboard}
@@ -153,7 +143,7 @@ export const HomeTabs = () => {
         })}
       />
 
-      {/* {userInfo && (
+      {userInfo && (
         <>
           <Tab.Screen
             name="Inbox"
@@ -166,12 +156,13 @@ export const HomeTabs = () => {
             }}
           />
         </>
-      )} */}
-      {/* <Tab.Screen name="Post Free Ad" component={PostFreeAd} /> */}
+      )}
+
+      <Tab.Screen name="Buyer Promises" component={PaysofterPromiseBuyer} />
 
       {userInfo && profile?.is_seller && (
         <>
-          {/* <Tab.Screen name="Current Ads" component={CurrentAds} /> */}
+          {/* <Tab.Screen name="Seller Promises" component={PaysofterPromiseSeller} /> */}
         </>
       )}
     </Tab.Navigator>

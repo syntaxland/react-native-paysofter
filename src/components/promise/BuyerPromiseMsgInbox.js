@@ -1,39 +1,43 @@
 // BuyerPromiseMsgInbox.js
 import React, { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { useHistory, Link } from "react-router-dom";
-import { ListGroup, Button, Container, Row, Col, Card } from "react-bootstrap";
+import { useNavigation } from "@react-navigation/native";
+import {
+  View,
+  Text,
+  TouchableOpacity,
+  ScrollView,
+  StyleSheet,
+} from "react-native";
+import { FontAwesomeIcon } from "@fortawesome/react-native-fontawesome";
+import { faMessage, faUser } from "@fortawesome/free-solid-svg-icons";
+import RenderHtml from "react-native-render-html";
 import { getUserProfile } from "../../redux/actions/userProfileActions";
 import {
   clearBuyerMessageCounter,
   getBuyerPromises,
 } from "../../redux/actions/PromiseActions";
-import Message from "../Message";
-import Loader from "../Loader";
-import DOMPurify from "dompurify";
-import Pagination from "../Pagination";
+import Loader from "../../Loader";
+import Message from "../../Message";
+import { Pagination } from "../../Pagination";
 
 const BuyerPromiseMsgInbox = () => {
   const dispatch = useDispatch();
-  const history = useHistory();
-
-  // const userProfile = useSelector((state) => state.userProfile);
-  // const { profile } = userProfile;
+  const navigation = useNavigation();
 
   const userLogin = useSelector((state) => state.userLogin);
   const { userInfo } = userLogin;
 
   useEffect(() => {
     if (!userInfo) {
-      window.location.href = "/login";
+      navigation.navigate("Login");
     }
-  }, [userInfo, history]);
+  }, [userInfo, navigation]);
 
   const getBuyerPromiseState = useSelector(
     (state) => state.getBuyerPromiseState
   );
   const { loading, promises, error } = getBuyerPromiseState;
-  console.log("Promises:", promises);
 
   const buyerMsgCounted = promises?.reduce(
     (total, userMessages) => total + userMessages.buyer_msg_count,
@@ -67,118 +71,82 @@ const BuyerPromiseMsgInbox = () => {
     dispatch(getBuyerPromises());
   }, [dispatch]);
 
+  const handleNavigateToMessage = (message) => {
+    clearMessageCounter(message.promise_id);
+    navigation.navigate("Buyer Promise Message", {
+      promiseId: message.promise_id,
+    });
+  };
+
+  const renderItem = ({ item: message }) => (
+    <View style={styles.messageItem} key={message.id}>
+      <Text style={styles.title}>{message?.subject}</Text>
+      <Text style={styles.subtitle}>
+        <FontAwesomeIcon icon={faUser} /> {message?.seller_username} |{" "}
+        {message.promise_id}
+      </Text>
+      <RenderHtml
+        contentWidth={300}
+        source={{
+          html: expandedMessages?.includes(message.id)
+            ? message.message
+            : `${message.message?.split(" ")?.slice(0, 10)?.join(" ")}...`,
+        }}
+      />
+      {!expandedMessages.includes(message.id) && (
+        <TouchableOpacity onPress={() => expandMessage(message.id)}>
+          <Text style={styles.link}>Read More</Text>
+        </TouchableOpacity>
+      )}
+      <View style={styles.footer}>
+        <Text style={styles.timestamp}>
+          {new Date(message?.modified_at).toLocaleString("en-US", {
+            weekday: "long",
+            year: "numeric",
+            month: "long",
+            day: "numeric",
+            hour: "numeric",
+            minute: "numeric",
+            hour12: true,
+          })}
+        </Text>
+        <TouchableOpacity
+          onPress={() => handleNavigateToMessage(message)}
+          style={styles.roundedPrimaryBtn}
+        >
+          <Text style={styles.btnText}>
+            Message Seller{" "}
+            {message?.buyer_msg_count > 0 && (
+              <Text style={styles.msgCounter}>{message?.buyer_msg_count}</Text>
+            )}
+          </Text>
+        </TouchableOpacity>
+      </View>
+    </View>
+  );
+
   return (
-    <Container>
-      {currentItems?.length > 0 && (
-        <Row>
-          <Col>
-            <h2 className="text-center py-3">
-              <hr />
-              <i className="fa fa-message"></i> Buyer Inbox{" "}
+    <ScrollView>
+      <View style={styles.container}>
+        {currentItems?.length > 0 && (
+          <>
+            <Text style={styles.header}>
+              <FontAwesomeIcon icon={faMessage} /> Buyer Inbox{" "}
               {buyerMsgCounted > 0 && (
-                <>
-                  (<span className="msg-counter">{buyerMsgCounted}</span>)
-                </>
+                <Text style={styles.msgCounterHeader}>({buyerMsgCounted})</Text>
               )}
-              <hr />
-            </h2>
+            </Text>
             {error && <Message variant="danger">{error}</Message>}
             {loading ? (
               <Loader />
             ) : (
               <>
                 {currentItems?.length === 0 ? (
-                  <div className="text-center py-3">
+                  <Text style={styles.empty}>
                     Buyer promise inbox messages appear here.
-                  </div>
+                  </Text>
                 ) : (
-                  <Card className="py-3">
-                    <Card.Body>
-                      <ListGroup>
-                        {currentItems?.map((message) => (
-                          <ListGroup.Item
-                            key={message.id}
-                            className={`message-list-item ${
-                              !message?.is_read ? "unread-message" : ""
-                            }`}
-                          >
-                            <Card.Title>{message?.subject}</Card.Title>
-                            <Card.Subtitle className="mb-2 text-muted">
-                              {/* Buyer:{" "} */}
-                              <i className="fas fa-user"></i>{" "}
-                              {message?.seller_username} | {message.promise_id}
-                            </Card.Subtitle>
-
-                            <Card.Text
-                              dangerouslySetInnerHTML={{
-                                __html: DOMPurify.sanitize(
-                                  expandedMessages.includes(message.id)
-                                    ? message.message
-                                    : message?.message?.split(" ")?.length > 10
-                                    ? message.message
-                                        .split(" ")
-                                        ?.slice(0, 10)
-                                        .join(" ") + " ..."
-                                    : message.message
-                                ),
-                              }}
-                            />
-
-                            {message?.message?.split(" ")?.length > 10 &&
-                              !expandedMessages?.includes(message.id) && (
-                                <>
-                                  <Button
-                                    variant="link"
-                                    onClick={() => {
-                                      expandMessage(message.id);
-                                    }}
-                                  >
-                                    {" "}
-                                    Read More
-                                  </Button>
-                                </>
-                              )}
-                            <div className="d-flex justify-content-between text-muted">
-                              <small>
-                                {new Date(message?.modified_at).toLocaleString(
-                                  "en-US",
-                                  {
-                                    weekday: "long",
-                                    year: "numeric",
-                                    month: "long",
-                                    day: "numeric",
-                                    hour: "numeric",
-                                    minute: "numeric",
-                                    hour12: true,
-                                  }
-                                )}
-                              </small>
-
-                              <Button
-                                variant="outline-primary"
-                                size="sm"
-                                onClick={() =>
-                                  clearMessageCounter(message.promise_id)
-                                }
-                              >
-                                <Link
-                                  to={`/buyer/promise/message/${message.promise_id}`}
-                                  style={{ textDecoration: "none" }}
-                                >
-                                  Message Seller{" "}
-                                  {message?.buyer_msg_count > 0 && (
-                                    <span className="msg-counter">
-                                      {message?.buyer_msg_count}
-                                    </span>
-                                  )}
-                                </Link>
-                              </Button>
-                            </div>
-                          </ListGroup.Item>
-                        ))}
-                      </ListGroup>
-                    </Card.Body>
-                  </Card>
+                  currentItems?.map((item) => renderItem({ item }))
                 )}
                 <Pagination
                   itemsPerPage={itemsPerPage}
@@ -188,11 +156,78 @@ const BuyerPromiseMsgInbox = () => {
                 />
               </>
             )}
-          </Col>
-        </Row>
-      )}
-    </Container>
+          </>
+        )}
+      </View>
+    </ScrollView>
   );
 };
+
+const styles = StyleSheet.create({
+  container: {
+    padding: 20,
+  },
+  header: {
+    fontSize: 24,
+    fontWeight: "bold",
+    textAlign: "center",
+    marginBottom: 10,
+  },
+  empty: {
+    textAlign: "center",
+    padding: 20,
+  },
+  messageItem: {
+    padding: 10,
+    borderBottomWidth: 1,
+    borderColor: "#ccc",
+  },
+  title: {
+    fontSize: 18,
+    fontWeight: "bold",
+  },
+  subtitle: {
+    fontSize: 14,
+    color: "#777",
+  },
+  link: {
+    color: "#007bff",
+    marginTop: 5,
+  },
+  replyMsg: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    marginTop: 10,
+  },
+  footer: {
+    flexDirection: "row",
+    justifyContent: "center",
+    marginTop: 10,
+  },
+  timestamp: {
+    fontSize: 12,
+    color: "#888",
+  },
+  msgCounter: {
+    fontSize: 12,
+    backgroundColor: "red",
+    color: "#fff",
+    fontWeight: "bold",
+    padding: 6,
+    borderRadius: 50,
+    marginLeft: 5,
+  },
+  roundedPrimaryBtn: {
+    backgroundColor: "#007bff",
+    color: "#fff",
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+    borderRadius: 5,
+    textAlign: "center",
+  },
+  btnText: {
+    color: "#fff",
+  },
+});
 
 export default BuyerPromiseMsgInbox;

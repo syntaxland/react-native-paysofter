@@ -1,12 +1,19 @@
 // SellerBankAccount.js
 import React, { useState, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { Form, Button, Container, Row, Col } from "react-bootstrap";
+import {
+  View,
+  Text,
+  TextInput,
+  Button,
+  StyleSheet,
+  ScrollView,
+} from "react-native";
 import { sellerBankAccount } from "../../redux/actions/sellerActions";
-import Message from "../Message";
-import Loader from "../Loader";
+import Message from "../../Message";
+import Loader from "../../Loader";
 
-function SellerBankAccount({ history }) {
+const SellerBankAccount = ({ navigation }) => {
   const dispatch = useDispatch();
 
   const userLogin = useSelector((state) => state.userLogin);
@@ -14,9 +21,9 @@ function SellerBankAccount({ history }) {
 
   useEffect(() => {
     if (!userInfo) {
-      history.push("/login");
+      navigation.navigate("Login");
     }
-  }, [userInfo, history]);
+  }, [userInfo, navigation]);
 
   const sellerBankAccountState = useSelector(
     (state) => state.sellerBankAccountState
@@ -65,15 +72,14 @@ function SellerBankAccount({ history }) {
   useEffect(() => {
     if (success) {
       const timer = setTimeout(() => {
-        history.push("/seller/bvn");
-        window.location.reload();
+        navigation.navigate("Seller BVN");
       }, 3000);
       return () => clearTimeout(timer);
     }
-  }, [dispatch, success, history]);
+  }, [dispatch, success, navigation]);
 
   const handleSellerBankAccount = (e) => {
-    e.preventDefault(e);
+    e.preventDefault();
 
     if (!bankName) {
       setBankNameError("Please enter the bank name.");
@@ -103,81 +109,104 @@ function SellerBankAccount({ history }) {
   };
 
   return (
-    <Container>
-      <Row className="justify-content-center py-2">
-        <Col xs={12} md={6}>
-          <h2 className="text-center py-2">Seller Bank Account</h2>
-          {loading && <Loader />}
+    <ScrollView contentContainerStyle={styles.container}>
+      <Text style={styles.heading}>Seller Bank Account</Text>
+      {loading && <Loader />}
 
-          {success && (
-            <Message variant="success">Form submitted successfully.</Message>
-          )}
-          {error && <Message variant="danger">{error}</Message>}
+      {success && (
+        <Message variant="success">Form submitted successfully.</Message>
+      )}
+      {error && <Message variant="danger">{error}</Message>}
 
-          <Form>
-            <Form.Group>
-              <Form.Label>Bank Account Name</Form.Label>
-              <Form.Control
-                type="text"
-                value={accountName}
-                onChange={(e) =>
-                  handleFieldChange("accountName", e.target.value)
-                }
-                placeholder="Enter account name"
-                className="rounded py-2 mb-2"
-                maxLength={100}
-                required
-              />
-              <Form.Text className="text-danger">{accountNameError}</Form.Text>
-            </Form.Group>
+      <View style={styles.formGroup}>
+        <Text style={styles.label}>Bank Account Name</Text>
+        <TextInput
+          style={styles.input}
+          value={accountName}
+          onChangeText={(value) => handleFieldChange("accountName", value)}
+          placeholder="Enter account name"
+        />
+        {accountNameError ? (
+          <Text style={styles.error}>{accountNameError}</Text>
+        ) : null}
+      </View>
 
-            <Form.Group>
-              <Form.Label>Bank Account Number</Form.Label>
-              <Form.Control
-                type="number"
-                value={bankAccountNumber}
-                onChange={(e) =>
-                  handleFieldChange("bankAccountNumber", e.target.value)
-                }
-                placeholder="Enter account number"
-                className="rounded py-2 mb-2"
-                maxLength={10}
-                required
-              />
-              <Form.Text className="text-danger">
-                {bankAccountNumberError}
-              </Form.Text>
-            </Form.Group>
+      <View style={styles.formGroup}>
+        <Text style={styles.label}>Bank Account Number</Text>
+        <TextInput
+          style={styles.input}
+          value={bankAccountNumber}
+          onChangeText={(value) =>
+            handleFieldChange("bankAccountNumber", value)
+          }
+          placeholder="Enter account number"
+          keyboardType="numeric"
+        />
+        {bankAccountNumberError ? (
+          <Text style={styles.error}>{bankAccountNumberError}</Text>
+        ) : null}
+      </View>
 
-            <Form.Group>
-              <Form.Label>Bank Name</Form.Label>
-              <Form.Control
-                type="text"
-                value={bankName}
-                onChange={(e) => handleFieldChange("bankName", e.target.value)}
-                placeholder="Enter bank name"
-                className="rounded py-2 mb-2"
-                required
-                maxLength={30}
-              />
-              <Form.Text className="text-danger">{bankNameError}</Form.Text>
-            </Form.Group>
+      <View style={styles.formGroup}>
+        <Text style={styles.label}>Bank Name</Text>
+        <TextInput
+          style={styles.input}
+          value={bankName}
+          onChangeText={(value) => handleFieldChange("bankName", value)}
+          placeholder="Enter bank name"
+        />
+        {bankNameError ? (
+          <Text style={styles.error}>{bankNameError}</Text>
+        ) : null}
+      </View>
 
-            {formError && <Message variant="danger">{formError}</Message>}
-          </Form>
+      {formError ? <Text style={styles.formError}>{formError}</Text> : null}
 
-          <Button
-            variant="primary"
-            onClick={handleSellerBankAccount}
-            className="rounded py-2 mb-2 text-center w-100"
-            disabled={loading || success}
-          >
-            Continue
-          </Button>
-        </Col>
-      </Row>
-    </Container>
+      <Button
+        title="Continue"
+        onPress={handleSellerBankAccount}
+        disabled={loading || success}
+      />
+    </ScrollView>
   );
-}
+};
+
+const styles = StyleSheet.create({
+  container: {
+    flexGrow: 1,
+    padding: 20,
+    backgroundColor: "#fff",
+  },
+  heading: {
+    fontSize: 24,
+    fontWeight: "bold",
+    marginBottom: 20,
+    textAlign: "center",
+  },
+  formGroup: {
+    marginBottom: 15,
+  },
+  label: {
+    fontSize: 16,
+    fontWeight: "bold",
+    marginBottom: 5,
+  },
+  input: {
+    borderWidth: 1,
+    borderColor: "#ccc",
+    padding: 10,
+    borderRadius: 5,
+  },
+  error: {
+    color: "red",
+    fontSize: 12,
+  },
+  formError: {
+    color: "red",
+    fontSize: 14,
+    textAlign: "center",
+    marginBottom: 10,
+  },
+});
 
 export default SellerBankAccount;

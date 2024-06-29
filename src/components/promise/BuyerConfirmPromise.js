@@ -1,16 +1,27 @@
 // BuyerConfirmPromise.js
 import React, { useState, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { Form, Button, Container, Row, Col } from "react-bootstrap";
-import { buyerConfirmPromise } from "../../redux/actions/PromiseActions";
+import {
+  View,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  StyleSheet,
+} from "react-native";
+import { useNavigation } from "@react-navigation/native";
+import { FontAwesomeIcon } from "@fortawesome/react-native-fontawesome";
+import { faExclamationTriangle } from "@fortawesome/free-solid-svg-icons";
+import {
+  buyerConfirmPromise,
+  resetBuyerConfirmPromiseState,
+} from "../../redux/actions/PromiseActions";
 import { createTransaction } from "../../redux/actions/transactionActions";
-import { useHistory } from "react-router-dom";
-import Message from "../Message";
-import Loader from "../Loader";
- 
-function BuyerConfirmPromise({ promiseId, amount }) { 
+import Message from "../../Message";
+import Loader from "../../Loader";
+
+const BuyerConfirmPromise = ({ promiseId, amount }) => {
   const dispatch = useDispatch();
-  const history = useHistory();
+  const navigation = useNavigation();
 
   const userLogin = useSelector((state) => state.userLogin);
   const { userInfo } = userLogin;
@@ -20,13 +31,8 @@ function BuyerConfirmPromise({ promiseId, amount }) {
   );
   const { success, error, loading } = buyerConfirmPromiseState;
 
-  // const createTransactionState = useSelector(
-  //   (state) => state.createTransactionState
-  // );
-  // const { success, error, loading } = createTransactionState;
-
   const [password, setPassword] = useState("");
-  const createdAt = new Date().toISOString();  
+  const createdAt = new Date().toISOString();
 
   const transactionData = {
     payment_id: promiseId,
@@ -38,73 +44,96 @@ function BuyerConfirmPromise({ promiseId, amount }) {
     if (success) {
       const timer = setTimeout(() => {
         dispatch(createTransaction(transactionData));
-        window.location.reload();
-        // history.push("/dashboard");
+        dispatch(resetBuyerConfirmPromiseState());
+        navigation.navigate("Home");
       }, 3000);
       return () => clearTimeout(timer);
     }
-    // eslint-disable-next-line
-  }, [dispatch, success, history]); 
+  }, [dispatch, success]);
 
   const promiseData = {
     password: password,
     promise_id: promiseId,
   };
-  console.log("promiseId:", promiseId);
 
   const handleBuyerConfirmPromise = () => {
     dispatch(buyerConfirmPromise(promiseData));
   };
 
   return (
-    <Container>
-      <Row className="justify-content-center py-2">
-        <Col>
-          {/* <h2 className="mb-4">Toggle Account Fund</h2> */}
-          {loading && <Loader />}
-          {success && (
-            <Message variant="success">Promise confirmed successfully.</Message>
-          )}
-          {error && <Message variant="danger">{error}</Message>}
-
-          <p className="rounded mt-2 py-1 text-center">
-            <i
-              className="fa fa-warning text-warning"
-              style={{ fontSize: "18px", 
-              // color: "yellow"
-             }}
-            ></i>{" "}
-            Warning! This action will confirm that your promise order from this 
-            seller is fulfilled and will transfer the promise amount from your
-            account to the seller's. Please enter the password for your account
-            email <strong>({userInfo.email}</strong>):{" "}
-          </p>
-
-          <Form>
-            <Form.Group>
-              <Form.Control
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                placeholder="Enter your password"
-                className="rounded mt-2"
-                required
-                maxLength={100}
-              />
-            </Form.Group>
-            <Button
-              variant="primary"
-              onClick={handleBuyerConfirmPromise}
-              className="rounded mt-2 text-center w-100"
-              disabled={password === "" || loading || success}
-            >
-              Submit
-            </Button>
-          </Form>
-        </Col>
-      </Row>
-    </Container>
+    <View style={styles.container}>
+      {loading && <Loader />}
+      {success && (
+        <Message variant="success">Promise confirmed successfully.</Message>
+      )}
+      {error && <Message variant="danger">{error}</Message>}
+      <Text style={styles.warningText}>
+        <Text style={styles.warningIcon}>
+          <FontAwesomeIcon
+            icon={faExclamationTriangle}
+            size={16}
+            color="#ffc107"
+          />
+        </Text>{" "}
+        Warning! This action will confirm that your promise order from this
+        seller is fulfilled and will transfer the promise amount from your
+        account to the seller's. Please enter the password for your account
+        email <Text style={styles.emailText}>{userInfo.email}</Text>:
+      </Text>
+      <TextInput
+        value={password}
+        onChangeText={(text) => setPassword(text)}
+        placeholder="Enter your password"
+        style={styles.input}
+        secureTextEntry={true}
+      />
+      <TouchableOpacity
+        onPress={handleBuyerConfirmPromise}
+        disabled={password === "" || loading || success}
+        style={styles.submitButton}
+      >
+        <Text style={styles.submitButtonText}>Submit</Text>
+      </TouchableOpacity>
+    </View>
   );
-}
+};
+
+const styles = StyleSheet.create({
+  container: {
+    justifyContent: "center",
+    alignItems: "center",
+    padding: 20,
+  },
+  warningText: {
+    marginBottom: 20,
+    textAlign: "center",
+  },
+  warningIcon: {
+    color: "#ffc107",
+  },
+  emailText: {
+    fontWeight: "bold",
+  },
+  input: {
+    width: "100%",
+    height: 40,
+    borderWidth: 1,
+    borderColor: "gray",
+    borderRadius: 5,
+    marginBottom: 20,
+    paddingHorizontal: 10,
+  },
+  submitButton: {
+    backgroundColor: "#007bff",
+    padding: 10,
+    borderRadius: 5,
+    width: "100%",
+    alignItems: "center",
+  },
+  submitButtonText: {
+    color: "#fff",
+    fontWeight: "bold",
+  },
+});
 
 export default BuyerConfirmPromise;

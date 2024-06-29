@@ -100,6 +100,9 @@ export const styles = StyleSheet.create({
     alignItems: "center",
     textAlign: "center",
   },
+  btnText: {
+    color: "#fff",
+  },
   registerButton: {
     width: "100%",
   },

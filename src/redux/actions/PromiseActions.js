@@ -10,6 +10,7 @@ import {
   BUYER_CONFIRM_PROMISE_REQUEST,
   BUYER_CONFIRM_PROMISE_SUCCESS,
   BUYER_CONFIRM_PROMISE_FAIL,
+  RESET_BUYER_CONFIRM_PROMISE_STATE,
   SELLER_CONFIRM_PROMISE_REQUEST,
   SELLER_CONFIRM_PROMISE_SUCCESS,
   SELLER_CONFIRM_PROMISE_FAIL,
@@ -22,6 +23,7 @@ import {
   SETTLE_DISPUTED_PROMISE_REQUEST,
   SETTLE_DISPUTED_PROMISE_SUCCESS,
   SETTLE_DISPUTED_PROMISE_FAIL,
+  RESET_SETTLE_DISPUTED_PROMISE_STATE,
   GET_ALL_PROMISE_REQUEST,
   GET_ALL_PROMISE_SUCCESS,
   GET_ALL_PROMISE_FAIL,
@@ -31,9 +33,11 @@ import {
   BUYER_CREATE_PROMISE_MESSAGE_REQUEST,
   BUYER_CREATE_PROMISE_MESSAGE_SUCCESS,
   BUYER_CREATE_PROMISE_MESSAGE_FAIL,
+  RESET_BUYER_CREATE_PROMISE_MESSAGE_STATE,
   SELLER_CREATE_PROMISE_MESSAGE_REQUEST,
   SELLER_CREATE_PROMISE_MESSAGE_SUCCESS,
   SELLER_CREATE_PROMISE_MESSAGE_FAIL,
+  RESET_SELLER_CREATE_PROMISE_MESSAGE_STATE,
   LIST_BUYER_PROMISE_MESSAGE_REQUEST,
   LIST_BUYER_PROMISE_MESSAGE_SUCCESS,
   LIST_BUYER_PROMISE_MESSAGE_FAIL,
@@ -145,8 +149,6 @@ export const clearBuyerMessageCounter =
         type: CLEAR_BUYER_PROMISE_MESSAGE_COUNTER_SUCCESS,
         payload: data,
       });
-      // window.location.href = "/promise";
-      // window.location.reload();
     } catch (error) {
       dispatch({
         type: CLEAR_BUYER_PROMISE_MESSAGE_COUNTER_FAIL,
@@ -186,8 +188,6 @@ export const clearSellerMessageCounter =
         type: CLEAR_SELLEE_PROMISE_MESSAG_COUNTERE_SUCCESS,
         payload: data,
       });
-      // window.location.href = "/promise";
-      // window.location.reload();
     } catch (error) {
       dispatch({
         type: CLEAR_SELLEE_PROMISE_MESSAG_COUNTERE_FAIL,
@@ -260,8 +260,6 @@ export const buyerCreatePromiseMessage =
         type: BUYER_CREATE_PROMISE_MESSAGE_SUCCESS,
         payload: data,
       });
-      // window.location.href = "/promise";
-      // window.location.reload();
     } catch (error) {
       dispatch({
         type: BUYER_CREATE_PROMISE_MESSAGE_FAIL,
@@ -272,6 +270,10 @@ export const buyerCreatePromiseMessage =
       });
     }
   };
+
+export const resetBuyerCreatePromiseMessageState = () => (dispatch) => {
+  dispatch({ type: RESET_BUYER_CREATE_PROMISE_MESSAGE_STATE });
+};
 
 export const sellerCreatePromiseMessage =
   (promiseMessageData) => async (dispatch, getState) => {
@@ -301,8 +303,6 @@ export const sellerCreatePromiseMessage =
         type: SELLER_CREATE_PROMISE_MESSAGE_SUCCESS,
         payload: data,
       });
-      // window.location.href = "/promise";
-      // window.location.reload();
     } catch (error) {
       dispatch({
         type: SELLER_CREATE_PROMISE_MESSAGE_FAIL,
@@ -313,6 +313,10 @@ export const sellerCreatePromiseMessage =
       });
     }
   };
+
+export const resetSellerCreatePromiseMessageState = () => (dispatch) => {
+  dispatch({ type: RESET_SELLER_CREATE_PROMISE_MESSAGE_STATE });
+};
 
 export const cancelPromise = (promiseData) => async (dispatch, getState) => {
   try {
@@ -426,7 +430,11 @@ export const settleDisputedPromise =
             : error.message,
       });
     }
-  }; 
+  };
+
+export const resetSettleDisputedPromiseState = () => (dispatch) => {
+  dispatch({ type: RESET_SETTLE_DISPUTED_PROMISE_STATE });
+};
 
 // export const createPromiseMessages =
 //   (promiseMessageData) => async (dispatch, getState) => {
@@ -571,8 +579,6 @@ export const buyerConfirmPromise =
         type: BUYER_CONFIRM_PROMISE_SUCCESS,
         payload: data,
       });
-      // window.location.href = "/promise";
-      // window.location.reload();
     } catch (error) {
       dispatch({
         type: BUYER_CONFIRM_PROMISE_FAIL,
@@ -583,6 +589,10 @@ export const buyerConfirmPromise =
       });
     }
   };
+
+export const resetBuyerConfirmPromiseState = () => (dispatch) => {
+  dispatch({ type: RESET_BUYER_CONFIRM_PROMISE_STATE });
+};
 
 export const sellerConfirmPromise =
   (promiseData) => async (dispatch, getState) => {
@@ -612,8 +622,6 @@ export const sellerConfirmPromise =
         type: SELLER_CONFIRM_PROMISE_SUCCESS,
         payload: data,
       });
-      window.location.reload();
-      window.location.href = "/dashboard/users";
     } catch (error) {
       dispatch({
         type: SELLER_CONFIRM_PROMISE_FAIL,

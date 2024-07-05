@@ -26,7 +26,7 @@ import UssdPayment from "./UssdPayment";
 import BankPayment from "./BankPayment";
 import TransferPayment from "./TransferPayment";
 import QrPayment from "./QrPayment";
-import { formatAmount } from "../../FormatAmount";
+import { formatAmount } from "./FormatAmount";
 
 const FundAccountButton = ({ amount, currency }) => {
   const userLogin = useSelector((state) => state.userLogin);
@@ -66,7 +66,8 @@ const FundAccountButton = ({ amount, currency }) => {
                       icon={faTimes}
                       size={16}
                       style={styles.icon}
-                    />{" "}
+                      color="red"
+                      />{" "}
                     Close
                   </Text>
                 </TouchableOpacity>
@@ -88,7 +89,7 @@ const FundAccountButton = ({ amount, currency }) => {
 
                   {currency === "USD" && (
                     <View style={styles.payOptionBtn}>
-                      <Text style={styles.closeButton}>
+                      <Text style={styles.payBtnText}>
                         <FontAwesomeIcon
                           icon={faCreditCard}
                           size={32}
@@ -109,7 +110,7 @@ const FundAccountButton = ({ amount, currency }) => {
 
                   {currency === "NGN" && (
                     <View style={styles.payOptionBtn}>
-                      <Text style={styles.closeButton}>
+                      <Text style={styles.payBtnText}>
                         <FontAwesomeIcon
                           icon={faCreditCard}
                           size={32}
@@ -225,7 +226,12 @@ const styles = StyleSheet.create({
     alignSelf: "center",
     padding: 10,
     fontSize: 18,
-    color: "blue",
+    color: "red",
+  },
+  payBtnText: {
+    alignSelf: "center",
+    fontSize: 18,
+    textAlign: "center",
   },
   payOptionBtn: {
     padding: 3,

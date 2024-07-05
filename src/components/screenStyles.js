@@ -100,6 +100,15 @@ export const styles = StyleSheet.create({
     alignItems: "center",
     textAlign: "center",
   },
+  roundedDarkBtn: {
+    backgroundColor: "#343a40",
+    color: "#fff",
+    padding: 10,
+    borderRadius: 25,
+    justifyContent: "center",
+    alignItems: "center",
+    textAlign: "center",
+  },
   btnText: {
     color: "#fff",
   },

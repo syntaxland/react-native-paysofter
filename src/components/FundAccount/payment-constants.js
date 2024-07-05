@@ -1,5 +1,15 @@
 // payment-constants.js
 
+export const PAYMENT_DURATION_CHOICES = [
+  ["Within 1 day", "Within 1 day"],
+  ["2 days", "Less than 2 days"],
+  ["3 days", "Less than 3 days"],
+  ["5 days", "Less than 5 days"],
+  ["1 week", "Less than 1 week"],
+  ["2 weeks", "Less than 2 weeks"],
+  ["1 month", "Less than 1 month"],
+];
+
 export const MONTH_CHOICES = [
   ["January", "01"],
   ["February", "02"],

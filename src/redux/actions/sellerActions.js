@@ -1,5 +1,5 @@
 // actions/sellerActions.js
-import axios from "axios";
+import axios from "../../axiosConfig";
 import {
   SELLER_ACCOUNT_REQUEST,
   SELLER_ACCOUNT_SUCCESS,

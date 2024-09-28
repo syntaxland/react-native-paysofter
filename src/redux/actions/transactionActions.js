@@ -1,5 +1,5 @@
 // transactionActions.js
-import axios from "axios";
+import axios from "../../axiosConfig";
 import { 
   USER_TRANSACTION_REQUEST,
   USER_TRANSACTION_SUCCESS,

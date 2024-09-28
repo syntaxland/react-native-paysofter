@@ -2,12 +2,12 @@
   "expo": {
     "name": "Paysofter",
     "slug": "paysofter",
-    "version": "2.0.8",
+    "version": "2.1.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
     "splash": {
-      "image": "./assets/splash.png",
+      "image": "./assets/splash.png", 
       "resizeMode": "contain",
       "backgroundColor": "#ffffff"
     },
@@ -46,7 +46,7 @@
               "foregroundImage": "./assets/adaptive-icon.png",
               "backgroundColor": "#ffffff"
             },
-            "versionCode": 8,
+            "versionCode": 10,
             "package": "com.jondebosco.paysofter"
           },
           "ios": {

@@ -7,7 +7,7 @@ import {
   userTransactionReducer,
   createTransactionReducer,
 } from "./reducers/transactionReducers";
-import { userPayoutReducer } from "./reducers/payoutReducers";
+import { userPayoutReducer } from "./reducers/payoutReducers"; 
 
 import {
   userLoginReducers,
@@ -307,3 +307,4 @@ export const initializeStore = async () => {
     applyMiddleware(thunk)
   );
 };
+

@@ -12,8 +12,8 @@ import {
   UPDATE_USER_LAST_LOGIN_FAIL,
 } from "../constants/userConstants";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import axios from "axios";
-// import axiosInstance from "../store";
+// import axios from "axios";
+import axios from "../../axiosConfig";
 
 import { API_URL } from "../../config/apiConfig";
 
@@ -40,19 +40,8 @@ export const login = (loginData) => async (dispatch) => {
       payload: data,
     });
 
-    // Set access token in Axios headers
-    // axios.defaults.headers.common["Authorization"] = `Bearer ${data.access}`;
-    // localStorage.setItem("userInfo", JSON.stringify(data));
     await AsyncStorage.setItem("userInfo", JSON.stringify(data));
 
-    // Set timer to refresh the access token after refreshTokenTime minutes (ms)
-    // let refreshTokenTime = 1000 * 60 * 900; // ms * hr * mins
-    let refreshTokenTime = 1000 * 60 * 60 * 24 * 7; // ms * hr * mins
-    setTimeout(() => {
-      dispatch(refreshToken(data.refresh));
-    }, refreshTokenTime);
-
-    // window.location.href = "/dashboard";
   } catch (error) {
     dispatch({
       type: USER_LOGIN_FAIL,
@@ -219,27 +208,23 @@ export const refreshToken = (refreshToken) => async (dispatch) => {
 export const logout = () => async (dispatch) => {
   try {
     // const userInfo = JSON.parse(localStorage.getItem("userInfo"));
-    await AsyncStorage.setItem("userInfo", JSON.stringify(data));
+    // await AsyncStorage.setItem("userInfo", JSON.stringify(data));
     // const { userLogin: { userInfo }, } = getState();
-    const config = {
-      headers: {
-        "Content-type": "application/json",
-        Authorization: `Bearer ${userInfo.access}`,
-      },
-    };
+    // const config = {
+    //   headers: {
+    //     "Content-type": "application/json",
+    //     Authorization: `Bearer ${userInfo.access}`,
+    //   },
+    // };
     // Blacklist the access token on logout
-    await axios.post(
-      `${API_URL}/api/users/logout/`,
-      { refresh: userInfo.refresh },
-      config
-    );
+    // await axios.post(
+    //   `${API_URL}/api/users/logout/`,
+    //   { refresh: userInfo.refresh },
+    //   config
+    // );
   } catch (error) {
     console.log("Error logging out:", error);
   }
-  // Remove access token from Axios headers
-  delete axios.defaults.headers.common["Authorization"];
-  // localStorage.removeItem("userInfo");
   await AsyncStorage.removeItem("userInfo");
   dispatch({ type: USER_LOGOUT });
-  // window.location.href = "/login";
 };

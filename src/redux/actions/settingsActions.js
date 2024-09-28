@@ -1,5 +1,5 @@
 // actions/settingsActions.js
-import axios from "axios";
+import axios from "../../axiosConfig";
 import {
   SELECT_CURRENCY_REQUEST,
   SELECT_CURRENCY_SUCCESS,

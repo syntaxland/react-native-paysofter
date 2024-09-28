@@ -1,5 +1,5 @@
 // PromiseActions.js
-import axios from "axios";
+import axios from "../../axiosConfig";
 import {
   GET_BUYER_PROMISE_REQUEST,
   GET_BUYER_PROMISE_SUCCESS,

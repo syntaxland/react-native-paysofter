@@ -7,7 +7,7 @@ import { useNavigation } from "@react-navigation/native";
 import Message from "../../Message";
 import Loader from "../../Loader";
 
-const SellerConfirmPromise = ({ promiseId }) => {
+const SellerConfirmPromise = ({ promiseId }) => { 
   const dispatch = useDispatch();
   const navigation = useNavigation();
 

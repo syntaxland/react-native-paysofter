@@ -1,5 +1,5 @@
 // payoutActions.js
-import axios from "axios";
+import axios from "../../axiosConfig";
 import {
   USER_PAYOUT_REQUEST,
   USER_PAYOUT_SUCCESS,

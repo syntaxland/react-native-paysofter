@@ -235,8 +235,8 @@ export const CustomDrawerContent = (props) => {
           <Text style={styles.greetingText}>
             {userInfo
               ? `${greeting}, ${
-                  userInfo.first_name.charAt(0).toUpperCase() +
-                  userInfo.first_name.slice(1)
+                  userInfo?.first_name?.charAt(0).toUpperCase() +
+                  userInfo?.first_name?.slice(1)
                 }!`
               : `${greeting}!`}
           </Text>

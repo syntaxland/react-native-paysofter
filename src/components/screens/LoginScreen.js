@@ -4,16 +4,15 @@ import {
   View,
   Text,
   TextInput,
-  Button,
+  // Button,
   SafeAreaView,
   ScrollView,
-    TouchableOpacity,
+  TouchableOpacity,
 } from "react-native";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigation } from "@react-navigation/native";
 import { FontAwesomeIcon } from "@fortawesome/react-native-fontawesome";
 import { faUser, faKey } from "@fortawesome/free-solid-svg-icons";
-
 import { Card } from "react-native-paper";
 import { login } from "../../redux/actions/userActions";
 import Loader from "../../Loader";
@@ -51,12 +50,6 @@ const LoginScreen = () => {
       return () => clearTimeout(timer);
     }
   }, [success, userInfo, dispatch, navigation]);
-
-  // useEffect(() => {
-  //   if (userInfo && success) {
-  //     navigation.navigate("Home");
-  //   }
-  // }, [success, userInfo, dispatch, navigation]);
 
   return (
     <SafeAreaView>
@@ -104,29 +97,44 @@ const LoginScreen = () => {
             <TouchableOpacity
               onPress={submitHandler}
               disabled={loading || !email || !password}
+              style={
+                loading || success || !email || !password
+                  ? styles.roundedDisabledBtn
+                  : styles.roundedPrimaryBtn
+              }
             >
-              <Text style={styles.roundedPrimaryBtn}>Login</Text>
+              <Text style={styles.btnTxt}>Login</Text>
             </TouchableOpacity>
           </View>
 
           <View style={styles.buttonContainer}>
             <TouchableOpacity
               onPress={() => navigation.navigate("Register")}
-              // disabled={loading}
+              disabled={loading}
+              style={
+                loading || success
+                  ? styles.roundedDisabledBtn
+                  : styles.roundedSuccessBtn
+              }
             >
-              <Text style={styles.roundedSuccessBtn}>Register</Text>
+              <Text style={styles.btnTxt}>Register</Text>
             </TouchableOpacity>
           </View>
 
           <View style={styles.buttonContainer}>
             <Text style={styles.primaryText}>Forgot Password? </Text>
             <TouchableOpacity
-            // onPress={() => navigation.navigate("Reset Password")}
+              // onPress={() => navigation.navigate("Reset Password")}
+              disabled={loading}
+              style={
+                loading || success
+                  ? styles.roundedDisabledBtn
+                  : styles.roundedDangerBtn
+              }
             >
-              <Text style={styles.roundedDangerBtn}>Reset Password</Text>
+              <Text style={styles.btnTxt}>Reset Password</Text>
             </TouchableOpacity>
           </View>
-          
         </View>
       </ScrollView>
     </SafeAreaView>

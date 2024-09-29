@@ -1,15 +1,9 @@
 // axiosConfig.js
-// import { logout } from "./redux/actions/userActions";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import axios from "axios";
-import { API_URL } from "./config/apiConfig";
-// import { navigationRef } from '../App';
-
-// let store;
-
-// export const setAxiosStore = (_store) => {
-//   store = _store;
-// };
+import { API_URL } from "./config/apiConfig"; 
+import { navigationRef } from "./navigation/navigationRef";
+// import { logout } from "./redux/actions/userActions";
 
 const axiosInstance = axios.create({
   baseURL: API_URL,
@@ -34,15 +28,15 @@ axiosInstance.interceptors.response.use(
         await AsyncStorage.removeItem("userInfo");
         console.log("userInfo removed");
 
-        // store.dispatch(logout());
-        // console.log("user logged out removed");
+        // logout();
+        // console.log("user logged out");
 
-        // if (navigationRef.isReady()) {
-        //   navigationRef.navigate("Login");
-        // console.log("user redirected to Login");
-        // } else {
-        //   console.error("Navigation not ready");
-        // }
+        if (navigationRef.isReady()) {
+          navigationRef.navigate("Login");
+        console.log("user redirected to Login");
+        } else {
+          console.error("Navigation not ready");
+        }
 
         return Promise.reject(error);
       } catch (refreshError) {

@@ -3,7 +3,7 @@ import { StyleSheet } from "react-native";
 
 export const styles = StyleSheet.create({
   safeArea: {
-    padding: 8, 
+    padding: 8,
     paddingVertical: 10,
     paddingBottom: 10,
   },
@@ -44,11 +44,6 @@ export const styles = StyleSheet.create({
     borderRadius: 5,
     marginBottom: 10,
   },
-  buttonText: {
-    color: "#fff",
-    fontSize: 16,
-    fontWeight: "bold",
-  },
   buttonContainer: {
     width: "100%",
     paddingHorizontal: 3,
@@ -57,6 +52,15 @@ export const styles = StyleSheet.create({
   },
   roundedPrimaryBtn: {
     backgroundColor: "#007bff",
+    color: "#fff",
+    padding: 10,
+    borderRadius: 25,
+    justifyContent: "center",
+    alignItems: "center",
+    textAlign: "center",
+  },
+  roundedDisabledBtn: {
+    backgroundColor: "#d3d3d3",
     color: "#fff",
     padding: 10,
     borderRadius: 25,
@@ -109,8 +113,51 @@ export const styles = StyleSheet.create({
     alignItems: "center",
     textAlign: "center",
   },
-  btnText: {
+
+  squaredPrimaryBtn: {
+    backgroundColor: "#007bff",
     color: "#fff",
+    padding: 10,
+    borderRadius: 5,
+    justifyContent: "center",
+    alignItems: "center",
+    textAlign: "center",
+  },
+  squaredDisabledBtn: {
+    backgroundColor: "#d3d3d3",
+    color: "#fff",
+    padding: 10,
+    borderRadius: 5,
+    justifyContent: "center",
+    alignItems: "center",
+    textAlign: "center",
+  },
+  squaredDangerBtn: {
+    backgroundColor: "#dc3545",
+    color: "#fff",
+    padding: 10,
+    borderRadius: 5,
+    justifyContent: "center",
+    alignItems: "center",
+    textAlign: "center",
+  },
+  squaredSuccessBtn: {
+    backgroundColor: "#28a745",
+    color: "#fff",
+    padding: 10,
+    borderRadius: 5,
+    justifyContent: "center",
+    alignItems: "center",
+    textAlign: "center",
+  },
+  buttonText: {
+    color: "#fff",
+    fontSize: 16,
+    fontWeight: "bold",
+  }, 
+  btnTxt: {
+    color: "#fff",
+    padding: 5,
   },
   registerButton: {
     width: "100%",
@@ -196,8 +243,8 @@ export const styles = StyleSheet.create({
     marginLeft: 10,
   },
   headerRightContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     // marginRight: 15,
   },
   optionIcon: {

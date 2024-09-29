@@ -81,7 +81,7 @@ function PaysofterPromiseBuyer() {
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;
   const currentItems = promises?.slice(indexOfFirstItem, indexOfLastItem);
 
-  const totalPages = Math.ceil(promises.length / itemsPerPage);
+  const totalPages = Math.ceil(promises?.length / itemsPerPage);
 
   const handlePagination = (pageNumber) => {
     setCurrentPage(pageNumber);
@@ -90,11 +90,11 @@ function PaysofterPromiseBuyer() {
   const formatAccountId = (accountId) => {
     const accountIdStr = String(accountId);
 
-    if (accountIdStr.length < 8) {
+    if (accountIdStr?.length < 8) {
       return accountIdStr;
     } else {
       const maskedPart =
-        "*".repeat(accountIdStr.length - 4) + accountIdStr.slice(-4);
+        "*".repeat(accountIdStr?.length - 4) + accountIdStr?.slice(-4);
       return maskedPart;
     }
   };
@@ -152,7 +152,7 @@ function PaysofterPromiseBuyer() {
               <View style={styles.cardContainer}>
                 <Card style={styles.card}>
                   <Card.Content>
-                    {currentItems.length === 0 ? (
+                    {currentItems?.length === 0 ? (
                       <View style={styles.noData}>
                         <Text style={styles.noDataContainer}>
                           Promises appear here.

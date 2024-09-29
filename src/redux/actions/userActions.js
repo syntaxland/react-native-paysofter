@@ -3,6 +3,7 @@ import {
   USER_LOGIN_FAIL,
   USER_LOGIN_SUCCESS,
   USER_LOGOUT,
+  RESET_SUCCESS_STATE,
   USER_LOGIN_REQUEST,
   USER_REGISTER_FAIL,
   USER_REGISTER_SUCCESS,
@@ -41,7 +42,6 @@ export const login = (loginData) => async (dispatch) => {
     });
 
     await AsyncStorage.setItem("userInfo", JSON.stringify(data));
-
   } catch (error) {
     dispatch({
       type: USER_LOGIN_FAIL,
@@ -51,6 +51,10 @@ export const login = (loginData) => async (dispatch) => {
           : error.message,
     });
   }
+};
+
+export const resetSuccessState = () => (dispatch) => {
+  dispatch({ type: RESET_SUCCESS_STATE });
 };
 
 export const updateUserLastLogin = (loginData) => async (dispatch) => {

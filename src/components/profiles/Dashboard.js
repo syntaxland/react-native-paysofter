@@ -9,7 +9,7 @@ import {
   TouchableOpacity,
   RefreshControl,
 } from "react-native";
-import { FontAwesomeIcon } from "@fortawesome/react-native-fontawesome";
+import { FontAwesomeIcon } from "@fortawesome/react-native-fontawesome"; 
 import {
   faPhone,
   faLightbulb,

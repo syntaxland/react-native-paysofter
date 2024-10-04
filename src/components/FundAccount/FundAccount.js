@@ -10,44 +10,64 @@ import {
 } from "react-native";
 import { useSelector } from "react-redux";
 import { Card } from "react-native-paper";
-import { Picker } from "@react-native-picker/picker";
+// import { Picker } from "@react-native-picker/picker";
 import Loader from "../../Loader";
 import Message from "../../Message";
 import PaymentScreen from "./PaymentScreen";
 // import GetNgnAccountFundBalance from "./GetNgnAccountFundBalance";
 
-const CURRENCY_CHOICES = [{ label: "NGN", value: "NGN" }];
+// const CURRENCY_CHOICES = [{ label: "NGN", value: "NGN" }];
 
-const FundAccount = ({ onClose }) => {
+const FundAccount = ({ currency }) => {
   const fundAccountState = useSelector((state) => state.fundAccountState);
   const { loading, error } = fundAccountState;
 
   const [message, setMessage] = useState("");
-  const [currency, setCurrency] = useState("NGN");
+  // const [currency, setCurrency] = useState("NGN");
   const [amount, setAmount] = useState(0);
-  const [showFundAccountButton, setShowFundAccountButton] = useState(false);
+  // const [showFundAccountButton, setShowFundAccountButton] = useState(false);
+  const [showPaymentPage, setShowPaymentPage] = useState(false);
 
-  const submitHandler = () => {
-    if (amount >= 100) {
-      setShowFundAccountButton(true);
-      // onClose();
+  const MINIMUM_AMOUNTS = {
+    NGN: 100,
+    USD: 1,
+    // other currencies
+  };
+  const minAmount = MINIMUM_AMOUNTS[currency] || 0;
+
+  const submitHandler = (e) => {
+    e.preventDefault();
+
+    if (amount >= minAmount) {
+      // setShowFundAccountButton(true);
+      setShowPaymentPage(true);
     } else {
-      setMessage("Minimum amount is 100 NGN.");
+      setMessage(`Minimum amount is ${minAmount} ${currency}.`);
     }
   };
+
+  // const submitHandler = () => {
+  //   if (amount >= 100) {
+  //     setShowFundAccountButton(true);
+  //     // onClose();
+  //   } else {
+  //     setMessage("Minimum amount is 100 NGN.");
+  //   }
+  // };
 
   return (
     <ScrollView contentContainerStyle={styles.container}>
       <Card style={styles.card}>
         <Card.Content>
-          <View style={styles.formContainer}>
-            <Text style={styles.header}>Fund NGN Account</Text>
+          {!showPaymentPage && (
+            <View style={styles.formContainer}>
+              <Text style={styles.header}>Fund NGN Account</Text>
 
-            {message && <Message variant="danger">{message}</Message>}
-            {error && <Message variant="danger">{error}</Message>}
-            {loading && <Loader />}
+              {message && <Message variant="danger">{message}</Message>}
+              {error && <Message variant="danger">{error}</Message>}
+              {loading && <Loader />}
 
-            <View style={styles.formGroup}>
+              {/* <View style={styles.formGroup}>
               <Text style={styles.label}>Currency</Text>
               <View style={styles.pickerContainer}>
                 <Picker
@@ -64,31 +84,36 @@ const FundAccount = ({ onClose }) => {
                   ))}
                 </Picker>
               </View>
+            </View> */}
+
+              <View style={styles.formGroup}>
+                <Text style={styles.label}>Amount</Text>
+                <TextInput
+                  style={styles.input}
+                  keyboardType="numeric"
+                  placeholder="Enter amount"
+                  value={amount.toString()}
+                  onChangeText={(text) => setAmount(Number(text))}
+                />
+              </View>
+
+              <View style={styles.buttonContainer}>
+                <Button
+                  title="Submit"
+                  onPress={submitHandler}
+                  color="#007bff"
+                />
+              </View>
             </View>
+          )}
 
-            <View style={styles.formGroup}>
-              <Text style={styles.label}>Amount</Text>
-              <TextInput
-                style={styles.input}
-                keyboardType="numeric"
-                placeholder="Enter amount"
-                value={amount.toString()}
-                onChangeText={(text) => setAmount(Number(text))}
-              />
-            </View>
-
-            <View style={styles.buttonContainer}>
-              <Button title="Submit" onPress={submitHandler} color="#007bff" />
-            </View>
-          </View>
-
-          {/* {showFundAccountButton && (
-            <GetNgnAccountFundBalance amount={amount} currency={currency} />
-          )} */}
-
-          {showFundAccountButton && (
+          {showPaymentPage && (
             <PaymentScreen amount={amount} currency={currency} />
           )}
+
+          {/* {showFundAccountButton && (
+            <PaymentScreen amount={amount} currency={currency} />
+          )} */}
         </Card.Content>
       </Card>
     </ScrollView>

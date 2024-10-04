@@ -123,7 +123,7 @@ const MessageInbox = () => {
             {currentItems?.length === 0 ? (
               <Text style={styles.empty}>Inbox messages appear here.</Text>
             ) : (
-              currentItems.map((item, index) => (
+              currentItems?.map((item, index) => (
                 <View key={index}>{renderItem({ item })}</View>
               ))
             )}

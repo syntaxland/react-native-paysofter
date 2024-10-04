@@ -5,11 +5,11 @@ import { useSelector } from "react-redux";
 import { useNavigation } from "@react-navigation/native";
 import { Card } from "react-native-paper";
 import { formatAmount } from "../../FormatAmount";
-import FundAccountButton from "./FundAccountButton";
+import FundAccountButton from "./FundAccountButton"; 
 
 const Paysofter = ({ currency, amount }) => {
   const navigation = useNavigation();
-
+ 
   const userLogin = useSelector((state) => state.userLogin);
   const { userInfo } = userLogin;
 
@@ -17,7 +17,7 @@ const Paysofter = ({ currency, amount }) => {
     if (!userInfo) {
       navigation.navigate("Login");
     }
-  }, [userInfo]);
+  }, [userInfo]); 
 
   return (
     <ScrollView contentContainerStyle={styles.container}>

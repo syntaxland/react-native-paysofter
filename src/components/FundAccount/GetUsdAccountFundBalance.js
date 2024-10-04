@@ -20,12 +20,12 @@ import {
 } from "@fortawesome/free-solid-svg-icons";
 import { getUserUsdAccountFundBalance } from "../../redux/actions/AccountFundActions";
 import ToggleUsdAccountSettings from "../settings/ToggleUsdAccountSettings";
-import FundUsdAccount from "./FundUsdAccount";
+import FundAccount from "./FundAccount";
 import { formatAmount } from "../../FormatAmount";
 import Message from "../../Message";
 import Loader from "../../Loader";
 
-const GetUsdAccountFundBalance = () => {
+const GetUsdAccountFundBalance = ({ currency }) => {
   const dispatch = useDispatch();
 
   const getUserUsdAccountFundBalanceState = useSelector(
@@ -49,9 +49,9 @@ const GetUsdAccountFundBalance = () => {
     dispatch(getUserUsdAccountFundBalance());
   }, [dispatch]);
 
-  const handleFundAccountClose = () => {
-    setShowFundAccount(false);
-  };
+  // const handleFundAccountClose = () => {
+  //   setShowFundAccount(false);
+  // };
 
   return (
     <View style={styles.container}>
@@ -66,7 +66,7 @@ const GetUsdAccountFundBalance = () => {
               // color={styles.iconColor.color}
             />
           </Text>{" "}
-          Account Fund Wallet (USD)
+          Account Fund Wallet ({currency})
         </Text>
         <Text style={styles.status}>
           Status:{" "}
@@ -159,7 +159,9 @@ const GetUsdAccountFundBalance = () => {
 
         <View style={styles.fundAccountBtn}>
           <TouchableOpacity onPress={() => setShowFundAccount(true)}>
-            <Text style={styles.roundedPrimaryBtn}>Fund USD Account</Text>
+            <Text style={styles.roundedPrimaryBtn}>
+              Fund {currency} Account
+            </Text>
           </TouchableOpacity>
         </View>
       </View>
@@ -167,7 +169,7 @@ const GetUsdAccountFundBalance = () => {
       <Modal visible={showFundAccount} animationType="slide" transparent={true}>
         <View style={styles.modalOverlay}>
           <View style={styles.modalContent}>
-            <Text style={styles.modalHeading}>Fund Account (USD)</Text>
+            <Text style={styles.modalHeading}>Fund Account ({currency})</Text>
 
             <Text style={styles.closeBtn}>
               <TouchableOpacity onPress={() => setShowFundAccount(false)}>
@@ -182,7 +184,7 @@ const GetUsdAccountFundBalance = () => {
                 </Text>
               </TouchableOpacity>
             </Text>
-            <FundUsdAccount onClose={handleFundAccountClose} />
+            <FundAccount currency={currency} />
           </View>
         </View>
       </Modal>
@@ -195,7 +197,7 @@ const GetUsdAccountFundBalance = () => {
         <View style={styles.modalOverlay}>
           <View style={styles.modalContent}>
             <Text style={styles.modalHeading}>
-              Toggle Account Fund Status (USD)
+              Toggle Account Fund Status ({currency})
             </Text>
             <ToggleUsdAccountSettings />
 

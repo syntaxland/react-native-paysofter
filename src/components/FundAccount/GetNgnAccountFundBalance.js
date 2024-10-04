@@ -26,7 +26,7 @@ import { formatAmount } from "../../FormatAmount";
 import Message from "../../Message";
 import Loader from "../../Loader";
 
-const GetNgnAccountFundBalance = ({ amount, currency }) => {
+const GetNgnAccountFundBalance = ({ currency }) => {
   const dispatch = useDispatch();
 
   const userAccountBalanceState = useSelector(
@@ -50,9 +50,9 @@ const GetNgnAccountFundBalance = ({ amount, currency }) => {
     dispatch(getUserAccountFundBalance());
   }, [dispatch]);
 
-  const handleFundAccountClose = () => {
-    setShowFundAccount(false);
-  };
+  // const handleFundAccountClose = () => {
+  //   setShowFundAccount(false);
+  // };
 
   return (
     <View style={styles.container}>
@@ -67,7 +67,7 @@ const GetNgnAccountFundBalance = ({ amount, currency }) => {
               // color={styles.iconColor.color}
             />
           </Text>{" "}
-          Account Fund Wallet (NGN)
+          Account Fund Wallet ({currency})
         </Text>
         <Text style={styles.status}>
           Status:{" "}
@@ -160,7 +160,9 @@ const GetNgnAccountFundBalance = ({ amount, currency }) => {
 
         <View style={styles.fundAccountBtn}>
           <TouchableOpacity onPress={() => setShowFundAccount(true)}>
-            <Text style={styles.roundedPrimaryBtn}>Fund NGN Account</Text>
+            <Text style={styles.roundedPrimaryBtn}>
+              Fund {currency} Account
+            </Text>
           </TouchableOpacity>
         </View>
       </View>
@@ -169,7 +171,7 @@ const GetNgnAccountFundBalance = ({ amount, currency }) => {
         <View style={styles.modalOverlay}>
           <View style={styles.modalContent}>
             <View style={styles.spaceBtwGroup}>
-              <Text style={styles.modalHeading}>Fund Account (NGN)</Text>
+              <Text style={styles.modalHeading}>Fund Account ({currency})</Text>
             </View>
 
             <Text style={styles.closeBtn}>
@@ -186,7 +188,7 @@ const GetNgnAccountFundBalance = ({ amount, currency }) => {
               </TouchableOpacity>
             </Text>
 
-            <FundAccount onClose={handleFundAccountClose} />
+            <FundAccount currency={currency} />
             {/* <PaymentScreen amount={amount} currency={currency} /> */}
           </View>
         </View>
@@ -200,7 +202,7 @@ const GetNgnAccountFundBalance = ({ amount, currency }) => {
         <View style={styles.modalOverlay}>
           <View style={styles.modalContent}>
             <Text style={styles.modalHeading}>
-              Toggle Account Fund Status (NGN)
+              Toggle Account Fund Status ({currency})
             </Text>
             <ToggleAccountSettings />
 

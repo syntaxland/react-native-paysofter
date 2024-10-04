@@ -124,9 +124,13 @@ const SelectCurrency = () => {
           <Card style={styles.card}>
             <Card.Content>
               <View style={styles.accountBalance}>
-              {selectedCurrency === "NGN" && <GetNgnAccountFundBalance />}
-              {selectedCurrency === "USD" && <GetUsdAccountFundBalance />}
-            </View>
+                {selectedCurrency === "NGN" && (
+                  <GetNgnAccountFundBalance currency={selectedCurrency} />
+                )}
+                {selectedCurrency === "USD" && (
+                  <GetUsdAccountFundBalance currency={selectedCurrency} />
+                )}
+              </View>
             </Card.Content>
           </Card>
         </View>

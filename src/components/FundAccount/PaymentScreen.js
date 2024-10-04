@@ -16,11 +16,17 @@ import { useSelector, useDispatch } from "react-redux";
 import { useNavigation } from "@react-navigation/native";
 import { Card } from "react-native-paper";
 import { getPaymentApiKeys } from "../../redux/actions/paymentActions";
+import {
+  fundUserAccount,
+  resetFundUserAccount,
+} from "../../redux/actions/AccountFundActions";
 import PaystackPayment from "./PaystackPayment";
 import PaystackUsd from "./PaystackUsd";
-import Paysofter from "./Paysofter";
+// import { Paysofter } from "../react-native-paysofter/src/index";
+import { Paysofter } from "react-native-paysofter";
 import Loader from "../../Loader";
 import Message from "../../Message";
+import { formatAmount } from "../../FormatAmount";
 
 const PaymentScreen = ({ amount, currency }) => {
   const navigation = useNavigation();
@@ -42,10 +48,24 @@ const PaymentScreen = ({ amount, currency }) => {
     getPaymentApiKeysState;
   console.log("apiKeys:", paystackPublicKey, paysofterPublicKey);
 
+  const fundAccountState = useSelector((state) => state.fundAccountState);
+  const { loading: fundLoading, success, error: fundError } = fundAccountState;
+
   const [selectedPaymentGateway, setSelectedPaymentGateway] = useState(null);
   const [showInfoModal, setShowInfoModal] = useState(false);
 
   const userEmail = userInfo?.email;
+  const createdAt = new Date().toLocaleString("en-US", {
+    weekday: "long",
+    year: "numeric",
+    month: "long",
+    day: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit",
+    hour12: true,
+    timeZoneName: "short",
+  });
 
   const handleInfoModalShow = () => {
     setShowInfoModal(true);
@@ -66,6 +86,40 @@ const PaymentScreen = ({ amount, currency }) => {
     dispatch(getPaymentApiKeys());
   }, [dispatch]);
 
+  const handleOnSuccess = () => {
+    console.log("handling onSuccess...");
+    const fundData = {
+      email: userEmail,
+      amount: amount,
+      currency: currency,
+      created_at: createdAt,
+    };
+    dispatch(fundUserAccount(fundData));
+  };
+
+  const onSuccess = () => {
+    handleOnSuccess();
+  };
+
+  const handleOnClose = () => {
+    console.log("handling onClose...");
+    navigation.navigate("Home");
+  };
+
+  const onClose = () => {
+    handleOnClose();
+  };
+
+  useEffect(() => {
+    if (success) {
+      const timer = setTimeout(() => {
+        dispatch(resetFundUserAccount());
+        navigation.navigate("Home");
+      }, 3000);
+      return () => clearTimeout(timer);
+    }
+  }, [success, navigation]);
+
   return (
     <ScrollView>
       <View style={styles.container}>
@@ -75,6 +129,14 @@ const PaymentScreen = ({ amount, currency }) => {
 
             {loading && <Loader />}
             {error && <Message variant="danger">{error}</Message>}
+
+            {fundLoading && <Loader />}
+            {fundError && <Message variant="danger">{fundError}</Message>}
+            {success && (
+              <Message variant="success">
+                Your account funded with {formatAmount(amount)} {currency}.
+              </Message>
+            )}
 
             <View style={styles.buttonContainer}>
               <View style={styles.labelContainer}>
@@ -145,6 +207,8 @@ const PaymentScreen = ({ amount, currency }) => {
                   amount={amount}
                   userEmail={userEmail}
                   paystackPublicKey={paystackPublicKey}
+                  onSuccess={onSuccess}
+                  onClose={onClose}
                 />
               )}
 
@@ -155,19 +219,28 @@ const PaymentScreen = ({ amount, currency }) => {
                     amount={amount}
                     userEmail={userEmail}
                     paystackPublicKey={paystackPublicKey}
+                    onSuccess={onSuccess}
+                    onClose={onClose}
                   />
                 )}
 
               {selectedPaymentGateway === "paysofter" && (
                 <Paysofter
-                  userEmail={userEmail}
+                  email={userEmail}
                   currency={currency}
                   amount={amount}
                   paysofterPublicKey={paysofterPublicKey}
+                  onSuccess={onSuccess}
+                  onClose={onClose}
+                  paymentRef={`PID${Math.floor(
+                    Math.random() * 100000000000000
+                  )}`}
+                  // showPromiseOption={true}
+                  // showFundOption={true}
+                  showCardOption={true}
                 />
               )}
             </View>
-            
           </Card.Content>
         </Card>
       </View>

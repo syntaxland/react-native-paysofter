@@ -265,13 +265,13 @@ const styles = StyleSheet.create({
     marginTop: 10,
   },
   headerCell: {
-    width: 150,
+    width: 200,
     marginLeft: 20,
     borderRightWidth: 1,
     borderColor: "black",
   },
   cell: {
-    width: 150,
+    width: 200,
     marginLeft: 10,
   },
   snHeaderCell: {

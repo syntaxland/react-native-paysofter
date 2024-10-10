@@ -29,6 +29,17 @@ const LoginScreen = () => {
     (state) => state.userLogin
   );
 
+  const [successMessage, setSuccessMessage] = useState("");
+  useEffect(() => {
+    if (userInfo && userInfo.is_verified) {
+      setSuccessMessage("You are already logged in.");
+      const timer = setTimeout(() => {
+        navigation.navigate("Home");
+      }, 3000);
+      return () => clearTimeout(timer);
+    }
+  }, [userInfo, navigation]);
+
   const lowerCaseEmail = email.toLowerCase();
   const loginData = useMemo(() => {
     return {
@@ -66,6 +77,10 @@ const LoginScreen = () => {
           {loading && <Loader />}
           {error && <Message variant="error">{error}</Message>}
           {success && <Message variant="success">Login successful</Message>}
+
+          {successMessage && (
+            <Message variant="success">{successMessage}</Message>
+          )}
 
           <View style={styles.cardContainer}>
             <Card style={styles.headerCard}>

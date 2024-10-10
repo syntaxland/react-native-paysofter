@@ -42,6 +42,18 @@ const RegisterScreen = () => {
   const dispatch = useDispatch();
   const navigation = useNavigation();
 
+  const { userInfo } = useSelector((state) => state.userLogin);
+  const [successMessage, setSuccessMessage] = useState("");
+  useEffect(() => {
+    if (userInfo && userInfo.is_verified) {
+      setSuccessMessage("You are already logged in.");
+      const timer = setTimeout(() => {
+        navigation.navigate("Home");
+      }, 3000);
+      return () => clearTimeout(timer);
+    }
+  }, [userInfo, navigation]);
+
   const [firstName, setFirstName] = useState("");
   const [firstNameError, setFirstNameError] = useState("");
 
@@ -277,6 +289,10 @@ const RegisterScreen = () => {
           {error && <Message variant="error">{error}</Message>}
           {formError && <Message variant="error">{formError}</Message>}
 
+          {successMessage && (
+            <Message variant="success">{successMessage}</Message>
+          )}
+
           <View style={styles.cardContainer}>
             <Card style={styles.headerCard}>
               <Card.Content>
@@ -440,7 +456,9 @@ const RegisterScreen = () => {
                   innerIconStyle={{ borderWidth: 2 }}
                 />
                 <TouchableOpacity onPress={handleTermsAndConditions}>
-                  <Text style={{ color: "blue", textAlign: "center" }}>Terms & Conditions</Text>
+                  <Text style={{ color: "blue", textAlign: "center" }}>
+                    Terms & Conditions
+                  </Text>
                 </TouchableOpacity>
                 {termsConditionsError && (
                   <Text style={styles.error}>{termsConditionsError}</Text>
